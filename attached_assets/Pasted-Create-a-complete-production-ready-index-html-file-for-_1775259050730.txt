@@ -1,0 +1,82 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app that demonstrates a Bottom Navigation system used across a trading app.
+
+The UI must look like a real trading/fintech app interface (similar to Binance, Coinbase, or multi-feature fintech apps), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary accent (active tab, highlights): #00E5FF
+- Secondary accent: #14B8A6
+- Success: #00FF88, #10B981
+- Error: #FF4444, #EF4444
+- Warning: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+APP STRUCTURE:
+- Mobile-first responsive layout (iPhone-style)
+- Fixed bottom navigation bar with 4–5 tabs:
+  - Home
+  - Markets
+  - Trade
+  - Wallet
+  - Profile (optional)
+
+BOTTOM NAVIGATION FEATURES:
+- Icons + labels for each tab
+- Active tab highlighted with cyan (#00E5FF) glow
+- Inactive tabs use muted gray (#94A3B8)
+- Smooth tab switching animation
+- Slight elevation/shadow above nav bar
+- Rounded top corners for nav container
+
+PAGE CONTENT (DYNAMIC):
+Each tab should display a different screen section (simulate multiple pages in one file):
+
+1. HOME:
+   - Dashboard summary (balance, quick actions)
+   - Small chart (gradient #00E5FF → #8B5CF6)
+
+2. MARKETS:
+   - List of assets (BTC, ETH, etc.)
+   - Price + % change (green/red indicators)
+
+3. TRADE:
+   - Buy/Sell buttons (cyan/red)
+   - Simple trade input fields
+
+4. WALLET:
+   - Asset balances list
+   - Deposit/Withdraw buttons
+
+5. PROFILE:
+   - User info card
+   - Settings shortcuts
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Clean spacing and structured layout
+- Subtle glow effects for active elements (cyan/green)
+- Minimal neon usage (10–15%)
+- Smooth transitions when switching tabs
+- Sticky bottom navigation (always visible)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript included)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Tab switching (show/hide sections dynamically)
+  - Active tab highlight update
+  - Basic animations/transitions
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level fintech app navigation system, showing how users move between pages, using ALL the provided colors in a clean, balanced, and professional way.

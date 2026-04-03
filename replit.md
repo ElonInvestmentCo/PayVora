@@ -28,6 +28,7 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 - **Sell Crypto** `app/sell-crypto.tsx` — sell BTC/ETH/SOL/etc for USD with market/limit orders
 - **Buy Crypto** `app/buy-crypto.tsx` — purchase crypto with USD wallet/card/bank, fee breakdown, confirmation modal
 - **Virtual Dollar Card** `app/virtual-card.tsx` — virtual Visa card with show/hide details, fund/withdraw/freeze actions, spending chart, card settings, transaction history
+- **Bills & eSIMs** `app/bills.tsx` — bill payments (airtime, data, electricity, TV, internet) with provider selection, eSIM plans with purchase modal and QR placeholder
 
 ## Key Commands
 

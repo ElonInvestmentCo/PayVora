@@ -1,0 +1,78 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Leaderboard”.
+
+The UI must look like a real trading/fintech app screen (similar to crypto trading platforms with rankings and performance stats), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary accent: #00E5FF (active tabs, highlights)
+- Secondary accent: #14B8A6
+- Success/profit: #00FF88, #10B981
+- Loss/negative: #FF4444, #EF4444
+- Warning/pending: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Leaderboard” title and back button
+
+TOP PERFORMERS SECTION:
+- Highlight top 3 users with larger cards:
+  - Rank #1, #2, #3
+  - Avatar (placeholder)
+  - Username
+  - Profit percentage (green/red)
+  - Glow effect for #1 (cyan/green highlight)
+
+LEADERBOARD LIST:
+- Scrollable ranked list of users
+Each row includes:
+  - Rank number
+  - Avatar
+  - Username
+  - Total profit/loss
+  - % gain/loss indicator (green for profit, red for loss)
+  - Small trend indicator (arrow up/down)
+
+FILTER & TABS:
+- Tabs: Daily / Weekly / Monthly / All-Time
+- Filter options:
+  - By asset (Crypto, Gift Cards, etc.)
+  - Search user by name
+
+OPTIONAL VISUALS:
+- Mini performance chart at top (gradient #00E5FF → #8B5CF6)
+- Badges (e.g., “Top Trader”, “Rising Star”)
+
+USER HIGHLIGHT:
+- Highlight current user’s rank with a distinct card or border (cyan glow)
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Clean spacing and structured layout
+- Subtle glow effects (cyan/green highlights)
+- Minimal neon usage (10–15%)
+- Smooth tab switching animations
+- Bottom navigation bar (Home, Markets, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript included)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Tab switching (Daily/Weekly/etc.)
+  - Dynamic leaderboard rendering (sample data array)
+  - Search/filter functionality
+  - Highlight current user row
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level fintech leaderboard/ranking screen, using ALL the provided colors in a clean, balanced, and professional way.

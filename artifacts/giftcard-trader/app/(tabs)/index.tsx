@@ -70,8 +70,8 @@ export default function HomeScreen() {
           {[
             { label: "Buy Card",     icon: "shopping-bag",  color: "#00FF88",      onPress: () => router.push("/buy") },
             { label: "Sell Card",    icon: "dollar-sign",   color: colors.primary, onPress: () => router.push("/sell") },
-            { label: "Buy Crypto",   icon: "trending-up",   color: "#14B8A6",      onPress: () => router.push("/buy-crypto") },
             { label: "Dollar Card",  icon: "credit-card",   color: "#8B5CF6",      onPress: () => router.push("/virtual-card") },
+            { label: "Bills",        icon: "smartphone",    color: "#F59E0B",      onPress: () => router.push("/bills") },
           ].map((action) => (
             <TouchableOpacity
               key={action.label}

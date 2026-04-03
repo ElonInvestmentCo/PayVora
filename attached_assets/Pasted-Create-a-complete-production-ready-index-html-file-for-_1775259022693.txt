@@ -1,0 +1,66 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Support Chat”.
+
+The UI must look like a real trading/fintech app chat screen (similar to in-app customer support chats), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Chat bubbles (agent/user): #1E293B (cards/surfaces)
+- Primary accent (send button, active elements): #00E5FF
+- Secondary accent: #14B8A6
+- Success: #00FF88, #10B981
+- Error: #FF4444, #EF4444
+- Warning: #F59E0B
+- Text primary: #FFFFFF (80–100% opacity)
+- Text secondary: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Support Chat” title, back button, and online status indicator (green)
+
+CHAT AREA:
+- Scrollable message area
+- Chat bubbles:
+  - User messages (aligned right, cyan accent glow)
+  - Support agent messages (aligned left, slate card style)
+- Timestamps under messages (muted gray)
+- Status indicators:
+  - Sent / Delivered / Read
+
+INPUT AREA:
+- Message input field
+- Send button (cyan glow)
+- Attachment icon (for file upload simulation)
+
+EXTRA FEATURES:
+- Typing indicator (e.g., “Support is typing…”)
+- Quick reply buttons (e.g., “Check transaction”, “KYC issue”, “Payment failed”)
+- Empty state (if no messages)
+
+UI/UX DETAILS:
+- Rounded chat bubbles (16px+)
+- Smooth scrolling and transitions
+- Subtle glow effects for active elements (cyan/green)
+- Minimal neon usage (10–15%)
+- Clean spacing and modern messaging UI
+- Bottom navigation bar (Home, Support, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript included)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Send message (append to chat)
+  - Simulate reply from support agent
+  - Scroll to latest message
+  - Typing indicator simulation
+  - Basic input validation (no empty messages)
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level fintech support chat screen, using ALL the provided colors in a clean, balanced, and professional way.
