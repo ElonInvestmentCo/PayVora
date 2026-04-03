@@ -22,7 +22,7 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 
 - **Home** `app/(tabs)/index.tsx` — wallet overview, quick actions, recent transactions
 - **Rates** `app/(tabs)/rates.tsx` — live exchange rates for card types
-- **Wallet** `app/(tabs)/wallet.tsx` — payout accounts and withdrawals
+- **Wallet** `app/(tabs)/wallet.tsx` — full wallet dashboard with portfolio chart, multi-asset list, transaction history, filter tabs (All/Crypto/Fiat), action buttons (Deposit/Withdraw/Transfer)
 - **Sell Gift Card** `app/sell.tsx` — sell physical/digital gift cards for NGN
 - **Buy Gift Card** `app/buy.tsx` — purchase gift cards with wallet/card/crypto
 - **Sell Crypto** `app/sell-crypto.tsx` — sell BTC/ETH/SOL/etc for USD with market/limit orders

@@ -10,13 +10,106 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
-import { WalletCard } from "@/components/WalletCard";
-import { StatusBadge } from "@/components/StatusBadge";
 
-const BANK_ACCOUNTS = [
-  { id: "1", bank: "First Bank", account: "•••• 4521", name: "Alex Johnson" },
-  { id: "2", bank: "GTBank", account: "•••• 8830", name: "Alex J." },
+type FilterTab = "all" | "crypto" | "fiat";
+
+interface Asset {
+  id: string;
+  name: string;
+  symbol: string;
+  balance: number;
+  fiatValue: number;
+  change: number;
+  icon: string;
+  color: string;
+  type: "crypto" | "fiat";
+}
+
+interface Tx {
+  id: string;
+  action: "Buy" | "Sell" | "Deposit" | "Withdraw";
+  asset: string;
+  amount: string;
+  fiat: string;
+  date: string;
+  status: "success" | "pending" | "error";
+  type: "crypto" | "fiat";
+}
+
+const ASSETS: Asset[] = [
+  { id: "btc",  name: "Bitcoin",   symbol: "BTC",  balance: 0.3425,  fiatValue: 15412.5,  change: 2.4,  icon: "bold",        color: "#F7931A", type: "crypto" },
+  { id: "eth",  name: "Ethereum",  symbol: "ETH",  balance: 4.125,   fiatValue: 11756.25, change: -1.2, icon: "triangle",    color: "#627EEA", type: "crypto" },
+  { id: "sol",  name: "Solana",    symbol: "SOL",  balance: 18.5,    fiatValue: 2627,     change: 5.8,  icon: "sun",         color: "#9945FF", type: "crypto" },
+  { id: "usdt", name: "Tether",    symbol: "USDT", balance: 2500,    fiatValue: 2500,     change: 0.01, icon: "dollar-sign", color: "#26A17B", type: "crypto" },
+  { id: "bnb",  name: "BNB",       symbol: "BNB",  balance: 2.8,     fiatValue: 873.6,    change: 1.1,  icon: "hexagon",     color: "#F3BA2F", type: "crypto" },
+  { id: "ngn",  name: "Naira",     symbol: "NGN",  balance: 253750,  fiatValue: 253750,   change: 0,    icon: "dollar-sign", color: "#00E5FF", type: "fiat" },
+  { id: "usd",  name: "US Dollar", symbol: "USD",  balance: 12450,   fiatValue: 12450,    change: 0,    icon: "dollar-sign", color: "#14B8A6", type: "fiat" },
 ];
+
+const TRANSACTIONS: Tx[] = [
+  { id: "1", action: "Buy",      asset: "BTC",  amount: "+0.015 BTC",    fiat: "-$675.00",    date: "Today, 3:45 PM",       status: "success", type: "crypto" },
+  { id: "2", action: "Deposit",  asset: "NGN",  amount: "+₦150,000",     fiat: "",            date: "Today, 1:20 PM",       status: "success", type: "fiat" },
+  { id: "3", action: "Sell",     asset: "ETH",  amount: "-0.5 ETH",      fiat: "+$1,425.00",  date: "Yesterday, 11:10 AM",  status: "pending", type: "crypto" },
+  { id: "4", action: "Withdraw", asset: "NGN",  amount: "-₦75,000",      fiat: "",            date: "Yesterday, 9:05 AM",   status: "success", type: "fiat" },
+  { id: "5", action: "Buy",      asset: "SOL",  amount: "+5.0 SOL",      fiat: "-$710.00",    date: "Apr 1, 4:30 PM",       status: "success", type: "crypto" },
+  { id: "6", action: "Sell",     asset: "BTC",  amount: "-0.02 BTC",     fiat: "+$900.00",    date: "Mar 31, 2:15 PM",      status: "error",   type: "crypto" },
+  { id: "7", action: "Deposit",  asset: "USD",  amount: "+$5,000",       fiat: "",            date: "Mar 30, 10:00 AM",     status: "success", type: "fiat" },
+];
+
+const CHART_POINTS = [42, 45, 43, 48, 46, 50, 47, 53, 51, 55, 52, 58, 56, 60, 57, 62, 59, 64, 61, 66, 63, 68, 65, 70];
+
+const totalBalance = ASSETS.reduce((s, a) => s + (a.type === "fiat" && a.symbol === "NGN" ? a.fiatValue / 750 : a.fiatValue), 0);
+
+function PortfolioChart() {
+  const max = Math.max(...CHART_POINTS);
+  const min = Math.min(...CHART_POINTS);
+  const range = max - min || 1;
+  const h = 80;
+
+  return (
+    <View style={cStyles.wrap}>
+      {CHART_POINTS.map((v, i) => {
+        const pct = (v - min) / range;
+        const barH = 6 + pct * (h - 6);
+        const isLast = i === CHART_POINTS.length - 1;
+        return (
+          <View key={i} style={cStyles.col}>
+            <View
+              style={{
+                height: barH,
+                borderRadius: 2,
+                backgroundColor: isLast ? "#00E5FF" : `rgba(0,229,255,${0.15 + pct * 0.55})`,
+              }}
+            />
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+const cStyles = StyleSheet.create({
+  wrap: { flexDirection: "row", alignItems: "flex-end", gap: 2, height: 80 },
+  col: { flex: 1, justifyContent: "flex-end" },
+});
+
+const ACTION_ICON_MAP: Record<string, string> = {
+  Buy: "arrow-down-left",
+  Sell: "arrow-up-right",
+  Deposit: "download",
+  Withdraw: "upload",
+};
+const ACTION_COLOR_MAP: Record<string, string> = {
+  Buy: "#00E5FF",
+  Sell: "#FF4444",
+  Deposit: "#00FF88",
+  Withdraw: "#F59E0B",
+};
+const STATUS_CFG: Record<string, { bg: string; border: string; text: string; label: string }> = {
+  success: { bg: "rgba(0,255,136,0.12)", border: "#00FF8830", text: "#00FF88", label: "Completed" },
+  pending: { bg: "rgba(245,158,11,0.12)", border: "#F59E0B30", text: "#F59E0B", label: "Pending" },
+  error:   { bg: "rgba(239,68,68,0.12)", border: "#EF444430", text: "#EF4444", label: "Failed" },
+};
 
 export default function WalletScreen() {
   const colors = useColors();
@@ -25,70 +118,181 @@ export default function WalletScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
+  const [filter, setFilter] = useState<FilterTab>("all");
+
+  const filteredAssets = filter === "all" ? ASSETS : ASSETS.filter((a) => a.type === filter);
+  const filteredTx = filter === "all" ? TRANSACTIONS : TRANSACTIONS.filter((t) => t.type === filter);
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: topPad + 16, paddingBottom: bottomPad + 100 },
-        ]}
+        contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: bottomPad + 100 }]}
       >
-        <Text style={[styles.title, { color: colors.foreground }]}>Wallet</Text>
+        {/* Header */}
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: colors.foreground }]}>Wallet Balance</Text>
+          <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
+            <Feather name="bell" size={18} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        </View>
 
-        <WalletCard balance={253750} onWithdraw={() => {}} onDeposit={() => {}} />
-
-        {/* Payout Accounts */}
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Payout Accounts</Text>
-        {BANK_ACCOUNTS.map((acc) => (
-          <View
-            key={acc.id}
-            style={[styles.bankCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-          >
-            <View style={[styles.bankIcon, { backgroundColor: "rgba(0,229,255,0.1)" }]}>
-              <Feather name="credit-card" size={20} color={colors.primary} />
+        {/* Total Balance Card */}
+        <View style={[styles.balanceCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Text style={[styles.balLabel, { color: colors.mutedForeground }]}>Total Portfolio Value</Text>
+          <View style={styles.balRow}>
+            <Text style={[styles.balAmount, { color: colors.foreground }]}>
+              ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+            <View style={[styles.changePill, { backgroundColor: "rgba(0,255,136,0.12)" }]}>
+              <Feather name="trending-up" size={12} color="#00FF88" />
+              <Text style={[styles.changeText, { color: "#00FF88" }]}>+3.2%</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.bankName, { color: colors.foreground }]}>{acc.bank}</Text>
-              <Text style={[styles.bankAcc, { color: colors.mutedForeground }]}>
-                {acc.name} · {acc.account}
+          </View>
+          <PortfolioChart />
+        </View>
+
+        {/* Warning banner */}
+        <View style={[styles.alertBanner, { backgroundColor: "rgba(245,158,11,0.1)", borderColor: "#F59E0B30" }]}>
+          <Feather name="alert-circle" size={16} color="#F59E0B" />
+          <Text style={[styles.alertText, { color: "#F59E0B" }]}>
+            Complete KYC verification to increase your withdrawal limit.
+          </Text>
+          <TouchableOpacity activeOpacity={0.8}>
+            <Feather name="x" size={14} color="#F59E0B" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Action buttons */}
+        <View style={styles.actionRow}>
+          {[
+            { label: "Deposit",  icon: "download",      color: colors.primary },
+            { label: "Withdraw", icon: "upload",         color: "#14B8A6" },
+            { label: "Transfer", icon: "repeat",         color: colors.mutedForeground, outlined: true },
+          ].map((btn) => (
+            <TouchableOpacity
+              key={btn.label}
+              activeOpacity={0.8}
+              style={[
+                styles.actionBtn,
+                btn.outlined
+                  ? { borderColor: colors.border, borderWidth: 1, backgroundColor: "transparent" }
+                  : { backgroundColor: `${btn.color}18` },
+              ]}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: `${btn.color}20` }]}>
+                <Feather name={btn.icon as any} size={18} color={btn.color} />
+              </View>
+              <Text style={[styles.actionLabel, { color: btn.outlined ? colors.mutedForeground : btn.color }]}>
+                {btn.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Filter tabs */}
+        <View style={[styles.filterRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {(["all", "crypto", "fiat"] as FilterTab[]).map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              testID={`filter-${tab}`}
+              onPress={() => setFilter(tab)}
+              activeOpacity={0.8}
+              style={[
+                styles.filterBtn,
+                {
+                  backgroundColor: filter === tab ? "rgba(0,229,255,0.15)" : "transparent",
+                  borderColor: filter === tab ? colors.primary : "transparent",
+                },
+              ]}
+            >
+              <Text style={[styles.filterText, { color: filter === tab ? colors.primary : colors.mutedForeground }]}>
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Assets list */}
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Assets</Text>
+        {filteredAssets.map((asset) => (
+          <View key={asset.id} style={[styles.assetRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.assetIcon, { backgroundColor: `${asset.color}22` }]}>
+              <Feather name={asset.icon as any} size={18} color={asset.color} />
+            </View>
+            <View style={styles.assetInfo}>
+              <Text style={[styles.assetName, { color: colors.foreground }]}>{asset.name}</Text>
+              <Text style={[styles.assetBal, { color: colors.mutedForeground }]}>
+                {asset.type === "fiat"
+                  ? `${asset.symbol === "NGN" ? "₦" : "$"}${asset.balance.toLocaleString()}`
+                  : `${asset.balance} ${asset.symbol}`}
               </Text>
             </View>
-            <StatusBadge status="success" label="Active" />
+            <View style={styles.assetRight}>
+              <Text style={[styles.assetFiat, { color: colors.foreground }]}>
+                ${asset.type === "fiat" && asset.symbol === "NGN"
+                  ? (asset.fiatValue / 750).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : asset.fiatValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Text>
+              {asset.change !== 0 && (
+                <View style={styles.assetChangeRow}>
+                  <Feather
+                    name={asset.change >= 0 ? "trending-up" : "trending-down"}
+                    size={10}
+                    color={asset.change >= 0 ? "#00FF88" : "#FF4444"}
+                  />
+                  <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: asset.change >= 0 ? "#00FF88" : "#FF4444" }}>
+                    {asset.change >= 0 ? "+" : ""}{asset.change}%
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         ))}
 
-        <TouchableOpacity
-          style={[styles.addAccount, { borderColor: colors.border }]}
-          activeOpacity={0.8}
-        >
-          <Feather name="plus-circle" size={20} color={colors.primary} />
-          <Text style={[styles.addAccountText, { color: colors.primary }]}>Add Payout Account</Text>
-        </TouchableOpacity>
+        {/* Transaction History */}
+        <View style={styles.txHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground, marginBottom: 0 }]}>Transaction History</Text>
+          <TouchableOpacity activeOpacity={0.8}>
+            <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* Payout history */}
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Payout History</Text>
-        {[
-          { amount: "₦75,000", date: "Today 2:30 PM", method: "First Bank", status: "success" as const },
-          { amount: "₦36,000", date: "Yesterday", method: "GTBank", status: "pending" as const },
-          { amount: "₦140,000", date: "Apr 1", method: "First Bank", status: "success" as const },
-        ].map((payout, i) => (
-          <View
-            key={i}
-            style={[styles.payoutRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-          >
-            <View style={[styles.payoutIcon, { backgroundColor: "rgba(16,185,129,0.1)" }]}>
-              <Feather name="arrow-up-right" size={16} color="#10B981" />
+        {filteredTx.map((tx) => {
+          const st = STATUS_CFG[tx.status];
+          return (
+            <View key={tx.id} style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.txIcon, { backgroundColor: `${ACTION_COLOR_MAP[tx.action]}15` }]}>
+                <Feather name={ACTION_ICON_MAP[tx.action] as any} size={16} color={ACTION_COLOR_MAP[tx.action]} />
+              </View>
+              <View style={styles.txInfo}>
+                <View style={styles.txTop}>
+                  <Text style={[styles.txAction, { color: colors.foreground }]}>{tx.action} {tx.asset}</Text>
+                  <Text style={[styles.txAmount, { color: tx.action === "Buy" || tx.action === "Deposit" ? "#00FF88" : "#FF4444" }]}>
+                    {tx.amount}
+                  </Text>
+                </View>
+                <View style={styles.txBottom}>
+                  <Text style={[styles.txDate, { color: colors.mutedForeground }]}>{tx.date}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: st.bg, borderColor: st.border }]}>
+                    <View style={[styles.statusDot, { backgroundColor: st.text }]} />
+                    <Text style={[styles.statusText, { color: st.text }]}>{st.label}</Text>
+                  </View>
+                </View>
+                {tx.fiat ? (
+                  <Text style={[styles.txFiat, { color: colors.mutedForeground }]}>{tx.fiat}</Text>
+                ) : null}
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.payoutAmount, { color: colors.foreground }]}>{payout.amount}</Text>
-              <Text style={[styles.payoutMeta, { color: colors.mutedForeground }]}>
-                {payout.method} · {payout.date}
-              </Text>
-            </View>
-            <StatusBadge status={payout.status} />
+          );
+        })}
+
+        {filteredTx.length === 0 && (
+          <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Feather name="inbox" size={28} color={colors.mutedForeground} />
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No transactions found</Text>
           </View>
-        ))}
+        )}
       </ScrollView>
     </View>
   );
@@ -97,80 +301,78 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { paddingHorizontal: 20 },
-  title: {
-    fontSize: 24,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 20,
+
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  title: { fontSize: 24, fontFamily: "Inter_700Bold" },
+  iconBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: "center", justifyContent: "center", borderWidth: 1,
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 14,
-    marginTop: 8,
+
+  balanceCard: { borderRadius: 16, padding: 20, borderWidth: 1, marginBottom: 14, gap: 12 },
+  balLabel: { fontSize: 12, fontFamily: "Inter_400Regular", textTransform: "uppercase", letterSpacing: 0.8 },
+  balRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  balAmount: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  changePill: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
+  changeText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
+  alertBanner: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    borderRadius: 12, padding: 12, borderWidth: 1, marginBottom: 16,
   },
-  bankCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 10,
+  alertText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 17 },
+
+  actionRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
+  actionBtn: {
+    flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: "center", gap: 8,
   },
-  bankIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+  actionIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  actionLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+
+  filterRow: { flexDirection: "row", borderRadius: 12, borderWidth: 1, padding: 4, gap: 4, marginBottom: 20 },
+  filterBtn: { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: "center", borderWidth: 1 },
+  filterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
+  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", marginBottom: 14 },
+
+  assetRow: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10,
   },
-  bankName: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    marginBottom: 2,
+  assetIcon: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  assetInfo: { flex: 1, gap: 2 },
+  assetName: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  assetBal: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  assetRight: { alignItems: "flex-end", gap: 3 },
+  assetFiat: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  assetChangeRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+
+  txHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14, marginTop: 8 },
+  seeAll: { fontSize: 13, fontFamily: "Inter_500Medium" },
+
+  txRow: {
+    flexDirection: "row", alignItems: "flex-start", gap: 12,
+    padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10,
   },
-  bankAcc: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
+  txIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginTop: 2 },
+  txInfo: { flex: 1, gap: 4 },
+  txTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  txAction: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  txAmount: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  txBottom: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  txDate: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  txFiat: { fontSize: 12, fontFamily: "Inter_400Regular" },
+
+  statusBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    borderRadius: 20, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3,
   },
-  addAccount: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    padding: 14,
-    marginBottom: 24,
+  statusDot: { width: 5, height: 5, borderRadius: 3 },
+  statusText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+
+  emptyState: {
+    borderRadius: 14, borderWidth: 1, padding: 30,
+    alignItems: "center", gap: 10,
   },
-  addAccountText: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-  },
-  payoutRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  payoutIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  payoutAmount: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    marginBottom: 2,
-  },
-  payoutMeta: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-  },
+  emptyText: { fontSize: 14, fontFamily: "Inter_500Medium" },
 });
