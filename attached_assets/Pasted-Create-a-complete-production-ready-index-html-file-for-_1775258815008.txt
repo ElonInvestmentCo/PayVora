@@ -1,0 +1,66 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Virtual Dollar Card”.
+
+The UI must look like a real trading/fintech app screen (similar to apps that provide virtual USD cards), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary CTA: #00E5FF (buttons like “Create Card”, “Fund Card”)
+- Secondary accent: #14B8A6
+- Success: #00FF88, #10B981
+- Error: #FF4444, #EF4444
+- Warning: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Virtual Dollar Card” title and back button
+- Virtual card display (realistic card UI) showing:
+  - Card holder name
+  - Masked card number (**** **** **** 1234)
+  - Expiry date and CVV (toggle show/hide)
+  - Card brand (Visa/Mastercard style)
+- Available card balance (USD)
+- Action buttons:
+  - Create Card (if none exists)
+  - Fund Card (cyan)
+  - Withdraw / Spend (teal)
+  - Freeze/Unfreeze card toggle
+- Transaction history for the card:
+  - List of purchases with merchant name and amount
+  - Status tags (green = successful, amber = pending, red = failed)
+- Card settings section:
+  - Set spending limit
+  - Enable/disable online transactions
+- Optional mini spending chart (gradient #00E5FF → #8B5CF6)
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Glassmorphism or soft card effect for the virtual card
+- Subtle glow highlights (cyan/green)
+- Clean spacing and premium fintech feel
+- Minimal neon usage (10–15%)
+- Smooth interactions (hover/tap animations)
+- Bottom navigation bar (Home, Cards, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript inside)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Toggle card details visibility (show/hide number & CVV)
+  - Simulate fund/withdraw actions
+  - Toggle freeze/unfreeze state
+  - Basic interaction for settings (on/off switches)
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level virtual dollar card screen inside a fintech trading app, using ALL the provided colors in a clean, balanced, and professional way.

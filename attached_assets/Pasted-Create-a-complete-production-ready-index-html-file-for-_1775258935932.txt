@@ -1,0 +1,82 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “KYC Verification”.
+
+The UI must look like a real trading/fintech app screen (similar to Binance, Coinbase, or other regulated apps), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary CTA: #00E5FF (buttons like “Submit”, “Verify Now”)
+- Secondary accent: #14B8A6
+- Success/verified: #00FF88, #10B981
+- Error/rejected: #FF4444, #EF4444
+- Warning/pending: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “KYC Verification” title and back button
+
+VERIFICATION STATUS SECTION:
+- Show current KYC status:
+  - Not Verified (red)
+  - Pending Review (amber)
+  - Verified (green)
+- Progress indicator (Step 1 → Step 2 → Step 3)
+
+FORM SECTIONS:
+1. Personal Information:
+   - Full name
+   - Date of birth
+   - Address
+2. ID Verification:
+   - ID type selector (Passport, Driver’s License, National ID)
+   - Upload front and back of ID (drag & drop UI)
+3. Selfie Verification:
+   - Upload selfie or camera capture placeholder
+
+UPLOAD UI:
+- Drag & drop upload cards
+- File preview after upload
+- Upload status indicators (success, error)
+
+CONFIRMATION:
+- “Submit Verification” button (cyan glow)
+- Confirmation modal before submission
+- Success message after submission
+
+ADDITIONAL FEATURES:
+- Tips/info section (e.g., “Make sure your ID is clear”)
+- Status badges:
+  - Green = approved
+  - Amber = under review
+  - Red = rejected
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Clean spacing and step-by-step layout
+- Subtle glow highlights (cyan/green)
+- Minimal neon usage (10–15%)
+- Smooth transitions between steps
+- Bottom navigation bar (Home, Profile, Verification, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript included)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Multi-step form navigation (Next/Back)
+  - File upload preview
+  - Basic form validation (required fields)
+  - Status update simulation (Pending → Verified)
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level KYC verification screen in a fintech trading app, using ALL the provided colors in a clean, balanced, and professional way.

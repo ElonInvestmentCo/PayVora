@@ -1,0 +1,77 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Settings”.
+
+The UI must look like a real trading/fintech app screen (similar to Binance, Coinbase, or advanced fintech apps), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary CTA: #00E5FF (buttons like “Save Changes”)
+- Secondary accent: #14B8A6
+- Success: #00FF88, #10B981
+- Error/Danger: #FF4444, #EF4444
+- Warning: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Settings” title and back button
+
+PROFILE SECTION:
+- User avatar (placeholder)
+- Name and email display
+- Edit profile button
+
+SECURITY SETTINGS:
+- Change password (input fields)
+- Enable/disable 2FA toggle
+- Biometric login toggle (Face ID / Fingerprint)
+- Device/session management section
+
+NOTIFICATIONS:
+- Toggle switches:
+  - Transaction alerts
+  - Price alerts
+  - Promotions
+
+APP SETTINGS:
+- Dark mode toggle (default ON)
+- Language selector
+- Currency selector
+
+PAYMENT & LIMITS:
+- Set transaction limits
+- Linked payment methods section
+
+DANGER ZONE:
+- Logout button
+- Delete account button (red styling with confirmation modal)
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Sectioned cards layout
+- Subtle glow effects for active toggles (cyan/green)
+- Minimal neon usage (10–15%)
+- Smooth toggle animations
+- Bottom navigation bar (Home, Markets, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JavaScript included)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Toggle switches (on/off states)
+  - Form interactions (change password validation)
+  - Modal for delete account confirmation
+  - Save changes interaction (simulate success state)
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level fintech Settings screen, using ALL the provided colors in a clean, balanced, and professional way.
