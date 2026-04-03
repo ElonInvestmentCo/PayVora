@@ -66,6 +66,13 @@ function RootLayoutNav() {
           animation: "slide_from_bottom",
         }}
       />
+      <Stack.Screen
+        name="transactions"
+        options={{
+          headerShown: false,
+          animation: "slide_from_bottom",
+        }}
+      />
     </Stack>
   );
 }

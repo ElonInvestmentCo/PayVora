@@ -91,7 +91,7 @@ export default function HomeScreen() {
         {/* Transactions */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Transactions</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/transactions")}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>
