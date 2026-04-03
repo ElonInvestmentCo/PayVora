@@ -45,14 +45,24 @@ export default function HomeScreen() {
             <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Good morning</Text>
             <Text style={[styles.username, { color: colors.foreground }]}>Alex Johnson</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-            activeOpacity={0.8}
-            testID="notifications-button"
-          >
-            <Feather name="bell" size={20} color={colors.mutedForeground} />
-            <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <TouchableOpacity
+              style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.8}
+              onPress={() => router.push("/settings")}
+              testID="settings-button"
+            >
+              <Feather name="settings" size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+              activeOpacity={0.8}
+              testID="notifications-button"
+            >
+              <Feather name="bell" size={20} color={colors.mutedForeground} />
+              <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Wallet Card */}
