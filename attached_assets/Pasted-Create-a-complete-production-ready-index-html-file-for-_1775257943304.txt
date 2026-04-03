@@ -1,0 +1,59 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Buy Gift Card”.
+
+The UI must look like a real trading app screen (similar to crypto/asset trading apps), using a dark premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary CTA: #00E5FF (Buy Now button)
+- Secondary accent: #14B8A6
+- Success/confirmed: #00FF88, #10B981
+- Errors/invalid: #FF4444, #EF4444
+- Warnings/pending: #F59E0B
+- Data visuals gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style screen)
+- Header with “Buy Gift Card” title and back button
+- Gift card selection (Amazon, Apple/iTunes, Google Play, Steam, etc.) with icons
+- Country/region selector
+- Input fields:
+  - Amount (USD or local currency)
+  - Quantity selector
+- Real-time price calculation (e.g., “You pay: $50 → ₦37,500”)
+- Exchange rate display (styled in cyan/green)
+- Payment method selector (wallet balance, card, crypto)
+- Wallet balance display at top
+- “Buy Now” button (cyan with glow effect)
+- Order summary card before confirmation
+- Transaction status tags (green = completed, amber = pending, red = failed)
+
+UI/UX DETAILS:
+- Clean fintech layout with rounded corners (12–16px)
+- Soft shadows and subtle glow highlights (cyan/green)
+- Minimal neon usage (max 10–15% of UI)
+- Smooth hover/tap animations
+- Optional mini price chart or rate trend (using gradient cyan → purple)
+- Bottom navigation bar (Home, Markets, Buy, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (include CSS + JavaScript inside)
+- Use only HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Dynamically calculate total price
+  - Update summary instantly when inputs change
+  - Basic validation (empty fields, invalid numbers)
+- Clean, well-structured, readable code
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to copy and run in a browser
+
+GOAL:
+The final result should look like a real, production-level fintech trading app Buy Gift Card screen, using ALL the provided colors in a balanced, professional way.
