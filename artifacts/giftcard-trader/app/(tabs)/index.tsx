@@ -68,10 +68,10 @@ export default function HomeScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           {[
-            { label: "Buy Card",    icon: "shopping-bag", color: "#00FF88",      onPress: () => router.push("/buy") },
-            { label: "Sell Card",   icon: "dollar-sign",  color: colors.primary, onPress: () => router.push("/sell") },
-            { label: "Sell Crypto", icon: "trending-down", color: "#FF4444",     onPress: () => router.push("/sell-crypto") },
-            { label: "Rates",      icon: "bar-chart-2",  color: "#14B8A6",      onPress: () => router.push("/(tabs)/rates") },
+            { label: "Buy Card",    icon: "shopping-bag",  color: "#00FF88",      onPress: () => router.push("/buy") },
+            { label: "Sell Card",   icon: "dollar-sign",   color: colors.primary, onPress: () => router.push("/sell") },
+            { label: "Buy Crypto",  icon: "trending-up",   color: "#14B8A6",      onPress: () => router.push("/buy-crypto") },
+            { label: "Sell Crypto", icon: "trending-down",  color: "#FF4444",     onPress: () => router.push("/sell-crypto") },
           ].map((action) => (
             <TouchableOpacity
               key={action.label}

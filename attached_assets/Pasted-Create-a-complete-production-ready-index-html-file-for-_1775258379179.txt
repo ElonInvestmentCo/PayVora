@@ -1,0 +1,63 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Buy Crypto”.
+
+The UI must look like a real trading app screen (similar to Binance, Coinbase, or other crypto exchanges), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary CTA (Buy button): #00E5FF (with glow effect)
+- Secondary accent: #14B8A6
+- Success/price up: #00FF88, #10B981
+- Loss/price down: #FF4444, #EF4444
+- Warning/pending: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Buy Crypto” title and back button
+- Wallet balance display (fiat + crypto)
+- Crypto selector (BTC, ETH, USDT, etc.)
+- Input fields:
+  - Amount in fiat (USD)
+  - Equivalent crypto amount (auto-calculated)
+- Live crypto price display (e.g., BTC = $45,000) with % change indicator
+- Mini chart (line or candlestick) using gradient (#00E5FF → #8B5CF6)
+- Payment method selector (wallet, card, bank, etc.)
+- Fee breakdown (network fee, service fee)
+- “Buy Now” button (cyan glow)
+- Confirmation modal (overlay using rgba black)
+- Order summary card (amount, rate, fees, total cost)
+- Status indicators:
+  - Green = completed
+  - Amber = pending
+  - Red = failed
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Clean spacing and modern fintech feel
+- Subtle shadows and glow highlights (cyan/green)
+- Minimal neon usage (10–15%)
+- Smooth transitions and hover/tap effects
+- Bottom navigation bar (Home, Markets, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (include CSS + JavaScript inside)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Real-time conversion between fiat and crypto
+  - Dynamic updates on user input
+  - Basic validation (empty fields, invalid values)
+  - Simple modal open/close logic
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-level crypto trading app Buy screen, using ALL the provided colors in a clean, balanced, and professional way.
