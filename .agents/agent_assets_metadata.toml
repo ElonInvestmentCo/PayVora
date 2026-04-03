@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "6GU0TljLCwIFKiPvooMdn"
+uri = "file://artifacts/giftcard-trader/assets/images/icon.png"
+type = "image"
+title = "giftcard trader app icon"

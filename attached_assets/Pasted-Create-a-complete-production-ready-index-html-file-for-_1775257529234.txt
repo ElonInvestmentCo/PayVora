@@ -1,0 +1,56 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Sell Gift Card”.
+
+The design must follow a dark trading app UI style (similar to crypto/asset trading apps) and use the exact color palette below consistently.
+
+COLOR SYSTEM (STRICT):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary action: #00E5FF (buttons like “Sell Now”)
+- Secondary accent: #14B8A6
+- Success/Profit: #00FF88, #10B981
+- Error/Sell: #FF4444, #EF4444
+- Warning/Pending: #F59E0B
+- Chart/visual gradient: #00E5FF → #8B5CF6
+- Text: #FFFFFF (80% opacity for main text)
+- Muted text / labels: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE REQUIREMENTS:
+- Fully responsive mobile-first layout (iPhone style)
+- Header with page title “Sell Gift Card” and back button
+- Card selection section (Amazon, iTunes, Steam, etc.)
+- Input fields:
+  - Gift card type dropdown
+  - Amount input
+  - Currency selector
+- Live rate display (e.g., “Rate: $1 = ₦750”) styled in cyan/green
+- Calculated payout display (updates dynamically with JavaScript)
+- Upload section for gift card image (drag & drop UI)
+- “Sell Now” button (cyan, glowing effect)
+- Transaction summary card
+- Status tags (green = success, amber = pending, red = error)
+
+UI DETAILS:
+- Use modern rounded corners (12–16px)
+- Soft shadows and glow effects (cyan/green highlights)
+- Subtle gradients for charts or highlights
+- Clean spacing and professional fintech feel
+- Bottom navigation bar (Home, Trade, Sell, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (include CSS + JS inside)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables for all colors (:root)
+- Add basic JS logic:
+  - Update payout amount dynamically when user inputs value
+  - Simple file upload preview
+- Accessible and clean code structure
+
+OUTPUT FORMAT:
+- Only return the full working index.html code
+- No explanations
+- Ready to copy and run in browser
+
+GOAL:
+The UI should look like a real, production-ready fintech trading app page where users can sell gift cards, using ALL the provided colors in a clean and balanced way (no overuse of neon).
