@@ -30,6 +30,7 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 - **Virtual Dollar Card** `app/virtual-card.tsx` — virtual Visa card with show/hide details, fund/withdraw/freeze actions, spending chart, card settings, transaction history
 - **Bills & eSIMs** `app/bills.tsx` — bill payments (airtime, data, electricity, TV, internet) with provider selection, eSIM plans with purchase modal and QR placeholder
 - **Transactions** `app/transactions.tsx` — full transaction history with category tabs (All/Crypto/Gift Cards/Bills/Card/Wallet), status filters, search, summary stats, volume chart, transaction detail modal
+- **KYC Verification** `app/kyc.tsx` — 3-step verification (personal info, ID document upload, selfie), progress indicator, status banner, confirmation modal, verified perks display
 
 ## Key Commands
 

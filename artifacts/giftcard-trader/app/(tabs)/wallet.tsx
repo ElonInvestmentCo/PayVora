@@ -158,8 +158,8 @@ export default function WalletScreen() {
           <Text style={[styles.alertText, { color: "#F59E0B" }]}>
             Complete KYC verification to increase your withdrawal limit.
           </Text>
-          <TouchableOpacity activeOpacity={0.8}>
-            <Feather name="x" size={14} color="#F59E0B" />
+          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push("/kyc")}>
+            <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#F59E0B" }}>Verify</Text>
           </TouchableOpacity>
         </View>
 
