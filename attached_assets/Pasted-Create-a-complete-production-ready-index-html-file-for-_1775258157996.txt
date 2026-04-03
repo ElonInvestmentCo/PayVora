@@ -1,0 +1,64 @@
+Create a complete, production-ready index.html file for a modern fintech mobile web app page titled “Sell Crypto”.
+
+The UI must look like a real trading app screen (similar to Binance, Coinbase, or other crypto exchanges), using a dark, premium design and the exact color palette below.
+
+COLOR SYSTEM (STRICT USAGE):
+- Background: #0A1428 (main), #000000 (deep sections)
+- Cards/Surfaces: #1E293B
+- Primary action (Sell button): #00E5FF (with glow effect)
+- Secondary accent: #14B8A6
+- Profit/success: #00FF88, #10B981
+- Loss/sell indicators: #FF4444, #EF4444
+- Warning/pending: #F59E0B
+- Data/chart gradient: #00E5FF → #8B5CF6
+- Primary text: #FFFFFF (80–100% opacity)
+- Secondary text: #94A3B8
+- Borders/dividers: #334155
+- Overlay: rgba(0,0,0,0.6)
+
+PAGE FEATURES:
+- Mobile-first responsive layout (iPhone-style)
+- Header with “Sell Crypto” title and back button
+- Wallet balance display (e.g., BTC balance)
+- Crypto selector (BTC, ETH, USDT, etc.)
+- Input fields:
+  - Amount to sell (crypto)
+  - Equivalent fiat value (auto-calculated)
+- Live crypto price display (e.g., BTC = $45,000) with % change
+- Mini candlestick or line chart (use gradient #00E5FF → #8B5CF6)
+- Toggle for market vs limit sell
+- Fee display and breakdown
+- “Sell Now” button (cyan glow)
+- Confirmation modal (overlay with rgba black)
+- Transaction summary card (amount, rate, fees, payout)
+- Status indicators:
+  - Green = completed
+  - Amber = pending
+  - Red = failed
+
+UI/UX DETAILS:
+- Rounded corners (12–16px)
+- Clean spacing, modern fintech look
+- Subtle shadows and glow highlights (cyan/green)
+- Minimal neon usage (max 10–15%)
+- Smooth transitions/animations
+- Bottom navigation bar (Home, Markets, Trade, Wallet)
+
+TECH REQUIREMENTS:
+- Single file: index.html (CSS + JS included inside)
+- Use pure HTML, CSS, and vanilla JavaScript (no frameworks)
+- Use CSS variables (:root) for all colors
+- JavaScript functionality:
+  - Real-time conversion between crypto and fiat
+  - Update values dynamically on input
+  - Basic validation (empty/invalid input)
+  - Toggle between market and limit modes
+  - Simple modal open/close logic
+
+OUTPUT RULES:
+- Return ONLY the full working index.html code
+- No explanations or extra text
+- Must be ready to run in a browser
+
+GOAL:
+The result should look like a real, production-ready crypto trading app Sell screen, using ALL the provided colors in a balanced, professional way.
