@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { CardTypeSelector, CARD_TYPES } from "@/components/CardTypeSelector";
 import { RateCard } from "@/components/RateCard";
 import { GlowButton } from "@/components/GlowButton";
@@ -67,10 +68,12 @@ export default function SellScreen() {
 
   const handleSubmit = useCallback(async () => {
     if (!amount || numAmount <= 0) {
+      hapticError();
       Alert.alert("Error", "Please enter a valid card amount.");
       return;
     }
     if (!imageUri) {
+      hapticError();
       Alert.alert("Error", "Please upload your gift card image.");
       return;
     }
@@ -94,6 +97,7 @@ export default function SellScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert(
       "Trade Submitted!",
       `Your ${cardInfo?.name} card trade for ${currency}${numAmount} (₦${payout.toLocaleString()}) has been submitted and is being reviewed.`,

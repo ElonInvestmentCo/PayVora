@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   TouchableOpacity,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useColors } from "@/hooks/useColors";
+import { hapticMedium } from "@/utils/haptics";
 
 interface GlowButtonProps {
   title: string;
@@ -34,11 +35,16 @@ export function GlowButton({
         ? colors.secondary
         : colors.destructive;
 
+  const handlePress = useCallback(() => {
+    hapticMedium();
+    onPress();
+  }, [onPress]);
+
   return (
     <View style={[styles.shadowWrap, { shadowColor: bgColor }]}>
       <TouchableOpacity
         testID={testID}
-        onPress={onPress}
+        onPress={handlePress}
         disabled={disabled || loading}
         activeOpacity={0.8}
         style={[

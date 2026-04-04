@@ -16,6 +16,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSelection } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useKyc } from "@/contexts/KycContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -292,7 +293,7 @@ export default function SettingsScreen() {
             <Switch
               testID="dark-mode-switch"
               value={isDark}
-              onValueChange={toggleDarkMode}
+              onValueChange={() => { hapticSelection(); toggleDarkMode(); }}
               trackColor={{ false: colors.border, true: "rgba(139,92,246,0.3)" }}
               thumbColor={isDark ? "#8B5CF6" : "#94A3B8"}
             />

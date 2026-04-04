@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -117,6 +118,7 @@ export default function BuyCryptoScreen() {
 
   const handleConfirm = useCallback(async () => {
     if (payment === "wallet" && totalCost > usdBalance) {
+      hapticError();
       Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
       return;
     }
@@ -141,6 +143,7 @@ export default function BuyCryptoScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert(
       "Purchase Complete!",
       `You bought ${cryptoAmount.toFixed(8)} ${crypto.symbol} for $${totalCost.toFixed(2)}`,

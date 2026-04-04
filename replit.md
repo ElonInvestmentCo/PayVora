@@ -42,8 +42,9 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 - **ThemeContext** `contexts/ThemeContext.tsx` — `isDark` toggle, consumed by `useColors()` hook. Settings dark mode switch wired to `useTheme().toggle()`.
 - **WalletContext** `contexts/WalletContext.tsx` — `ngnBalance`, `usdBalance`, `assets[]`, `transactions[]`, `virtualCard*` state. All buy/sell/bills screens call `addTransaction()`, `updateNgnBalance()`/`updateUsdBalance()`. Virtual card uses `fundVirtualCard()`, `withdrawVirtualCard()`, `toggleFreezeCard()`.
 - **NotificationsContext** `contexts/NotificationsContext.tsx` — `notifications[]`, `unreadCount`, `showPanel`, `togglePanel()`, `addNotification()`. Bell icons on Home/Wallet open the panel. All trade actions add notifications.
-- **KycContext** `contexts/KycContext.tsx` — Backend-driven KYC status via API.
+- **KycContext** `contexts/KycContext.tsx` — Fully client-side KYC with instant validation (name, DOB, address rules). `runFullVerification()` sets status to verified/rejected. No API calls.
 - **NotificationsPanel** `components/NotificationsPanel.tsx` — Slide-down notification panel rendered at root `_layout.tsx`.
+- **Haptics** `utils/haptics.ts` — Cross-platform haptic feedback (expo-haptics on native, navigator.vibrate on web). Functions: `hapticLight/Medium/Heavy/Success/Error/Warning/Selection()`. Wired into: GlowButton (medium on press), home quick actions (light), trade success/error alerts, settings dark mode toggle (selection), virtual card fund/withdraw warnings, bills validation errors, KYC flow steps.
 - **Provider order** (_layout.tsx): `ThemeProvider > WalletProvider > NotificationsProvider > KycProvider`.
 
 ## Key Commands

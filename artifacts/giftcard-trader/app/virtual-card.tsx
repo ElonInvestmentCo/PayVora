@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess, hapticWarning } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -93,6 +94,7 @@ export default function VirtualCardScreen() {
   const handleFund = useCallback(async () => {
     const fundAmount = 100;
     if (usdBalance < fundAmount) {
+      hapticWarning();
       Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
       return;
     }
@@ -100,6 +102,7 @@ export default function VirtualCardScreen() {
     await new Promise((r) => setTimeout(r, 1500));
     setFundLoading(false);
     fundVirtualCard(fundAmount);
+    hapticSuccess();
     addTransaction({
       type: "card",
       category: "Card",
@@ -122,6 +125,7 @@ export default function VirtualCardScreen() {
   const handleWithdraw = useCallback(() => {
     const withdrawAmount = 50;
     if (virtualCardBalance < withdrawAmount) {
+      hapticWarning();
       Alert.alert("Insufficient Card Balance", "Not enough funds on card to withdraw.");
       return;
     }

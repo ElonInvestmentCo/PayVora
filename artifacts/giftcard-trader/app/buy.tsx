@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -121,6 +122,7 @@ export default function BuyScreen() {
       return;
     }
     if (payment === "wallet" && totalNGN > ngnBalance) {
+      hapticError();
       Alert.alert("Insufficient Balance", "You don't have enough NGN in your wallet.");
       return;
     }
@@ -144,6 +146,7 @@ export default function BuyScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert(
       "Order Placed!",
       `Your ${card.name} gift card (${selectedCountry.currency} ${totalUSD}) has been purchased successfully. Check your email for delivery.`,

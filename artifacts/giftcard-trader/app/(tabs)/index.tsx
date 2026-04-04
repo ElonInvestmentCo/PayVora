@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticLight } from "@/utils/haptics";
 import { WalletCard } from "@/components/WalletCard";
 import { RateCard } from "@/components/RateCard";
 import { TransactionItem, Transaction } from "@/components/TransactionItem";
@@ -85,10 +86,10 @@ export default function HomeScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           {[
-            { label: "Buy Card",     icon: "shopping-bag",  color: "#00FF88",      onPress: () => router.push("/buy") },
-            { label: "Sell Card",    icon: "dollar-sign",   color: colors.primary, onPress: () => router.push("/sell") },
-            { label: "Dollar Card",  icon: "credit-card",   color: "#8B5CF6",      onPress: () => router.push("/virtual-card") },
-            { label: "Bills",        icon: "smartphone",    color: "#F59E0B",      onPress: () => router.push("/bills") },
+            { label: "Buy Card",     icon: "shopping-bag",  color: "#00FF88",      onPress: () => { hapticLight(); router.push("/buy"); } },
+            { label: "Sell Card",    icon: "dollar-sign",   color: colors.primary, onPress: () => { hapticLight(); router.push("/sell"); } },
+            { label: "Dollar Card",  icon: "credit-card",   color: "#8B5CF6",      onPress: () => { hapticLight(); router.push("/virtual-card"); } },
+            { label: "Bills",        icon: "smartphone",    color: "#F59E0B",      onPress: () => { hapticLight(); router.push("/bills"); } },
           ].map((action) => (
             <TouchableOpacity
               key={action.label}

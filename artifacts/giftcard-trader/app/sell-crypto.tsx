@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -133,6 +134,7 @@ export default function SellCryptoScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert(
       "Sell Order Placed!",
       `Successfully sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,

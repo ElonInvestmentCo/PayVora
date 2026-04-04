@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -108,10 +109,12 @@ export default function BillsScreen() {
 
   const handlePay = useCallback(async () => {
     if (!isValidBill) {
+      hapticError();
       Alert.alert("Error", "Please fill in all fields with valid values.");
       return;
     }
     if (numAmount > usdBalance) {
+      hapticError();
       Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
       return;
     }
@@ -135,6 +138,7 @@ export default function BillsScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert("Payment Successful", `$${numAmount.toFixed(2)} ${selectedService} payment to ${provider} completed.`);
     setPhone(""); setAmount(""); setProvider("");
   }, [isValidBill, numAmount, selectedService, provider, usdBalance, updateUsdBalance, addTransaction, addNotification]);
@@ -142,6 +146,7 @@ export default function BillsScreen() {
   const handleBuyEsim = useCallback(async () => {
     if (!selectedPlan) return;
     if (selectedPlan.price > usdBalance) {
+      hapticError();
       Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
       return;
     }
@@ -166,6 +171,7 @@ export default function BillsScreen() {
       type: "success",
       time: "Just now",
     });
+    hapticSuccess();
     Alert.alert("eSIM Purchased!", `${selectedPlan.region} ${selectedPlan.data} plan activated. Check your email for the QR code.`);
   }, [selectedPlan, usdBalance, updateUsdBalance, addTransaction, addNotification]);
 
