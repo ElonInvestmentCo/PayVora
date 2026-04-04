@@ -1,83 +1,72 @@
-import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
-import { Feather } from "@expo/vector-icons";
-import React from "react";
-import {
-  Platform,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Home, TrendingUp, Wallet, ArrowDownLeft, User } from "lucide-react-native";
+import { cssInterop, useColorScheme } from "nativewind";
 
-import { useColors } from "@/hooks/useColors";
+cssInterop(Home, { className: { target: "style", nativeStyleToProp: { color: true } } });
+cssInterop(TrendingUp, { className: { target: "style", nativeStyleToProp: { color: true } } });
+cssInterop(Wallet, { className: { target: "style", nativeStyleToProp: { color: true } } });
+cssInterop(ArrowDownLeft, { className: { target: "style", nativeStyleToProp: { color: true } } });
+cssInterop(User, { className: { target: "style", nativeStyleToProp: { color: true } } });
 
-export default function TabLayout() {
-  const colors = useColors();
-  const isIOS = Platform.OS === "ios";
-  const isWeb = Platform.OS === "web";
+export default function TabsLayout() {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
         tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.card,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
+          backgroundColor: isDark ? "#0A1428" : "#FFFFFF",
+          borderTopColor: isDark ? "#334155" : "#E2E8F0",
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: "Inter_600SemiBold",
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={80}
-              tint="dark"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.card }]} />
-          ),
+        tabBarActiveTintColor: "#00E5FF",
+        tabBarInactiveTintColor: isDark ? "#94A3B8" : "#64748B",
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <Feather name="home" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Home className={focused ? "text-[#00E5FF]" : "text-[#94A3B8]"} size={24} />
+          ),
         }}
       />
       <Tabs.Screen
         name="markets"
         options={{
           title: "Markets",
-          tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <TrendingUp className={focused ? "text-[#00E5FF]" : "text-[#94A3B8]"} size={24} />
+          ),
         }}
       />
       <Tabs.Screen
         name="rates"
         options={{
           title: "Trade",
-          tabBarIcon: ({ color }) => <Feather name="repeat" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <ArrowDownLeft className={focused ? "text-[#00E5FF]" : "text-[#94A3B8]"} size={24} />
+          ),
         }}
       />
       <Tabs.Screen
         name="wallet"
         options={{
           title: "Wallet",
-          tabBarIcon: ({ color }) => <Feather name="credit-card" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Wallet className={focused ? "text-[#00E5FF]" : "text-[#94A3B8]"} size={24} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <Feather name="user" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <User className={focused ? "text-[#00E5FF]" : "text-[#94A3B8]"} size={24} />
+          ),
         }}
       />
     </Tabs>

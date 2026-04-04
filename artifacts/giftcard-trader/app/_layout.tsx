@@ -1,3 +1,5 @@
+import "@/global.css";
+
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -13,6 +15,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "nativewind";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { KycProvider } from "@/contexts/KycContext";
@@ -25,8 +28,18 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-function DynamicStatusBar() {
+function SyncDarkMode() {
   const { isDark } = useTheme();
+  const { setColorScheme } = useColorScheme();
+  useEffect(() => {
+    setColorScheme(isDark ? "dark" : "light");
+  }, [isDark, setColorScheme]);
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.style.backgroundColor = isDark ? "#0A1428" : "#F8FAFC";
+      document.body.style.backgroundColor = isDark ? "#0A1428" : "#F8FAFC";
+    }
+  }, [isDark]);
   return <StatusBar style={isDark ? "light" : "dark"} />;
 }
 
@@ -141,7 +154,7 @@ export default function RootLayout() {
                 <WalletProvider>
                   <NotificationsProvider>
                     <KycProvider>
-                      <DynamicStatusBar />
+                      <SyncDarkMode />
                       <RootLayoutNav />
                       <NotificationsPanel />
                     </KycProvider>

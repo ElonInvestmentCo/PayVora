@@ -1,27 +1,25 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
-  Platform,
   Modal,
-  Pressable,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
-import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
-import { hapticSuccess } from "@/utils/haptics";
-import { GlowButton } from "@/components/GlowButton";
+import { useColorScheme } from "nativewind";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { hapticSuccess, hapticError, hapticSelection } from "@/utils/haptics";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 
 type CryptoId = "btc" | "eth" | "usdt" | "sol" | "xrp" | "bnb";
-type OrderType = "market" | "limit";
 
 interface Crypto {
   id: CryptoId;
@@ -30,575 +28,384 @@ interface Crypto {
   price: number;
   change: number;
   balance: number;
-  icon: string;
+  emoji: string;
   color: string;
 }
 
 const CRYPTOS: Crypto[] = [
-  { id: "btc",  name: "Bitcoin",  symbol: "BTC",  price: 45000, change: 2.4,  balance: 0.3425, icon: "bold",     color: "#F7931A" },
-  { id: "eth",  name: "Ethereum", symbol: "ETH",  price: 2850,  change: -1.2, balance: 4.125,  icon: "triangle", color: "#627EEA" },
-  { id: "usdt", name: "Tether",   symbol: "USDT", price: 1.0,   change: 0.01, balance: 2500,   icon: "dollar-sign", color: "#26A17B" },
-  { id: "sol",  name: "Solana",   symbol: "SOL",  price: 142,   change: 5.8,  balance: 18.5,   icon: "sun",     color: "#9945FF" },
-  { id: "xrp",  name: "Ripple",   symbol: "XRP",  price: 0.62,  change: -0.5, balance: 3200,   icon: "droplet", color: "#23292F" },
-  { id: "bnb",  name: "BNB",      symbol: "BNB",  price: 312,   change: 1.1,  balance: 2.8,    icon: "hexagon", color: "#F3BA2F" },
+  { id: "btc",  name: "Bitcoin",  symbol: "BTC",  price: 42500.50, change: -2.45, balance: 0.5,    emoji: "₿", color: "#F7931A" },
+  { id: "eth",  name: "Ethereum", symbol: "ETH",  price: 2850,     change: 3.12,  balance: 4.125,  emoji: "Ξ", color: "#627EEA" },
+  { id: "usdt", name: "Tether",   symbol: "USDT", price: 1.0,      change: 0.01,  balance: 2500,   emoji: "₮", color: "#26A17B" },
+  { id: "sol",  name: "Solana",   symbol: "SOL",  price: 142,      change: 5.8,   balance: 18.5,   emoji: "◎", color: "#9945FF" },
+  { id: "xrp",  name: "Ripple",   symbol: "XRP",  price: 0.62,     change: -0.5,  balance: 3200,   emoji: "✕", color: "#23292F" },
+  { id: "bnb",  name: "BNB",      symbol: "BNB",  price: 312,      change: 1.1,   balance: 2.8,    emoji: "◆", color: "#F3BA2F" },
 ];
 
-const CHART_DATA = [38, 42, 40, 45, 43, 48, 46, 50, 47, 52, 49, 55, 53, 51, 56, 54, 58, 55, 60, 57];
-
-function MiniChart({ colors }: { colors: any }) {
-  const max = Math.max(...CHART_DATA);
-  const min = Math.min(...CHART_DATA);
-  const range = max - min || 1;
-  return (
-    <View style={chartStyles.wrap}>
-      {CHART_DATA.map((v, i) => {
-        const pct = (v - min) / range;
-        const isLast = i === CHART_DATA.length - 1;
-        return (
-          <View key={i} style={chartStyles.col}>
-            <View
-              style={[
-                chartStyles.bar,
-                {
-                  height: 8 + pct * 52,
-                  backgroundColor: isLast ? "#00E5FF" : `rgba(0,229,255,${0.2 + pct * 0.5})`,
-                  borderColor: isLast ? "#00E5FF" : "transparent",
-                  borderWidth: isLast ? 1 : 0,
-                },
-              ]}
-            />
-          </View>
-        );
-      })}
-      <View style={[chartStyles.baseline, { borderColor: colors.border }]} />
-    </View>
-  );
-}
-
-const chartStyles = StyleSheet.create({
-  wrap: { flexDirection: "row", alignItems: "flex-end", gap: 2, height: 64, position: "relative" },
-  col: { flex: 1, justifyContent: "flex-end" },
-  bar: { borderRadius: 2, minWidth: 4 },
-  baseline: { position: "absolute", bottom: 0, left: 0, right: 0, borderBottomWidth: 1, borderStyle: "dashed" },
-});
+const FEE_RATE = 0.001;
 
 export default function SellCryptoScreen() {
-  const colors = useColors();
-  const insets = useSafeAreaInsets();
-  const { updateUsdBalance, addTransaction } = useWallet();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const router = useRouter();
+  const { updateUsdBalance, updateAsset, assets, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const botPad = isWeb ? 34 : insets.bottom;
 
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoId>("btc");
-  const [cryptoSelectorOpen, setCryptoSelectorOpen] = useState(false);
   const [amount, setAmount] = useState("");
-  const [orderType, setOrderType] = useState<OrderType>("market");
-  const [limitPrice, setLimitPrice] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [fiatValue, setFiatValue] = useState("0.00");
+  const [isMarket, setIsMarket] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [txStatus, setTxStatus] = useState<"pending" | "success" | "failed">("pending");
 
   const crypto = CRYPTOS.find((c) => c.id === selectedCrypto)!;
-  const numAmount = parseFloat(amount) || 0;
-  const effectivePrice = orderType === "limit" ? (parseFloat(limitPrice) || crypto.price) : crypto.price;
-  const fiatValue = numAmount * effectivePrice;
-  const fee = fiatValue * 0.001;
-  const payout = fiatValue - fee;
-  const isValid = numAmount > 0 && numAmount <= crypto.balance;
-  const balanceUSD = crypto.balance * crypto.price;
+
+  const bg = isDark ? "#0A1428" : "#F8FAFC";
+  const cardBg = isDark ? "#1E293B" : "#FFFFFF";
+  const borderClr = isDark ? "#334155" : "#E2E8F0";
+  const fg = isDark ? "#FFFFFF" : "#0F172A";
+  const muted = isDark ? "#94A3B8" : "#64748B";
+
+  const handleAmountChange = useCallback((text: string) => {
+    setAmount(text);
+    const num = parseFloat(text) || 0;
+    setFiatValue((num * crypto.price).toFixed(2));
+  }, [crypto.price]);
+
+  const getFee = useCallback(() => {
+    return (parseFloat(fiatValue) * FEE_RATE).toFixed(2);
+  }, [fiatValue]);
+
+  const getTotalPayout = useCallback(() => {
+    const val = parseFloat(fiatValue);
+    const fee = parseFloat(getFee());
+    return (val - fee).toFixed(2);
+  }, [fiatValue, getFee]);
+
+  const handleSell = useCallback(() => {
+    const numAmount = parseFloat(amount) || 0;
+    if (!amount || numAmount <= 0) {
+      hapticError();
+      Alert.alert("Invalid Amount", "Please enter a valid amount.");
+      return;
+    }
+    if (numAmount > crypto.balance) {
+      hapticError();
+      Alert.alert("Insufficient Balance", `You only have ${crypto.balance} ${crypto.symbol} available.`);
+      return;
+    }
+    setShowModal(true);
+    setIsProcessing(true);
+    setTxStatus("pending");
+
+    setTimeout(() => {
+      const payout = parseFloat(getTotalPayout());
+      updateUsdBalance(payout);
+
+      const walletAsset = assets.find((a) => a.symbol === crypto.symbol);
+      if (walletAsset) {
+        const pricePerUnit = walletAsset.balance > 0 ? walletAsset.value / walletAsset.balance : 0;
+        updateAsset(walletAsset.id, {
+          balance: Math.max(0, walletAsset.balance - numAmount),
+          value: Math.max(0, walletAsset.value - numAmount * pricePerUnit),
+        });
+      }
+
+      addTransaction({
+        type: "crypto",
+        category: "Crypto",
+        title: `${crypto.name} Sold`,
+        amount: payout,
+        currency: "USD",
+        status: "success",
+        date: "Just now",
+        direction: "in",
+      });
+      addNotification({
+        title: "Crypto Sold",
+        message: `Sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
+        type: "success",
+        time: "Just now",
+      });
+
+      hapticSuccess();
+      setTxStatus("success");
+      setIsProcessing(false);
+    }, 2000);
+  }, [amount, crypto, getTotalPayout, updateUsdBalance, updateAsset, assets, addTransaction, addNotification]);
 
   const handlePercentage = useCallback((pct: number) => {
-    setAmount((crypto.balance * pct).toFixed(pct === 1 ? 4 : 6));
-  }, [crypto.balance]);
-
-  const handleConfirm = useCallback(async () => {
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setLoading(false);
-    setModalVisible(false);
-    updateUsdBalance(payout);
-    addTransaction({
-      type: "crypto",
-      category: "Crypto",
-      title: `${crypto.name} Sold`,
-      amount: payout,
-      currency: "USD",
-      status: "success",
-      date: "Just now",
-      direction: "in",
-    });
-    addNotification({
-      title: "Crypto Sold",
-      message: `Sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
-      type: "success",
-      time: "Just now",
-    });
-    hapticSuccess();
-    Alert.alert(
-      "Sell Order Placed!",
-      `Successfully sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      [{ text: "Done", onPress: () => router.back() }]
-    );
-  }, [numAmount, crypto, payout, updateUsdBalance, addTransaction, addNotification]);
-
-  const summaryRows = useMemo(() => [
-    { label: "Asset",        value: `${crypto.name} (${crypto.symbol})` },
-    { label: "Amount",       value: `${numAmount} ${crypto.symbol}` },
-    { label: "Order Type",   value: orderType === "market" ? "Market" : "Limit" },
-    { label: "Price",        value: `$${effectivePrice.toLocaleString()}` },
-    { label: "Subtotal",     value: `$${fiatValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-    { label: "Fee (0.1%)",   value: `-$${fee.toFixed(2)}`, warn: true },
-    { label: "You Receive",  value: `$${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, highlight: true },
-  ], [crypto, numAmount, orderType, effectivePrice, fiatValue, fee, payout]);
+    const val = (crypto.balance * pct).toFixed(pct === 1 ? 4 : 6);
+    setAmount(val);
+    setFiatValue((parseFloat(val) * crypto.price).toFixed(2));
+  }, [crypto.balance, crypto.price]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-          activeOpacity={0.8}
-          testID="back-button"
-        >
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Sell Crypto</Text>
-        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="activity" size={18} color={colors.mutedForeground} />
-        </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={["top", "left", "right"]}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: borderClr }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: cardBg }}
+          >
+            <Feather name="arrow-left" size={20} color={muted} />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 20, fontWeight: "bold", color: fg }}>Sell Crypto</Text>
+        </View>
+        <ThemeToggle />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
-
-        {/* Wallet balance card */}
-        <View style={[styles.balanceCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.balanceHeader}>
-            <View style={[styles.cryptoBadge, { backgroundColor: `${crypto.color}22` }]}>
-              <Feather name={crypto.icon as any} size={18} color={crypto.color} />
-            </View>
-            <View style={styles.balanceInfo}>
-              <Text style={[styles.balanceName, { color: colors.foreground }]}>{crypto.name} Balance</Text>
-              <Text style={[styles.balanceSub, { color: colors.mutedForeground }]}>Available to sell</Text>
-            </View>
-          </View>
-          <Text style={[styles.balanceCrypto, { color: colors.foreground }]}>
-            {crypto.balance} {crypto.symbol}
-          </Text>
-          <Text style={[styles.balanceFiat, { color: colors.mutedForeground }]}>
-            ≈ ${balanceUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-        </View>
-
-        {/* Live price + mini chart */}
-        <View style={[styles.priceWidget, { backgroundColor: "rgba(0,229,255,0.06)", borderColor: "rgba(0,229,255,0.18)" }]}>
-          <View style={styles.priceLeft}>
-            <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>{crypto.symbol} / USD</Text>
-            <Text style={[styles.priceValue, { color: colors.foreground }]}>
-              ${crypto.price.toLocaleString()}
-            </Text>
-            <View style={styles.changeBadge}>
-              <Feather name={crypto.change >= 0 ? "trending-up" : "trending-down"} size={12} color={crypto.change >= 0 ? "#00FF88" : "#FF4444"} />
-              <Text style={[styles.changeText, { color: crypto.change >= 0 ? "#00FF88" : "#FF4444" }]}>
-                {crypto.change >= 0 ? "+" : ""}{crypto.change}%
+      <ScrollView contentContainerStyle={{ paddingBottom: 128, gap: 24 }}>
+        <View style={{ marginHorizontal: 24, marginTop: 24, padding: 20, borderRadius: 16, backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <View>
+              <Text style={{ fontSize: 14, color: muted, marginBottom: 4 }}>Available Balance</Text>
+              <Text style={{ fontSize: 24, fontWeight: "bold", color: fg }}>{crypto.balance} {crypto.symbol}</Text>
+              <Text style={{ fontSize: 14, color: muted, marginTop: 4 }}>
+                ≈ ${(crypto.balance * crypto.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
             </View>
-          </View>
-          <View style={styles.chartArea}>
-            <MiniChart colors={colors} />
+            <TouchableOpacity
+              onPress={() => handlePercentage(1)}
+              style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, backgroundColor: bg, borderWidth: 1, borderColor: borderClr }}
+            >
+              <Text style={{ color: "#00E5FF", fontSize: 12, fontWeight: "600" }}>MAX</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Crypto selector */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Select Asset</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cryptoRow}>
+        <View style={{ marginHorizontal: 24 }}>
+          <Text style={{ fontSize: 14, color: muted, marginBottom: 12 }}>Asset</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {CRYPTOS.map((c) => {
               const active = c.id === selectedCrypto;
               return (
                 <TouchableOpacity
                   key={c.id}
-                  testID={`crypto-${c.id}`}
-                  onPress={() => { setSelectedCrypto(c.id); setAmount(""); }}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.cryptoChip,
-                    {
-                      backgroundColor: active ? "rgba(0,229,255,0.1)" : colors.card,
-                      borderColor: active ? colors.primary : colors.border,
-                    },
-                  ]}
+                  onPress={() => {
+                    hapticSelection();
+                    setSelectedCrypto(c.id);
+                    setAmount("");
+                    setFiatValue("0.00");
+                  }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    backgroundColor: active ? "rgba(0,229,255,0.1)" : cardBg,
+                    borderColor: active ? "#00E5FF" : borderClr,
+                  }}
                 >
-                  <View style={[styles.cryptoIcon, { backgroundColor: `${c.color}22` }]}>
-                    <Feather name={c.icon as any} size={14} color={c.color} />
+                  <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: `${c.color}20` }}>
+                    <Text style={{ color: c.color, fontWeight: "bold", fontSize: 14 }}>{c.emoji}</Text>
                   </View>
-                  <Text style={[styles.cryptoSymbol, { color: active ? colors.primary : colors.foreground }]}>{c.symbol}</Text>
-                  {active && <Feather name="check" size={12} color={colors.primary} />}
+                  <Text style={{ fontWeight: "600", fontSize: 14, color: active ? "#00E5FF" : fg }}>{c.symbol}</Text>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
         </View>
 
-        {/* Market / Limit toggle */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Order Type</Text>
-          <View style={[styles.toggleRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {(["market", "limit"] as OrderType[]).map((t) => (
-              <TouchableOpacity
-                key={t}
-                testID={`order-${t}`}
-                onPress={() => setOrderType(t)}
-                activeOpacity={0.8}
-                style={[
-                  styles.toggleBtn,
-                  {
-                    backgroundColor: orderType === t ? "rgba(0,229,255,0.15)" : "transparent",
-                    borderColor: orderType === t ? colors.primary : "transparent",
-                  },
-                ]}
-              >
-                <Text style={[styles.toggleText, { color: orderType === t ? colors.primary : colors.mutedForeground }]}>
-                  {t === "market" ? "Market" : "Limit"}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        <View style={{ marginHorizontal: 24 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
+            <View>
+              <Text style={{ fontSize: 12, color: muted }}>Current Price</Text>
+              <Text style={{ fontSize: 20, fontWeight: "bold", color: fg }}>${crypto.price.toLocaleString()}</Text>
+            </View>
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 8,
+              backgroundColor: crypto.change >= 0 ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+            }}>
+              <Feather name={crypto.change >= 0 ? "trending-up" : "trending-down"} size={16} color={crypto.change >= 0 ? "#22C55E" : "#EF4444"} />
+              <Text style={{ fontSize: 14, fontWeight: "600", color: crypto.change >= 0 ? "#22C55E" : "#EF4444" }}>
+                {crypto.change > 0 ? "+" : ""}{crypto.change}%
+              </Text>
+            </View>
+          </View>
+
+          <View style={{ height: 96, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: borderClr, position: "relative", backgroundColor: isDark ? "#000000" : "#F1F5F9" }}>
+            <LinearGradient
+              colors={["rgba(0, 229, 255, 0.2)", "rgba(139, 92, 246, 0.1)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+            <View style={{ position: "absolute", bottom: 16, left: 16, right: 16, height: 48, justifyContent: "flex-end" }}>
+              <View style={{ height: 4, backgroundColor: "#00E5FF", borderRadius: 2, opacity: 0.5, marginBottom: 8, width: "60%", alignSelf: "flex-end" }} />
+              <View style={{ height: 4, backgroundColor: "#8B5CF6", borderRadius: 2, opacity: 0.5, marginBottom: 8, width: "80%", alignSelf: "flex-end" }} />
+              <View style={{ height: 4, backgroundColor: "#00E5FF", borderRadius: 2, width: "100%" }} />
+            </View>
           </View>
         </View>
 
-        {/* Limit price input */}
-        {orderType === "limit" && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Limit Price (USD)</Text>
-            <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.inputPrefix, { color: colors.primary }]}>$</Text>
+        <View style={{ marginHorizontal: 24, flexDirection: "row", borderRadius: 12, padding: 4, borderWidth: 1, backgroundColor: cardBg, borderColor: borderClr }}>
+          <TouchableOpacity
+            onPress={() => { hapticSelection(); setIsMarket(true); }}
+            style={{ flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: "center", backgroundColor: isMarket ? "rgba(0,229,255,0.2)" : "transparent" }}
+          >
+            <Text style={{ fontWeight: "600", color: isMarket ? "#00E5FF" : muted }}>Market</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { hapticSelection(); setIsMarket(false); }}
+            style={{ flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: "center", backgroundColor: !isMarket ? "rgba(0,229,255,0.2)" : "transparent" }}
+          >
+            <Text style={{ fontWeight: "600", color: !isMarket ? "#00E5FF" : muted }}>Limit</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ marginHorizontal: 24, gap: 16 }}>
+          <View>
+            <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>You Sell</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", padding: 16, borderRadius: 12, backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr }}>
               <TextInput
-                testID="limit-price-input"
-                value={limitPrice}
-                onChangeText={setLimitPrice}
-                placeholder={crypto.price.toLocaleString()}
-                placeholderTextColor={colors.mutedForeground}
-                keyboardType="numeric"
-                style={[styles.textInput, { color: colors.foreground }]}
+                style={{ flex: 1, fontSize: 20, fontWeight: "600", color: fg }}
+                placeholder="0.00"
+                placeholderTextColor={muted}
+                value={amount}
+                onChangeText={handleAmountChange}
+                keyboardType="decimal-pad"
               />
+              <View style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, backgroundColor: bg }}>
+                <Text style={{ fontWeight: "bold", color: fg }}>{crypto.symbol}</Text>
+              </View>
             </View>
           </View>
-        )}
 
-        {/* Amount to sell */}
-        <View style={styles.section}>
-          <View style={styles.amountHeader}>
-            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Amount to Sell</Text>
-            <Text style={[styles.maxLabel, { color: colors.mutedForeground }]}>
-              Max: {crypto.balance} {crypto.symbol}
-            </Text>
-          </View>
-          <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: isValid || numAmount === 0 ? colors.border : "#FF4444" }]}>
-            <TextInput
-              testID="amount-input"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0.00"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="numeric"
-              style={[styles.textInput, styles.amountText, { color: colors.foreground }]}
-            />
-            <View style={[styles.symbolTag, { backgroundColor: `${crypto.color}18`, borderColor: `${crypto.color}40` }]}>
-              <Text style={[styles.symbolText, { color: crypto.color }]}>{crypto.symbol}</Text>
-            </View>
-          </View>
-          {numAmount > crypto.balance && (
-            <Text style={[styles.errorText, { color: "#FF4444" }]}>Insufficient balance</Text>
-          )}
-
-          {/* Percentage quick-select */}
-          <View style={styles.pctRow}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
             {[0.25, 0.5, 0.75, 1].map((pct) => (
               <TouchableOpacity
                 key={pct}
-                testID={`pct-${pct * 100}`}
                 onPress={() => handlePercentage(pct)}
                 activeOpacity={0.8}
-                style={[styles.pctBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={{ flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr }}
               >
-                <Text style={[styles.pctText, { color: colors.mutedForeground }]}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: muted }}>
                   {pct === 1 ? "Max" : `${pct * 100}%`}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
 
-        {/* Fiat equivalent */}
-        {numAmount > 0 && (
-          <View style={[styles.fiatCard, { backgroundColor: "rgba(0,255,136,0.06)", borderColor: "#00FF8830" }]}>
-            <View style={styles.fiatRow}>
-              <Text style={[styles.fiatLabel, { color: colors.mutedForeground }]}>You Receive (USD)</Text>
-              <Text style={[styles.fiatValue, { color: "#00FF88" }]}>
-                ${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </Text>
-            </View>
-            <View style={styles.fiatRow}>
-              <Text style={[styles.fiatLabel, { color: colors.mutedForeground }]}>
-                {orderType === "market" ? "Market" : "Limit"} Price
-              </Text>
-              <Text style={[styles.fiatDetail, { color: colors.primary }]}>
-                ${effectivePrice.toLocaleString()} / {crypto.symbol}
-              </Text>
-            </View>
-            <View style={styles.fiatRow}>
-              <Text style={[styles.fiatLabel, { color: colors.mutedForeground }]}>Network Fee</Text>
-              <Text style={[styles.fiatDetail, { color: "#F59E0B" }]}>-${fee.toFixed(2)}</Text>
+          <View style={{ alignItems: "center" }}>
+            <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr }}>
+              <Feather name="arrow-down" size={16} color={muted} />
             </View>
           </View>
-        )}
 
-        {/* Fee breakdown */}
-        <View style={[styles.feeCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.feeTitle, { color: colors.foreground }]}>Fee Breakdown</Text>
-          {[
-            { label: "Trading Fee",  value: "0.1%",  detail: numAmount > 0 ? `$${fee.toFixed(2)}` : "-" },
-            { label: "Network Fee",  value: "Free",  detail: "$0.00" },
-            { label: "Withdrawal",   value: "Free",  detail: "$0.00" },
-          ].map((row) => (
-            <View key={row.label} style={[styles.feeRow, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.feeLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
-              <View style={styles.feeRight}>
-                <Text style={[styles.feeValue, { color: colors.foreground }]}>{row.value}</Text>
-                <Text style={[styles.feeDetail, { color: colors.mutedForeground }]}>{row.detail}</Text>
+          <View>
+            <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>You Receive</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", padding: 16, borderRadius: 12, backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr }}>
+              <TextInput
+                style={{ flex: 1, fontSize: 20, fontWeight: "600", color: fg }}
+                placeholder="0.00"
+                placeholderTextColor={muted}
+                value={fiatValue}
+                editable={false}
+              />
+              <View style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, backgroundColor: bg }}>
+                <Text style={{ fontWeight: "bold", color: fg }}>USD</Text>
               </View>
             </View>
-          ))}
-        </View>
-
-        {/* Status indicators */}
-        <View style={styles.statusRow}>
-          <View style={[styles.statusBadge, { backgroundColor: "rgba(0,255,136,0.12)", borderColor: "#00FF8830" }]}>
-            <View style={[styles.statusDot, { backgroundColor: "#00FF88" }]} />
-            <Text style={[styles.statusText, { color: "#00FF88" }]}>Completed</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: "rgba(245,158,11,0.12)", borderColor: "#F59E0B30" }]}>
-            <View style={[styles.statusDot, { backgroundColor: "#F59E0B" }]} />
-            <Text style={[styles.statusText, { color: "#F59E0B" }]}>Pending</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: "rgba(239,68,68,0.12)", borderColor: "#EF444430" }]}>
-            <View style={[styles.statusDot, { backgroundColor: "#EF4444" }]} />
-            <Text style={[styles.statusText, { color: "#EF4444" }]}>Failed</Text>
           </View>
         </View>
 
-        {/* Sell Now CTA */}
-        <GlowButton
-          testID="sell-now-button"
-          title={`Sell ${crypto.symbol} · $${isValid ? payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}`}
-          onPress={() => setModalVisible(true)}
-          loading={false}
-          disabled={!isValid}
-          variant="primary"
-        />
+        <View style={{ marginHorizontal: 24, padding: 16, borderRadius: 12, backgroundColor: `${cardBg}80`, borderWidth: 1, borderColor: borderClr }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, color: muted }}>Rate</Text>
+            <Text style={{ fontSize: 14, color: fg }}>1 {crypto.symbol} ≈ ${crypto.price.toLocaleString()}</Text>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, color: muted }}>Fee (0.1%)</Text>
+            <Text style={{ fontSize: 14, color: fg }}>${getFee()}</Text>
+          </View>
+          <View style={{ height: 1, backgroundColor: borderClr, marginVertical: 8 }} />
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ fontWeight: "600", color: fg }}>Total Payout</Text>
+            <Text style={{ color: "#00E5FF", fontWeight: "bold", fontSize: 18 }}>${getTotalPayout()}</Text>
+          </View>
+        </View>
 
-        <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>
-          Market orders execute at the best available price. Prices may change between submission and execution.
-        </Text>
+        <TouchableOpacity
+          onPress={handleSell}
+          activeOpacity={0.8}
+          style={{ marginHorizontal: 24, paddingVertical: 16, borderRadius: 12, backgroundColor: "#00E5FF", alignItems: "center" }}
+        >
+          <Text style={{ color: "#0A1428", fontWeight: "bold", fontSize: 18 }}>Sell Now</Text>
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Confirmation Modal */}
       <Modal
-        transparent
-        visible={modalVisible}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        visible={showModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
       >
-        <Pressable style={styles.overlay} onPress={() => setModalVisible(false)}>
-          <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.foreground }]}>Confirm Sale</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)} activeOpacity={0.8}>
-                <Feather name="x" size={22} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, borderTopWidth: 1, borderTopColor: borderClr, minHeight: 400 }}>
+            <View style={{ width: 48, height: 4, borderRadius: 2, backgroundColor: borderClr, alignSelf: "center", marginBottom: 24 }} />
 
-            <View style={[styles.modalHighlight, { backgroundColor: "rgba(255,68,68,0.08)", borderColor: "#FF444430" }]}>
-              <Feather name="alert-triangle" size={20} color="#FF4444" />
-              <Text style={[styles.modalWarn, { color: "#FF4444" }]}>
-                You are selling {numAmount} {crypto.symbol}
-              </Text>
-            </View>
+            <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 24, color: fg }}>Transaction Summary</Text>
 
-            {summaryRows.map((row) => (
-              <View key={row.label} style={[styles.modalRow, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
-                <Text
-                  style={[
-                    styles.modalValue,
-                    {
-                      color: row.highlight
-                        ? "#00FF88"
-                        : row.warn
-                        ? "#F59E0B"
-                        : colors.foreground,
-                    },
-                  ]}
+            {isProcessing ? (
+              <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 48 }}>
+                <ActivityIndicator size="large" color="#00E5FF" />
+                <Text style={{ color: muted, marginTop: 16 }}>Processing transaction...</Text>
+              </View>
+            ) : (
+              <>
+                {txStatus === "success" && (
+                  <View style={{ alignItems: "center", marginBottom: 24 }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(34,197,94,0.2)", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                      <Feather name="check-circle" size={32} color="#22C55E" />
+                    </View>
+                    <Text style={{ color: "#22C55E", fontWeight: "bold", fontSize: 18 }}>Order Completed</Text>
+                  </View>
+                )}
+
+                <View style={{ gap: 12, marginBottom: 24 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ color: muted }}>Sold</Text>
+                    <Text style={{ fontWeight: "600", color: fg }}>{amount} {crypto.symbol}</Text>
+                  </View>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ color: muted }}>Rate</Text>
+                    <Text style={{ color: fg }}>${crypto.price.toLocaleString()}</Text>
+                  </View>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ color: muted }}>Fees</Text>
+                    <Text style={{ color: fg }}>${getFee()}</Text>
+                  </View>
+                  <View style={{ height: 1, backgroundColor: borderClr }} />
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ fontWeight: "bold", color: fg }}>Total</Text>
+                    <Text style={{ color: "#00E5FF", fontWeight: "bold", fontSize: 18 }}>${getTotalPayout()}</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowModal(false);
+                    setAmount("");
+                    setFiatValue("0.00");
+                  }}
+                  style={{ paddingVertical: 16, borderRadius: 12, backgroundColor: "#00E5FF", alignItems: "center" }}
                 >
-                  {row.value}
-                </Text>
-              </View>
-            ))}
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                activeOpacity={0.8}
-                style={[styles.modalCancel, { backgroundColor: colors.border }]}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.foreground }]}>Cancel</Text>
-              </TouchableOpacity>
-              <View style={{ flex: 1 }}>
-                <GlowButton
-                  testID="confirm-sell-button"
-                  title="Confirm Sell"
-                  onPress={handleConfirm}
-                  loading={loading}
-                  variant="primary"
-                />
-              </View>
-            </View>
-          </Pressable>
-        </Pressable>
+                  <Text style={{ color: "#0A1428", fontWeight: "bold", fontSize: 18 }}>Done</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
-  },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    alignItems: "center", justifyContent: "center", borderWidth: 1,
-  },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-
-  content: { padding: 20, gap: 4 },
-
-  balanceCard: {
-    borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 14, gap: 8,
-  },
-  balanceHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
-  cryptoBadge: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  balanceInfo: { gap: 2 },
-  balanceName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  balanceSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  balanceCrypto: { fontSize: 24, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
-  balanceFiat: { fontSize: 14, fontFamily: "Inter_400Regular" },
-
-  priceWidget: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 20,
-  },
-  priceLeft: { gap: 4, flex: 1 },
-  priceLabel: { fontSize: 11, fontFamily: "Inter_400Regular", textTransform: "uppercase", letterSpacing: 0.8 },
-  priceValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
-  changeBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  changeText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  chartArea: { width: 120, marginLeft: 12 },
-
-  section: { marginBottom: 20 },
-  sectionLabel: {
-    fontSize: 12, fontFamily: "Inter_500Medium",
-    textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10,
-  },
-
-  cryptoRow: { gap: 8, paddingRight: 4 },
-  cryptoChip: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1,
-  },
-  cryptoIcon: { width: 26, height: 26, borderRadius: 7, alignItems: "center", justifyContent: "center" },
-  cryptoSymbol: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  toggleRow: {
-    flexDirection: "row", borderRadius: 12, borderWidth: 1, padding: 4, gap: 4,
-  },
-  toggleBtn: {
-    flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: "center", borderWidth: 1,
-  },
-  toggleText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  inputRow: {
-    flexDirection: "row", alignItems: "center",
-    borderRadius: 14, borderWidth: 1.5, paddingHorizontal: 16, height: 60,
-  },
-  inputPrefix: { fontSize: 18, fontFamily: "Inter_700Bold", marginRight: 6 },
-  textInput: { flex: 1, fontSize: 18, fontFamily: "Inter_600SemiBold" },
-  amountText: { fontSize: 26, fontFamily: "Inter_700Bold" },
-  symbolTag: {
-    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1,
-  },
-  symbolText: { fontSize: 13, fontFamily: "Inter_700Bold" },
-  amountHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  maxLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  errorText: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 6 },
-
-  pctRow: { flexDirection: "row", gap: 8, marginTop: 10 },
-  pctBtn: { flex: 1, borderRadius: 10, borderWidth: 1, paddingVertical: 8, alignItems: "center" },
-  pctText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  fiatCard: { borderRadius: 14, padding: 16, borderWidth: 1, gap: 12, marginBottom: 20 },
-  fiatRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  fiatLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  fiatValue: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  fiatDetail: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  feeCard: { borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 16 },
-  feeTitle: { fontSize: 15, fontFamily: "Inter_700Bold", marginBottom: 12 },
-  feeRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1 },
-  feeLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  feeRight: { alignItems: "flex-end", gap: 2 },
-  feeValue: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  feeDetail: { fontSize: 11, fontFamily: "Inter_400Regular" },
-
-  statusRow: { flexDirection: "row", gap: 8, marginBottom: 20, flexWrap: "wrap" },
-  statusBadge: {
-    flexDirection: "row", alignItems: "center", gap: 5,
-    borderRadius: 20, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5,
-  },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
-
-  disclaimer: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 16, marginTop: 6 },
-
-  overlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end", padding: 16,
-  },
-  modal: {
-    borderRadius: 20, padding: 20, borderWidth: 1,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16,
-  },
-  modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  modalHighlight: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 12, padding: 14, borderWidth: 1, marginBottom: 16,
-  },
-  modalWarn: { fontSize: 14, fontFamily: "Inter_600SemiBold", flex: 1 },
-  modalRow: {
-    flexDirection: "row", justifyContent: "space-between",
-    paddingVertical: 10, borderBottomWidth: 1,
-  },
-  modalLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  modalValue: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  modalActions: { flexDirection: "row", gap: 12, marginTop: 20 },
-  modalCancel: {
-    flex: 0.6, borderRadius: 14, paddingVertical: 16, alignItems: "center",
-  },
-  modalCancelText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-});

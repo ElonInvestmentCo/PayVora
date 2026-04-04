@@ -39,7 +39,7 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 
 ## Global State & Context (artifacts/giftcard-trader)
 
-- **ThemeContext** `contexts/ThemeContext.tsx` — `isDark` toggle, consumed by `useColors()` hook. Settings dark mode switch wired to `useTheme().toggle()`.
+- **ThemeContext** `contexts/ThemeContext.tsx` — `isDark` toggle, consumed by `useColors()` hook. Settings dark mode switch wired to `useTheme().toggle()`. NativeWind color scheme synced via `SyncDarkMode` component in `_layout.tsx` (single source of truth pattern — ThemeContext drives NativeWind, not the reverse). `darkMode: "class"` in `tailwind.config.js`. Document body background set programmatically for web.
 - **WalletContext** `contexts/WalletContext.tsx` — `ngnBalance`, `usdBalance`, `assets[]`, `transactions[]`, `virtualCard*` state. All buy/sell/bills screens call `addTransaction()`, `updateNgnBalance()`/`updateUsdBalance()`. Virtual card uses `fundVirtualCard()`, `withdrawVirtualCard()`, `toggleFreezeCard()`.
 - **NotificationsContext** `contexts/NotificationsContext.tsx` — `notifications[]`, `unreadCount`, `showPanel`, `togglePanel()`, `addNotification()`. Bell icons on Home/Wallet open the panel. All trade actions add notifications.
 - **KycContext** `contexts/KycContext.tsx` — Fully client-side KYC with instant validation (name, DOB, address rules). `runFullVerification()` sets status to verified/rejected. No API calls.
