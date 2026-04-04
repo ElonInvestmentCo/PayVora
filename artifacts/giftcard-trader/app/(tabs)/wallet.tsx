@@ -19,6 +19,7 @@ import { hapticLight, hapticSuccess, hapticError, hapticSelection } from "@/util
 import { useKyc } from "@/contexts/KycContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { XStack, YStack } from "@/components/Stacks";
 
 type FilterTab = "All" | "Crypto" | "Fiat";
 
@@ -163,15 +164,15 @@ export default function WalletScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={["top", "left", "right"]}>
-      <View className={`px-6 py-4 flex-row items-center justify-between border-b`} style={{ borderBottomColor: borderClr }}>
+      <XStack justifyContent="space-between" alignItems="center" paddingHorizontal={24} paddingVertical={16} style={{ borderBottomWidth: 1, borderBottomColor: borderClr }}>
         <Text className={`text-xl font-bold`} style={{ color: fg }}>Wallet Balance</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <XStack alignItems="center" gap={12}>
           <TouchableOpacity onPress={togglePanel} activeOpacity={0.8}>
             <Feather name="bell" size={22} color={muted} />
           </TouchableOpacity>
           <ThemeToggle />
-        </View>
-      </View>
+        </XStack>
+      </XStack>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 128, gap: 24 }}>
         <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
@@ -185,28 +186,27 @@ export default function WalletScreen() {
             <Text style={{ color: "#FFFFFF", fontSize: 30, fontWeight: "bold", marginBottom: 8 }}>
               ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <View style={{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20, flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <XStack alignItems="center" gap={8}>
+              <XStack alignItems="center" gap={4} style={{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 }}>
                 <Feather name="trending-up" size={12} color="#FFFFFF" />
                 <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600" }}>+3.2%</Text>
-              </View>
+              </XStack>
               <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>vs last month</Text>
-            </View>
+            </XStack>
           </LinearGradient>
         </View>
 
         {kycStatus !== "verified" && (
-          <View style={{
-            marginHorizontal: 24,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            padding: 12,
-            borderRadius: 12,
-            borderWidth: 1,
-            backgroundColor: kycStatus === "pending" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
-            borderColor: kycStatus === "pending" ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)",
-          }}>
+          <XStack
+            alignItems="center"
+            gap={12}
+            padding={12}
+            borderRadius={12}
+            borderWidth={1}
+            backgroundColor={kycStatus === "pending" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)"}
+            borderColor={kycStatus === "pending" ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)"}
+            style={{ marginHorizontal: 24 }}
+          >
             <Feather name={kycStatus === "pending" ? "clock" : "alert-circle"} size={16} color={kycStatus === "pending" ? "#F59E0B" : "#EF4444"} />
             <Text style={{ flex: 1, fontSize: 12, color: kycStatus === "pending" ? "#F59E0B" : "#EF4444" }}>
               {kycStatus === "pending" ? "Your KYC verification is under review." : "Complete KYC verification to increase your withdrawal limit."}
@@ -216,10 +216,10 @@ export default function WalletScreen() {
                 {kycStatus === "pending" ? "View" : "Verify"}
               </Text>
             </TouchableOpacity>
-          </View>
+          </XStack>
         )}
 
-        <View style={{ paddingHorizontal: 24, flexDirection: "row", gap: 16 }}>
+        <XStack gap={16} paddingHorizontal={24}>
           <TouchableOpacity
             onPress={() => { hapticLight(); openDeposit("BTC"); }}
             style={{ flex: 1, padding: 16, alignItems: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr, borderRadius: 12 }}
@@ -240,12 +240,12 @@ export default function WalletScreen() {
             <Feather name="repeat" size={24} color={muted} style={{ marginBottom: 8 }} />
             <Text style={{ color: fg, fontWeight: "600" }}>Transfer</Text>
           </TouchableOpacity>
-        </View>
+        </XStack>
 
-        <View style={{ paddingHorizontal: 24 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <YStack paddingHorizontal={24}>
+          <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
             <Text style={{ fontSize: 18, fontWeight: "bold", color: fg }}>Your Assets</Text>
-            <View style={{ flexDirection: "row", gap: 8 }}>
+            <XStack gap={8}>
               {(["All", "Crypto", "Fiat"] as FilterTab[]).map((tab) => (
                 <TouchableOpacity
                   key={tab}
@@ -266,10 +266,10 @@ export default function WalletScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
-          </View>
+            </XStack>
+          </XStack>
 
-          <View style={{ gap: 12 }}>
+          <YStack gap={12}>
             {filteredAssets.map((asset) => (
               <TouchableOpacity
                 key={asset.id}
@@ -286,25 +286,25 @@ export default function WalletScreen() {
                   borderColor: borderClr,
                 }}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <XStack alignItems="center" gap={12}>
                   <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: `${asset.color}22` }}>
                     <Feather name="activity" size={20} color={asset.color} />
                   </View>
-                  <View>
+                  <YStack>
                     <Text style={{ fontWeight: "600", color: fg }}>{asset.name}</Text>
                     <Text style={{ fontSize: 14, color: muted }}>
                       {asset.type === "fiat"
                         ? `${asset.symbol === "NGN" ? "₦" : "$"}${asset.balance.toLocaleString()}`
                         : `${asset.balance} ${asset.symbol}`}
                     </Text>
-                  </View>
-                </View>
-                <View style={{ alignItems: "flex-end" }}>
+                  </YStack>
+                </XStack>
+                <YStack alignItems="flex-end">
                   <Text style={{ fontWeight: "600", color: fg }}>
                     ${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </Text>
                   {asset.change !== 0 && (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                    <XStack alignItems="center" gap={4}>
                       <Feather
                         name={asset.change >= 0 ? "trending-up" : "trending-down"}
                         size={12}
@@ -313,40 +313,31 @@ export default function WalletScreen() {
                       <Text style={{ fontSize: 12, color: asset.change >= 0 ? "#22C55E" : "#EF4444" }}>
                         {asset.change >= 0 ? "+" : ""}{asset.change}%
                       </Text>
-                    </View>
+                    </XStack>
                   )}
-                </View>
+                </YStack>
               </TouchableOpacity>
             ))}
-          </View>
-        </View>
+          </YStack>
+        </YStack>
 
-        <View style={{ paddingHorizontal: 24 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <YStack paddingHorizontal={24}>
+          <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
             <Text style={{ fontSize: 18, fontWeight: "bold", color: fg }}>Recent Transactions</Text>
             <TouchableOpacity onPress={() => router.push("/transactions")} activeOpacity={0.8}>
               <Text style={{ color: "#00E5FF", fontSize: 14 }}>See All</Text>
             </TouchableOpacity>
-          </View>
+          </XStack>
 
-          <View style={{ gap: 12 }}>
+          <YStack gap={12}>
             {filteredTx.map((tx) => {
               const stColor = getStatusColor(tx.status);
               const stLabel = getStatusLabel(tx.status);
               const isIn = tx.type === "buy" || tx.type === "deposit";
               const iconName = tx.type === "buy" ? "trending-up" : tx.type === "sell" ? "trending-down" : tx.type === "deposit" ? "arrow-down" : "arrow-up";
               return (
-                <View key={tx.id} style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: 16,
-                  borderRadius: 12,
-                  backgroundColor: cardBg,
-                  borderWidth: 1,
-                  borderColor: borderClr,
-                }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <XStack key={tx.id} alignItems="center" justifyContent="space-between" padding={16} borderRadius={12} backgroundColor={cardBg} borderWidth={1} borderColor={borderClr}>
+                  <XStack alignItems="center" gap={12}>
                     <View style={{
                       width: 40, height: 40, borderRadius: 20,
                       alignItems: "center", justifyContent: "center",
@@ -354,45 +345,45 @@ export default function WalletScreen() {
                     }}>
                       <Feather name={iconName as any} size={20} color={isIn ? "#22C55E" : "#EF4444"} />
                     </View>
-                    <View>
+                    <YStack>
                       <Text style={{ fontWeight: "600", color: fg }}>{tx.title}</Text>
                       <Text style={{ fontSize: 14, color: muted }}>{tx.date}</Text>
-                    </View>
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
+                    </YStack>
+                  </XStack>
+                  <YStack alignItems="flex-end">
                     <Text style={{ fontWeight: "600", color: isIn ? "#22C55E" : fg }}>{tx.amount}</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
+                    <XStack alignItems="center" gap={4} style={{ marginTop: 4 }}>
                       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: stColor }} />
                       <Text style={{ fontSize: 12, color: stColor }}>{stLabel}</Text>
-                    </View>
-                  </View>
-                </View>
+                    </XStack>
+                  </YStack>
+                </XStack>
               );
             })}
 
             {filteredTx.length === 0 && (
-              <View style={{ padding: 32, alignItems: "center", backgroundColor: cardBg, borderRadius: 12, borderWidth: 1, borderColor: borderClr }}>
+              <YStack alignItems="center" padding={32} backgroundColor={cardBg} borderRadius={12} borderWidth={1} borderColor={borderClr}>
                 <Feather name="inbox" size={28} color={muted} />
                 <Text style={{ color: muted, fontSize: 14, marginTop: 8 }}>No transactions found</Text>
-              </View>
+              </YStack>
             )}
-          </View>
-        </View>
+          </YStack>
+        </YStack>
       </ScrollView>
 
       <FocusedModal visible={modalMode !== null} transparent animationType="slide">
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, borderTopWidth: 1, borderTopColor: borderClr, minHeight: 400 }}>
+          <YStack backgroundColor={cardBg} borderRadius={24} padding={24} borderWidth={1} borderColor={borderClr} minHeight={400} style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
             <View style={{ width: 48, height: 4, borderRadius: 2, backgroundColor: borderClr, alignSelf: "center", marginBottom: 24 }} />
 
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 24 }}>
               <Text style={{ fontSize: 20, fontWeight: "bold", color: fg }}>
                 {modalMode === "deposit" ? `Deposit ${selectedAssetSymbol}` : `Withdraw ${selectedAssetSymbol}`}
               </Text>
               <TouchableOpacity onPress={() => setModalMode(null)} activeOpacity={0.8}>
                 <Feather name="x" size={22} color={muted} />
               </TouchableOpacity>
-            </View>
+            </XStack>
 
             {modalMode === "deposit" && (
               <>
@@ -412,19 +403,19 @@ export default function WalletScreen() {
                   <Feather name="copy" size={16} color="#0A1428" />
                   <Text style={{ color: "#0A1428", fontWeight: "bold", fontSize: 16 }}>Copy Address</Text>
                 </TouchableOpacity>
-                <View style={{ backgroundColor: "rgba(245,158,11,0.1)", borderWidth: 1, borderColor: "rgba(245,158,11,0.2)", borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+                <XStack alignItems="flex-start" gap={8} padding={12} borderRadius={12} borderWidth={1} backgroundColor="rgba(245,158,11,0.1)" borderColor="rgba(245,158,11,0.2)">
                   <Feather name="alert-triangle" size={14} color="#F59E0B" style={{ marginTop: 2 }} />
                   <Text style={{ color: "#F59E0B", fontSize: 12, flex: 1 }}>
                     Only send {selectedAssetSymbol} to this address. Sending other assets may result in permanent loss.
                   </Text>
-                </View>
+                </XStack>
               </>
             )}
 
             {modalMode === "withdraw" && (
               <>
                 <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>Amount</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", padding: 16, borderRadius: 12, backgroundColor: bg, borderWidth: 1, borderColor: borderClr, marginBottom: 16 }}>
+                <XStack alignItems="center" padding={16} borderRadius={12} backgroundColor={bg} borderWidth={1} borderColor={borderClr} style={{ marginBottom: 16 }}>
                   <TextInput
                     style={{ flex: 1, fontSize: 20, fontWeight: "600", color: fg }}
                     value={withdrawAmount}
@@ -436,7 +427,7 @@ export default function WalletScreen() {
                   <View style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? "#1E293B" : "#E2E8F0" }}>
                     <Text style={{ fontWeight: "bold", color: fg }}>{selectedAssetSymbol}</Text>
                   </View>
-                </View>
+                </XStack>
 
                 <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>Destination Address</Text>
                 <TextInput
@@ -448,10 +439,10 @@ export default function WalletScreen() {
                   autoCapitalize="none"
                 />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12, borderTopWidth: 1, borderTopColor: borderClr, marginBottom: 16 }}>
+                <XStack justifyContent="space-between" paddingVertical={12} style={{ borderTopWidth: 1, borderTopColor: borderClr, marginBottom: 16 }}>
                   <Text style={{ fontSize: 14, color: muted }}>Network Fee</Text>
                   <Text style={{ fontSize: 14, fontWeight: "600", color: fg }}>~$2.50</Text>
-                </View>
+                </XStack>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
@@ -467,7 +458,7 @@ export default function WalletScreen() {
                 </TouchableOpacity>
               </>
             )}
-          </View>
+          </YStack>
         </View>
       </FocusedModal>
     </SafeAreaView>

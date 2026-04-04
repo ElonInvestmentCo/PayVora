@@ -17,6 +17,7 @@ import { RateCard } from "@/components/RateCard";
 import { TransactionItem, Transaction } from "@/components/TransactionItem";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { XStack, YStack } from "@/components/Stacks";
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -47,12 +48,12 @@ export default function HomeScreen() {
         ]}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <View>
+        <XStack justifyContent="space-between" alignItems="center" style={styles.header}>
+          <YStack>
             <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Good morning</Text>
             <Text style={[styles.username, { color: colors.foreground }]}>Alex Johnson</Text>
-          </View>
-          <View style={{ flexDirection: "row", gap: 8 }}>
+          </YStack>
+          <XStack gap={8}>
             <TouchableOpacity
               style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
               activeOpacity={0.8}
@@ -70,8 +71,8 @@ export default function HomeScreen() {
               <Feather name="bell" size={20} color={colors.mutedForeground} />
               {unreadCount > 0 && <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />}
             </TouchableOpacity>
-          </View>
-        </View>
+          </XStack>
+        </XStack>
 
         {/* Wallet Card */}
         <WalletCard
@@ -84,7 +85,7 @@ export default function HomeScreen() {
         <RateCard rate={750} fromCurrency="$" toCurrency="₦" change={2.3} />
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
+        <XStack gap={12} style={styles.quickActions}>
           {[
             { label: "Buy Card",     icon: "shopping-bag",  color: "#00FF88",      onPress: () => { hapticLight(); router.push("/buy"); } },
             { label: "Sell Card",    icon: "dollar-sign",   color: colors.primary, onPress: () => { hapticLight(); router.push("/sell"); } },
@@ -104,15 +105,15 @@ export default function HomeScreen() {
               <Text style={[styles.quickLabel, { color: colors.mutedForeground }]}>{action.label}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </XStack>
 
         {/* Transactions */}
-        <View style={styles.sectionHeader}>
+        <XStack justifyContent="space-between" alignItems="center" style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Transactions</Text>
           <TouchableOpacity onPress={() => router.push("/transactions")}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
-        </View>
+        </XStack>
         {recentTxs.map((t) => (
           <TransactionItem key={t.id} item={t} />
         ))}
