@@ -5,10 +5,10 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Modal,
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { FocusedModal } from "@/components/FocusedModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -343,7 +343,7 @@ export default function SellCryptoScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      <Modal
+      <FocusedModal
         visible={showModal}
         transparent={true}
         animationType="slide"
@@ -405,7 +405,7 @@ export default function SellCryptoScreen() {
             )}
           </View>
         </View>
-      </Modal>
+      </FocusedModal>
     </SafeAreaView>
   );
 }

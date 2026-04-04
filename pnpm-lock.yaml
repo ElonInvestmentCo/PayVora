@@ -218,6 +218,9 @@ importers:
       '@tamagui/config':
         specifier: 2.0.0-rc.36
         version: 2.0.0-rc.36(a0706e8ef454186eff09b81f1303b309)
+      '@tamagui/focus-scope':
+        specifier: 2.0.0-rc.36
+        version: 2.0.0-rc.36(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       http-proxy-middleware:
         specifier: ^3.0.5
         version: 3.0.5

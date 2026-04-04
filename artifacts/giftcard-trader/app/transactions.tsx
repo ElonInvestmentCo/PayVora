@@ -7,9 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
-  Modal,
   Pressable,
 } from "react-native";
+import { FocusedModal } from "@/components/FocusedModal";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -312,7 +312,7 @@ export default function TransactionsScreen() {
         )}
       </ScrollView>
 
-      <Modal transparent visible={!!selectedTx} animationType="fade" onRequestClose={() => setSelectedTx(null)}>
+      <FocusedModal transparent visible={!!selectedTx} animationType="fade" onRequestClose={() => setSelectedTx(null)}>
         <Pressable style={styles.overlay} onPress={() => setSelectedTx(null)}>
           <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
             {selectedTx && (() => {
@@ -367,7 +367,7 @@ export default function TransactionsScreen() {
             })()}
           </Pressable>
         </Pressable>
-      </Modal>
+      </FocusedModal>
     </View>
   );
 }

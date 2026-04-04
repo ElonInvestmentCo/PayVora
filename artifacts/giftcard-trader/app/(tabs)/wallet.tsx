@@ -5,10 +5,10 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { FocusedModal } from "@/components/FocusedModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -380,7 +380,7 @@ export default function WalletScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={modalMode !== null} transparent animationType="slide">
+      <FocusedModal visible={modalMode !== null} transparent animationType="slide">
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" }}>
           <View style={{ backgroundColor: cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, borderTopWidth: 1, borderTopColor: borderClr, minHeight: 400 }}>
             <View style={{ width: 48, height: 4, borderRadius: 2, backgroundColor: borderClr, alignSelf: "center", marginBottom: 24 }} />
@@ -469,7 +469,7 @@ export default function WalletScreen() {
             )}
           </View>
         </View>
-      </Modal>
+      </FocusedModal>
     </SafeAreaView>
   );
 }

@@ -7,11 +7,11 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
-  Modal,
   Pressable,
   Switch,
   Alert,
 } from "react-native";
+import { FocusedModal } from "@/components/FocusedModal";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -406,7 +406,7 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {/* Delete Account Modal */}
-      <Modal transparent visible={deleteModal} animationType="fade" onRequestClose={() => setDeleteModal(false)}>
+      <FocusedModal transparent visible={deleteModal} animationType="fade" onRequestClose={() => setDeleteModal(false)}>
         <Pressable style={styles.overlay} onPress={() => setDeleteModal(false)}>
           <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
             <View style={styles.modalHeader}>
@@ -432,7 +432,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </Pressable>
         </Pressable>
-      </Modal>
+      </FocusedModal>
     </View>
   );
 }

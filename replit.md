@@ -46,6 +46,7 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 - **NotificationsPanel** `components/NotificationsPanel.tsx` — Slide-down notification panel rendered at root `_layout.tsx`.
 - **Haptics** `utils/haptics.ts` — Cross-platform haptic feedback (expo-haptics on native, navigator.vibrate on web). Functions: `hapticLight/Medium/Heavy/Success/Error/Warning/Selection()`. Wired into: GlowButton (medium on press), home quick actions (light), trade success/error alerts, settings dark mode toggle (selection), virtual card fund/withdraw warnings, bills validation errors, KYC flow steps.
 - **Tamagui** — `tamagui` + `@tamagui/config` installed, config at `tamagui.config.ts`. **Not currently in provider tree** — TamaguiProvider's wrapper div breaks flex layout on Expo web. Add back when needed with `style={{flex:1}}` on wrapper or inside content area only.
+- **FocusedModal** `components/FocusedModal.tsx` — Wraps RN Modal with `@tamagui/focus-scope` FocusScope on web (trapped + loop + focusOnIdle). No-op on native. Used by all 6 modals: wallet deposit/withdraw, buy-crypto confirm, sell-crypto confirm, settings delete, bills eSIM, transactions detail.
 - **Provider order** (_layout.tsx): `ThemeProvider > GestureHandlerRootView > KeyboardProvider > WalletProvider > NotificationsProvider > KycProvider`.
 
 ## Key Commands

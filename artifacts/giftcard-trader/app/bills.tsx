@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
-  Modal,
   Pressable,
 } from "react-native";
+import { FocusedModal } from "@/components/FocusedModal";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -376,7 +376,7 @@ export default function BillsScreen() {
       </ScrollView>
 
       {/* eSIM Plan Modal */}
-      <Modal transparent visible={planModal} animationType="fade" onRequestClose={() => setPlanModal(false)}>
+      <FocusedModal transparent visible={planModal} animationType="fade" onRequestClose={() => setPlanModal(false)}>
         <Pressable style={styles.overlay} onPress={() => setPlanModal(false)}>
           <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
             {selectedPlan && (
@@ -418,7 +418,7 @@ export default function BillsScreen() {
             )}
           </Pressable>
         </Pressable>
-      </Modal>
+      </FocusedModal>
     </View>
   );
 }
