@@ -1,0 +1,156 @@
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ArrowUpLeft, ArrowDownLeft, ArrowUpRight, Bell, TrendingUp, TrendingDown } from 'lucide-react-native';
+
+// Types
+type Asset = {
+  id: string;
+  name: string;
+  symbol: string;
+  price: string;
+  change: string;
+  isPositive: boolean;
+  icon: string;
+};
+
+type Transaction = {
+  id: string;
+  type: 'send' | 'receive';
+  asset: string;
+  amount: string;
+  date: string;
+  status: string;
+};
+
+// Mock Data
+const assets: Asset[] = [
+  { id: '1', name: 'Bitcoin', symbol: 'BTC', price: '$43,290.50', change: '+2.45%', isPositive: true, icon: '₿' },
+  { id: '2', name: 'Ethereum', symbol: 'ETH', price: '$2,845.20', change: '+1.20%', isPositive: true, icon: 'Ξ' },
+  { id: '3', name: 'Solana', symbol: 'SOL', price: '$98.45', change: '-0.85%', isPositive: false, icon: '◎' },
+  { id: '4', name: 'Cardano', symbol: 'ADA', price: '$0.58', change: '+5.10%', isPositive: true, icon: '₳' },
+];
+
+const transactions: Transaction[] = [
+  { id: '1', type: 'receive', asset: 'BTC', amount: '+0.045 BTC', date: 'Today, 10:23 AM', status: 'Completed' },
+  { id: '2', type: 'send', asset: 'ETH', amount: '-1.20 ETH', date: 'Yesterday, 4:15 PM', status: 'Completed' },
+  { id: '3', type: 'receive', asset: 'USDT', amount: '+500.00 USDT', date: 'Feb 20, 9:00 AM', status: 'Pending' },
+];
+
+export default function HomeScreen() {
+  return (
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 128 }} className="flex-1">
+        {/* Header */}
+        <View className="px-6 pt-4 pb-6 flex-row justify-between items-center">
+          <View>
+            <Text className="text-muted-foreground text-sm">Welcome back</Text>
+            <Text className="text-foreground text-2xl font-bold mt-1">Alex Trader</Text>
+          </View>
+          <View className="flex-row gap-4">
+             <ThemeToggle />
+             <TouchableOpacity className="w-10 h-10 rounded-full bg-card items-center justify-center border border-border">
+                <Bell size={20} className="text-foreground" />
+             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Balance Card */}
+        <View className="px-6 mb-8">
+          <LinearGradient
+            colors={['#00E5FF', '#8B5CF6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 16, padding: 24 }}
+          >
+            <Text className="text-white/80 text-sm font-medium mb-1">Total Balance</Text>
+            <Text className="text-white text-3xl font-bold mb-4">$42,593.00</Text>
+            <View className="flex-row gap-4">
+              <TouchableOpacity className="flex-1 bg-white/20 py-3 rounded-xl items-center backdrop-blur-sm active:opacity-80">
+                <ArrowUpLeft size={20} className="text-white mb-1" />
+                <Text className="text-white text-xs font-semibold">Send</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 bg-white/20 py-3 rounded-xl items-center backdrop-blur-sm active:opacity-80">
+                <ArrowDownLeft size={20} className="text-white mb-1" />
+                <Text className="text-white text-xs font-semibold">Receive</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 bg-white/20 py-3 rounded-xl items-center backdrop-blur-sm active:opacity-80">
+                <ArrowUpRight size={20} className="text-white mb-1" />
+                <Text className="text-white text-xs font-semibold">Swap</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Assets Section */}
+        <View className="px-6 mb-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-foreground text-lg font-bold">Your Assets</Text>
+            <TouchableOpacity>
+              <Text className="text-primary text-sm font-medium">See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View className="gap-3">
+            {assets.map((asset) => (
+              <View key={asset.id} className="bg-card p-4 rounded-xl flex-row items-center justify-between border border-border">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-10 h-10 rounded-full bg-background items-center justify-center border border-border">
+                    <Text className="text-foreground font-bold">{asset.icon}</Text>
+                  </View>
+                  <View>
+                    <Text className="text-foreground font-semibold">{asset.name}</Text>
+                    <Text className="text-muted-foreground text-xs">{asset.symbol}</Text>
+                  </View>
+                </View>
+                <View className="items-end">
+                  <Text className="text-foreground font-semibold">{asset.price}</Text>
+                  <View className="flex-row items-center gap-1">
+                    {asset.isPositive ? (
+                      <TrendingUp size={12} className="text-green-500" />
+                    ) : (
+                      <TrendingDown size={12} className="text-red-500" />
+                    )}
+                    <Text className={`text-xs ${asset.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                      {asset.change}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Recent Transactions */}
+        <View className="px-6">
+           <Text className="text-foreground text-lg font-bold mb-4">Recent Activity</Text>
+           <View className="gap-3">
+             {transactions.map((tx) => (
+               <View key={tx.id} className="bg-card p-4 rounded-xl flex-row items-center justify-between border border-border">
+                 <View className="flex-row items-center gap-3">
+                   <View className={`w-10 h-10 rounded-full items-center justify-center ${tx.type === 'receive' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                     {tx.type === 'receive' ? (
+                        <ArrowDownLeft size={20} className={tx.type === 'receive' ? 'text-green-500' : 'text-red-500'} />
+                     ) : (
+                        <ArrowUpLeft size={20} className={tx.type === 'receive' ? 'text-green-500' : 'text-red-500'} />
+                     )}
+                   </View>
+                   <View>
+                     <Text className="text-foreground font-semibold capitalize">{tx.type} {tx.asset}</Text>
+                     <Text className="text-muted-foreground text-xs">{tx.date}</Text>
+                   </View>
+                 </View>
+                 <View className="items-end">
+                   <Text className={`font-semibold ${tx.type === 'receive' ? 'text-green-500' : 'text-foreground'}`}>{tx.amount}</Text>
+                   <Text className="text-muted-foreground text-xs">{tx.status}</Text>
+                 </View>
+               </View>
+             ))}
+           </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
