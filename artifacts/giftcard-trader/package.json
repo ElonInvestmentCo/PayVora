@@ -59,6 +59,8 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "http-proxy-middleware": "^3.0.5"
+    "@tamagui/config": "2.0.0-rc.36",
+    "http-proxy-middleware": "^3.0.5",
+    "tamagui": "2.0.0-rc.36"
   }
 }

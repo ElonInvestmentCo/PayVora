@@ -149,19 +149,19 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <KeyboardProvider>
-                <WalletProvider>
-                  <NotificationsProvider>
-                    <KycProvider>
-                      <SyncDarkMode />
-                      <RootLayoutNav />
-                      <NotificationsPanel />
-                    </KycProvider>
-                  </NotificationsProvider>
-                </WalletProvider>
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardProvider>
+                  <WalletProvider>
+                    <NotificationsProvider>
+                      <KycProvider>
+                        <SyncDarkMode />
+                        <RootLayoutNav />
+                        <NotificationsPanel />
+                      </KycProvider>
+                    </NotificationsProvider>
+                  </WalletProvider>
+                </KeyboardProvider>
+              </GestureHandlerRootView>
           </ThemeProvider>
         </QueryClientProvider>
       </ErrorBoundary>
