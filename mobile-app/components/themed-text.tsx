@@ -15,7 +15,14 @@ export function ThemedText({
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  // Use your palette: fallback to brand values if light/dark color is undefined
+  const color = useThemeColor(
+    { 
+      light: lightColor || '#6B7280',  // Grey Text for light themes
+      dark: darkColor || '#FFFFFF',   // White for dark themes
+    },
+    'text'
+  );
 
   return (
     <Text
@@ -46,15 +53,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    lineHeight: 32,
+    lineHeight: 38,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    lineHeight: 28,
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: '#0a7ea4',
+    color: '#22C55E', // Updated to Secondary Green (#22C55E)
   },
 });
