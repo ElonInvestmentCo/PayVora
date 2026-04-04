@@ -21,9 +21,9 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 ## App Screens (Expo — artifacts/giftcard-trader)
 
 - **Home** `app/(tabs)/index.tsx` — wallet overview, quick actions, recent transactions
-- **Rates** `app/(tabs)/rates.tsx` — live exchange rates for card types
-- **Wallet** `app/(tabs)/wallet.tsx` — full wallet dashboard with portfolio chart, multi-asset list, transaction history, filter tabs (All/Crypto/Fiat), action buttons (Deposit/Withdraw/Transfer)
-- **Sell Gift Card** `app/sell.tsx` — sell physical/digital gift cards for NGN
+- **Trade** `app/(tabs)/rates.tsx` — full trading interface: asset selector (BTC/ETH/SOL/BNB/ADA/XRP), simulated 24h price chart with LIVE indicator, order book (asks/bids with depth bars, spread display), buy/sell toggle with amount input, quick-amount buttons, fee breakdown summary, position accounting (buy increases crypto holdings, sell validates & decreases holdings)
+- **Wallet** `app/(tabs)/wallet.tsx` — full wallet dashboard with portfolio chart, multi-asset list with inline deposit/withdraw mini-buttons, transaction history, filter tabs (All/Crypto/Fiat), deposit modal (shows address + network + copy button + warning), withdrawal modal (amount + address + fee + submit), KYC banner, crypto withdrawals debit asset balances correctly
+- **Quick Sell** `app/sell.tsx` — dual-mode sell interface (Gift Cards / Crypto toggle): gift card mode has card selector, currency tabs, amount input, image upload, rate display, payout preview; crypto mode shows asset grid with balances, current price bar, percentage quick-buttons (25/50/75/100%), fee breakdown, instant sell with asset balance deduction
 - **Buy Gift Card** `app/buy.tsx` — purchase gift cards with wallet/card/crypto
 - **Sell Crypto** `app/sell-crypto.tsx` — sell BTC/ETH/SOL/etc for USD with market/limit orders
 - **Buy Crypto** `app/buy-crypto.tsx` — purchase crypto with USD wallet/card/bank, fee breakdown, confirmation modal

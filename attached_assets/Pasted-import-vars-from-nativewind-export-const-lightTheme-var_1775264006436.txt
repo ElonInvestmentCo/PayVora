@@ -1,0 +1,71 @@
+import { vars } from "nativewind";
+
+export const lightTheme = vars({
+  "--radius": "12",
+  "--background": "255 255 255",
+  "--foreground": "10 10 10",
+  "--card": "241 245 249",
+  "--card-foreground": "15 23 42",
+  "--primary": "0 229 255",
+  "--primary-foreground": "255 255 255",
+  "--secondary": "20 184 166",
+  "--secondary-foreground": "255 255 255",
+  "--muted": "51 65 85",
+  "--muted-foreground": "148 163 184",
+  "--accent": "139 92 246",
+  "--accent-foreground": "255 255 255",
+  "--destructive": "255 68 68",
+  "--border": "51 65 85",
+  "--input": "51 65 85",
+  "--ring": "0 229 255",
+  "--chart-1": "0 255 136",
+  "--chart-2": "245 158 11",
+  "--sidebar": "241 245 249",
+  "--sidebar-foreground": "15 23 42",
+  "--sidebar-primary": "0 229 255",
+  "--sidebar-primary-foreground": "255 255 255",
+  "--sidebar-accent": "20 184 166",
+  "--sidebar-accent-foreground": "255 255 255",
+  "--sidebar-border": "51 65 85",
+  "--sidebar-ring": "0 229 255",
+});
+
+export const darkTheme = vars({
+  "--radius": "12",
+  // Core colors from user request
+  "--background": "10 20 40", // #0A1428
+  "--foreground": "255 255 255", // #FFFFFF
+  
+  "--card": "30 41 59", // #1E293B
+  "--card-foreground": "255 255 255",
+  
+  "--primary": "0 229 255", // #00E5FF
+  "--primary-foreground": "10 20 40",
+  
+  "--secondary": "20 184 166", // #14B8A6
+  "--secondary-foreground": "255 255 255",
+  
+  "--muted": "51 65 85", // #334155
+  "--muted-foreground": "148 163 184", // #94A3B8
+  
+  "--accent": "139 92 246", // #8B5CF6
+  "--accent-foreground": "255 255 255",
+  
+  "--destructive": "255 68 68", // #FF4444
+  
+  "--border": "51 65 85", // #334155
+  "--input": "30 41 59",
+  "--ring": "0 229 255",
+  
+  "--chart-1": "0 255 136", // #00FF88
+  "--chart-2": "245 158 11", // #F59E0B
+  
+  "--sidebar": "10 20 40",
+  "--sidebar-foreground": "255 255 255",
+  "--sidebar-primary": "0 229 255",
+  "--sidebar-primary-foreground": "10 20 40",
+  "--sidebar-accent": "30 41 59",
+  "--sidebar-accent-foreground": "255 255 255",
+  "--sidebar-border": "51 65 85",
+  "--sidebar-ring": "0 229 255",
+});

@@ -1,0 +1,277 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ArrowLeft, TrendingDown, TrendingUp, ChevronDown, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+export default function SellCryptoScreen() {
+  const [amount, setAmount] = useState('');
+  const [fiatValue, setFiatValue] = useState('0.00');
+  const [isMarket, setIsMarket] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [txStatus, setTxStatus] = useState<'pending' | 'success' | 'failed'>('pending');
+
+  const currentPrice = 42500.50;
+  const change = -2.45;
+  const balance = 0.5;
+  const feeRate = 0.001; // 0.1%
+
+  const handleAmountChange = (text: string) => {
+    setAmount(text);
+    const num = parseFloat(text) || 0;
+    setFiatValue((num * currentPrice).toFixed(2));
+  };
+
+  const handleSell = () => {
+    if (!amount || parseFloat(amount) <= 0) return;
+    setShowModal(true);
+    setIsProcessing(true);
+    setTxStatus('pending');
+    
+    // Simulate transaction
+    setTimeout(() => {
+      setTxStatus('success');
+      setIsProcessing(false);
+    }, 2000);
+  };
+
+  const getFee = () => {
+    return (parseFloat(fiatValue) * feeRate).toFixed(2);
+  };
+
+  const getTotalPayout = () => {
+    const val = parseFloat(fiatValue);
+    const fee = parseFloat(getFee());
+    return (val - fee).toFixed(2);
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-[#0A1428]" edges={['top', 'left', 'right']}>
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-6 py-4 border-b border-[#334155]">
+        <View className="flex-row items-center gap-3">
+          <View className="w-8 h-8 rounded-full bg-[#1E293B] items-center justify-center">
+            <ArrowLeft size={20} color="#94A3B8" />
+          </View>
+          <Text className="text-xl font-bold text-white">Sell Crypto</Text>
+        </View>
+        <ThemeToggle />
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 128, gap: 24 }}>
+        {/* Balance Card */}
+        <View className="mx-6 mt-6 p-5 rounded-2xl bg-[#1E293B] border border-[#334155]">
+          <View className="flex-row justify-between items-start">
+            <View>
+              <Text className="text-[#94A3B8] text-sm mb-1">Available Balance</Text>
+              <Text className="text-white text-2xl font-bold">{balance} BTC</Text>
+              <Text className="text-[#94A3B8] text-sm mt-1">≈ ${(balance * currentPrice).toLocaleString()}</Text>
+            </View>
+            <View className="px-3 py-1 rounded-full bg-[#0A1428] border border-[#334155]">
+              <Text className="text-[#00E5FF] text-xs font-semibold">MAX</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Crypto Selector */}
+        <View className="mx-6">
+          <Text className="text-[#94A3B8] text-sm mb-3">Asset</Text>
+          <TouchableOpacity className="flex-row items-center justify-between p-4 rounded-xl bg-[#1E293B] border border-[#334155]">
+            <View className="flex-row items-center gap-3">
+              <View className="w-10 h-10 rounded-full bg-orange-500/20 items-center justify-center">
+                <Text className="text-orange-500 font-bold">₿</Text>
+              </View>
+              <View>
+                <Text className="text-white font-semibold">Bitcoin</Text>
+                <Text className="text-[#94A3B8] text-xs">BTC</Text>
+              </View>
+            </View>
+            <ChevronDown size={20} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Price Display & Chart */}
+        <View className="mx-6">
+          <View className="flex-row justify-between items-end mb-3">
+            <View>
+              <Text className="text-[#94A3B8] text-xs">Current Price</Text>
+              <Text className="text-white text-xl font-bold">${currentPrice.toLocaleString()}</Text>
+            </View>
+            <View className={`flex-row items-center gap-1 px-2 py-1 rounded-lg ${change >= 0 ? 'bg-[#00FF88]/10' : 'bg-[#FF4444]/10'}`}>
+              {change >= 0 ? <TrendingUp size={16} color="#00FF88" /> : <TrendingDown size={16} color="#FF4444" />}
+              <Text className={`text-sm font-semibold ${change >= 0 ? 'text-[#00FF88]' : 'text-[#FF4444]'}`}>
+                {change > 0 ? '+' : ''}{change}%
+              </Text>
+            </View>
+          </View>
+
+          {/* Mini Chart Simulation */}
+          <View className="h-24 rounded-xl overflow-hidden bg-[#000000] border border-[#334155] relative">
+            <LinearGradient
+              colors={['rgba(0, 229, 255, 0.2)', 'rgba(139, 92, 246, 0.1)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+            {/* Simulated line */}
+            <View className="absolute bottom-4 left-4 right-4 h-12 flex justify-end">
+              <View className="h-1 bg-[#00E5FF] rounded-full opacity-50 mb-2" style={{ width: '60%', alignSelf: 'flex-end' }} />
+              <View className="h-1 bg-[#8B5CF6] rounded-full opacity-50 mb-2" style={{ width: '80%', alignSelf: 'flex-end' }} />
+              <View className="h-1 bg-[#00E5FF] rounded-full shadow-[0_0_10px_#00E5FF]" style={{ width: '100%' }} />
+            </View>
+          </View>
+        </View>
+
+        {/* Order Type Toggle */}
+        <View className="mx-6 flex-row bg-[#1E293B] rounded-xl p-1 border border-[#334155]">
+          <TouchableOpacity 
+            onPress={() => setIsMarket(true)}
+            className={`flex-1 py-3 rounded-lg items-center ${isMarket ? 'bg-[#00E5FF]/20' : ''}`}
+          >
+            <Text className={`font-semibold ${isMarket ? 'text-[#00E5FF]' : 'text-[#94A3B8]'}`}>Market</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setIsMarket(false)}
+            className={`flex-1 py-3 rounded-lg items-center ${!isMarket ? 'bg-[#00E5FF]/20' : ''}`}
+          >
+            <Text className={`font-semibold ${!isMarket ? 'text-[#00E5FF]' : 'text-[#94A3B8]'}`}>Limit</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Input Fields */}
+        <View className="mx-6 gap-4">
+          <View>
+            <Text className="text-[#94A3B8] text-sm mb-2">You Sell</Text>
+            <View className="flex-row items-center p-4 rounded-xl bg-[#1E293B] border border-[#334155]">
+              <TextInput
+                className="flex-1 text-white text-xl font-semibold"
+                placeholder="0.00"
+                placeholderTextColor="#475569"
+                value={amount}
+                onChangeText={handleAmountChange}
+                keyboardType="decimal-pad"
+              />
+              <View className="px-3 py-1 rounded-lg bg-[#0A1428]">
+                <Text className="text-white font-bold">BTC</Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row items-center justify-center">
+            <View className="w-8 h-8 rounded-full bg-[#1E293B] items-center justify-center border border-[#334155]">
+              <ArrowDownLeft size={16} color="#94A3B8" />
+            </View>
+          </View>
+
+          <View>
+            <Text className="text-[#94A3B8] text-sm mb-2">You Receive</Text>
+            <View className="flex-row items-center p-4 rounded-xl bg-[#1E293B] border border-[#334155]">
+              <TextInput
+                className="flex-1 text-white text-xl font-semibold"
+                placeholder="0.00"
+                placeholderTextColor="#475569"
+                value={fiatValue}
+                editable={false}
+              />
+              <View className="px-3 py-1 rounded-lg bg-[#0A1428]">
+                <Text className="text-white font-bold">USD</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Fee Breakdown */}
+        <View className="mx-6 p-4 rounded-xl bg-[#1E293B]/50 border border-[#334155]">
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-[#94A3B8] text-sm">Rate</Text>
+            <Text className="text-white text-sm">1 BTC ≈ ${currentPrice.toLocaleString()}</Text>
+          </View>
+          <View className="flex-row justify-between items-center mb-2">
+            <Text className="text-[#94A3B8] text-sm">Fee (0.1%)</Text>
+            <Text className="text-white text-sm">${getFee()}</Text>
+          </View>
+          <View className="h-px bg-[#334155] my-2" />
+          <View className="flex-row justify-between items-center">
+            <Text className="text-white font-semibold">Total Payout</Text>
+            <Text className="text-[#00E5FF] font-bold text-lg">${getTotalPayout()}</Text>
+          </View>
+        </View>
+
+        {/* Sell Button */}
+        <TouchableOpacity 
+          onPress={handleSell}
+          className="mx-6 py-4 rounded-xl bg-[#00E5FF] items-center justify-center shadow-[0_0_20px_rgba(0,229,255,0.3)]"
+        >
+          <Text className="text-[#0A1428] font-bold text-lg">Sell Now</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View className="flex-1 bg-black/60 items-center justify-end">
+          <View className="w-full bg-[#1E293B] rounded-t-3xl p-6 border-t border-[#334155]" style={{ minHeight: 400 }}>
+            <View className="w-12 h-1 bg-[#334155] rounded-full self-center mb-6" />
+            
+            <Text className="text-white text-xl font-bold text-center mb-6">Transaction Summary</Text>
+
+            {isProcessing ? (
+              <View className="items-center justify-center py-12">
+                <ActivityIndicator size="large" color="#00E5FF" />
+                <Text className="text-[#94A3B8] mt-4">Processing transaction...</Text>
+              </View>
+            ) : (
+              <>
+                {txStatus === 'success' && (
+                  <View className="items-center mb-6">
+                    <View className="w-16 h-16 rounded-full bg-[#00FF88]/20 items-center justify-center mb-3">
+                      <CheckCircle size={32} color="#00FF88" />
+                    </View>
+                    <Text className="text-[#00FF88] font-bold text-lg">Order Completed</Text>
+                  </View>
+                )}
+
+                <View className="space-y-3 mb-6">
+                  <View className="flex-row justify-between">
+                    <Text className="text-[#94A3B8]">Sold</Text>
+                    <Text className="text-white font-semibold">{amount} BTC</Text>
+                  </View>
+                  <View className="flex-row justify-between">
+                    <Text className="text-[#94A3B8]">Rate</Text>
+                    <Text className="text-white">${currentPrice.toLocaleString()}</Text>
+                  </View>
+                  <View className="flex-row justify-between">
+                    <Text className="text-[#94A3B8]">Fees</Text>
+                    <Text className="text-white">${getFee()}</Text>
+                  </View>
+                  <View className="h-px bg-[#334155]" />
+                  <View className="flex-row justify-between">
+                    <Text className="text-white font-bold">Total</Text>
+                    <Text className="text-[#00E5FF] font-bold text-lg">${getTotalPayout()}</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowModal(false);
+                    setAmount('');
+                    setFiatValue('0.00');
+                  }}
+                  className="w-full py-4 rounded-xl bg-[#00E5FF] items-center justify-center"
+                >
+                  <Text className="text-[#0A1428] font-bold text-lg">Done</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
