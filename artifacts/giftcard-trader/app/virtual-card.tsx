@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 interface CardTx {
   id: string;
@@ -74,25 +76,74 @@ const chStyles = StyleSheet.create({
 export default function VirtualCardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const {
+    virtualCardBalance, virtualCardFrozen,
+    fundVirtualCard, withdrawVirtualCard, toggleFreezeCard,
+    addTransaction, usdBalance,
+  } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
 
   const [showDetails, setShowDetails] = useState(false);
-  const [frozen, setFrozen] = useState(false);
   const [onlineTx, setOnlineTx] = useState(true);
   const [fundLoading, setFundLoading] = useState(false);
 
   const handleFund = useCallback(async () => {
+    const fundAmount = 100;
+    if (usdBalance < fundAmount) {
+      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
+      return;
+    }
     setFundLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     setFundLoading(false);
-    Alert.alert("Card Funded", "Successfully added $100.00 to your virtual card.");
-  }, []);
+    fundVirtualCard(fundAmount);
+    addTransaction({
+      type: "card",
+      category: "Card",
+      title: "Virtual Card Funding",
+      amount: fundAmount,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "out",
+    });
+    addNotification({
+      title: "Card Funded",
+      message: `$${fundAmount.toFixed(2)} added to your virtual card.`,
+      type: "success",
+      time: "Just now",
+    });
+    Alert.alert("Card Funded", `Successfully added $${fundAmount.toFixed(2)} to your virtual card.`);
+  }, [usdBalance, fundVirtualCard, addTransaction, addNotification]);
 
   const handleWithdraw = useCallback(() => {
-    Alert.alert("Withdraw", "Withdrawal of $50.00 initiated from your virtual card.");
-  }, []);
+    const withdrawAmount = 50;
+    if (virtualCardBalance < withdrawAmount) {
+      Alert.alert("Insufficient Card Balance", "Not enough funds on card to withdraw.");
+      return;
+    }
+    withdrawVirtualCard(withdrawAmount);
+    addTransaction({
+      type: "card",
+      category: "Card",
+      title: "Virtual Card Withdrawal",
+      amount: withdrawAmount,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "in",
+    });
+    addNotification({
+      title: "Card Withdrawal",
+      message: `$${withdrawAmount.toFixed(2)} withdrawn from virtual card.`,
+      type: "info",
+      time: "Just now",
+    });
+    Alert.alert("Withdraw", `Withdrawal of $${withdrawAmount.toFixed(2)} initiated from your virtual card.`);
+  }, [virtualCardBalance, withdrawVirtualCard, addTransaction, addNotification]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -115,11 +166,11 @@ export default function VirtualCardScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
 
         {/* Virtual Card */}
-        <View style={[styles.card, frozen && styles.cardFrozen]}>
+        <View style={[styles.card, virtualCardFrozen && styles.cardFrozen]}>
           <View style={styles.cardTop}>
             <View>
               <Text style={styles.cardLabel}>Virtual Card</Text>
-              <Text style={styles.cardBalance}>$2,450.00</Text>
+              <Text style={styles.cardBalance}>${virtualCardBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
             </View>
             <View style={styles.cardBrand}>
               <Text style={styles.brandText}>VISA</Text>
@@ -144,7 +195,7 @@ export default function VirtualCardScreen() {
               <Text style={styles.cardFieldValue}>{showDetails ? "491" : "***"}</Text>
             </View>
           </View>
-          {frozen && (
+          {virtualCardFrozen && (
             <View style={styles.frozenOverlay}>
               <Feather name="lock" size={28} color="#FFFFFF" />
               <Text style={styles.frozenText}>Card Frozen</Text>
@@ -190,14 +241,14 @@ export default function VirtualCardScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => setFrozen(!frozen)}
-            style={[styles.actionBtn, { backgroundColor: frozen ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)" }]}
+            onPress={toggleFreezeCard}
+            style={[styles.actionBtn, { backgroundColor: virtualCardFrozen ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)" }]}
           >
-            <View style={[styles.actionIcon, { backgroundColor: frozen ? "rgba(239,68,68,0.2)" : "rgba(245,158,11,0.2)" }]}>
-              <Feather name={frozen ? "unlock" : "lock"} size={18} color={frozen ? "#EF4444" : "#F59E0B"} />
+            <View style={[styles.actionIcon, { backgroundColor: virtualCardFrozen ? "rgba(239,68,68,0.2)" : "rgba(245,158,11,0.2)" }]}>
+              <Feather name={virtualCardFrozen ? "unlock" : "lock"} size={18} color={virtualCardFrozen ? "#EF4444" : "#F59E0B"} />
             </View>
-            <Text style={[styles.actionLabel, { color: frozen ? "#EF4444" : "#F59E0B" }]}>
-              {frozen ? "Unfreeze" : "Freeze"}
+            <Text style={[styles.actionLabel, { color: virtualCardFrozen ? "#EF4444" : "#F59E0B" }]}>
+              {virtualCardFrozen ? "Unfreeze" : "Freeze"}
             </Text>
           </TouchableOpacity>
         </View>

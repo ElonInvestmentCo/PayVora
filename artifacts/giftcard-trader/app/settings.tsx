@@ -18,6 +18,7 @@ import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
 import { useKyc } from "@/contexts/KycContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const LANGUAGES = ["English", "Spanish", "French", "Arabic", "Chinese", "Portuguese"];
 const CURRENCIES = ["USD", "NGN", "EUR", "GBP", "CAD", "AUD"];
@@ -56,6 +57,7 @@ export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { kycStatus } = useKyc();
+  const { isDark, toggle: toggleDarkMode } = useTheme();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
@@ -279,17 +281,20 @@ export default function SettingsScreen() {
           {/* Dark mode */}
           <View style={[styles.toggleRow, { borderBottomColor: colors.border }]}>
             <View style={[styles.toggleIcon, { backgroundColor: "rgba(139,92,246,0.15)" }]}>
-              <Feather name="moon" size={16} color="#8B5CF6" />
+              <Feather name={isDark ? "moon" : "sun"} size={16} color="#8B5CF6" />
             </View>
             <View style={styles.toggleInfo}>
               <Text style={[styles.toggleLabel, { color: colors.foreground }]}>Dark Mode</Text>
-              <Text style={[styles.toggleSub, { color: colors.mutedForeground }]}>Easier on the eyes at night</Text>
+              <Text style={[styles.toggleSub, { color: colors.mutedForeground }]}>
+                {isDark ? "Currently dark theme" : "Currently light theme"}
+              </Text>
             </View>
             <Switch
-              value={toggles.darkMode}
-              onValueChange={() => toggle("darkMode")}
+              testID="dark-mode-switch"
+              value={isDark}
+              onValueChange={toggleDarkMode}
               trackColor={{ false: colors.border, true: "rgba(139,92,246,0.3)" }}
-              thumbColor={toggles.darkMode ? "#8B5CF6" : "#94A3B8"}
+              thumbColor={isDark ? "#8B5CF6" : "#94A3B8"}
             />
           </View>
 

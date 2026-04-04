@@ -14,21 +14,27 @@ import { useColors } from "@/hooks/useColors";
 import { WalletCard } from "@/components/WalletCard";
 import { RateCard } from "@/components/RateCard";
 import { TransactionItem, Transaction } from "@/components/TransactionItem";
-
-const SAMPLE_TRANSACTIONS: Transaction[] = [
-  { id: "1", cardType: "Amazon Gift Card", amount: 100, payout: 75000, status: "success", date: "Today, 2:30 PM" },
-  { id: "2", cardType: "iTunes Gift Card", amount: 50, payout: 36000, status: "pending", date: "Yesterday, 11:10 AM" },
-  { id: "3", cardType: "Steam Gift Card", amount: 200, payout: 140000, status: "success", date: "Apr 1, 9:05 AM" },
-  { id: "4", cardType: "Google Play", amount: 25, payout: 17750, status: "error", date: "Mar 30, 4:20 PM" },
-];
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
+  const { ngnBalance, transactions } = useWallet();
+  const { unreadCount, togglePanel } = useNotifications();
 
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
+
+  const recentTxs: Transaction[] = transactions.slice(0, 4).map((t) => ({
+    id: t.id,
+    cardType: t.title,
+    amount: t.amount,
+    payout: t.currency === "NGN" ? t.amount : t.amount * 750,
+    status: t.status,
+    date: t.date,
+  }));
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -58,16 +64,17 @@ export default function HomeScreen() {
               style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
               activeOpacity={0.8}
               testID="notifications-button"
+              onPress={togglePanel}
             >
               <Feather name="bell" size={20} color={colors.mutedForeground} />
-              <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />
+              {unreadCount > 0 && <View style={[styles.notifDot, { backgroundColor: colors.primary }]} />}
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Wallet Card */}
         <WalletCard
-          balance={253750}
+          balance={ngnBalance}
           onWithdraw={() => {}}
           onDeposit={() => {}}
         />
@@ -105,7 +112,7 @@ export default function HomeScreen() {
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>
-        {SAMPLE_TRANSACTIONS.map((t) => (
+        {recentTxs.map((t) => (
           <TransactionItem key={t.id} item={t} />
         ))}
       </ScrollView>

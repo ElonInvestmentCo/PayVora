@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,7 +48,7 @@ const CURRENCY_RATES: Record<Currency, number> = {
 const PRESET_AMOUNTS = [10, 25, 50, 100, 200];
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; detail: string }[] = [
-  { id: "wallet", label: "Wallet Balance", icon: "credit-card", detail: "₦253,750 available" },
+  { id: "wallet", label: "Wallet Balance", icon: "credit-card", detail: "NGN Wallet" },
   { id: "card",   label: "Debit / Credit Card", icon: "credit-card", detail: "Visa ending 4242" },
   { id: "crypto", label: "Crypto",         icon: "zap",         detail: "USDT / BTC" },
 ];
@@ -85,6 +87,8 @@ const trendStyles = StyleSheet.create({
 export default function BuyScreen() {
   const colors  = useColors();
   const insets  = useSafeAreaInsets();
+  const { ngnBalance, updateNgnBalance, addTransaction } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb   = Platform.OS === "web";
   const topPad  = isWeb ? 67 : insets.top;
   const botPad  = isWeb ? 34 : insets.bottom;
@@ -116,15 +120,36 @@ export default function BuyScreen() {
       Alert.alert("Invalid Amount", "Please enter a valid gift card amount.");
       return;
     }
+    if (payment === "wallet" && totalNGN > ngnBalance) {
+      Alert.alert("Insufficient Balance", "You don't have enough NGN in your wallet.");
+      return;
+    }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
+    if (payment === "wallet") updateNgnBalance(-totalNGN);
+    addTransaction({
+      type: "gift_card",
+      category: "Gift Cards",
+      title: `${card.name} Gift Card Bought`,
+      amount: totalNGN,
+      currency: "NGN",
+      status: "success",
+      date: "Just now",
+      direction: "out",
+    });
+    addNotification({
+      title: "Gift Card Purchased",
+      message: `${card.name} gift card (${selectedCountry.currency} ${totalUSD}) purchased for ₦${totalNGN.toLocaleString()}.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert(
       "Order Placed!",
       `Your ${card.name} gift card (${selectedCountry.currency} ${totalUSD}) has been purchased successfully. Check your email for delivery.`,
       [{ text: "Done", onPress: () => router.back() }]
     );
-  }, [isValid, card, selectedCountry, totalUSD]);
+  }, [isValid, card, selectedCountry, totalUSD, totalNGN, ngnBalance, payment, updateNgnBalance, addTransaction, addNotification]);
 
   const summaryRows = useMemo(() => [
     { label: "Gift Card",      value: card.name },
@@ -177,7 +202,7 @@ export default function BuyScreen() {
         <View style={[styles.balancePill, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.balanceDot, { backgroundColor: colors.success }]} />
           <Text style={[styles.balanceLabel, { color: colors.mutedForeground }]}>Wallet Balance</Text>
-          <Text style={[styles.balanceAmount, { color: colors.foreground }]}>₦253,750</Text>
+          <Text style={[styles.balanceAmount, { color: colors.foreground }]}>₦{ngnBalance.toLocaleString()}</Text>
         </View>
 
         {/* ── Rate trend widget ── */}

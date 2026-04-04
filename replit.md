@@ -37,6 +37,15 @@ GiftCard Trader is a fintech mobile app (Expo) for trading gift cards and crypto
 - **Markets** `app/(tabs)/markets.tsx` — market overview (cap + volume), asset list with mini sparkline charts, search, category tabs (All/Crypto/Gift Cards/Trending), 24h change indicators
 - **Profile** `app/(tabs)/profile.tsx` — user card with avatar/stats (trades/volume/rank), menu sections linking to all app features (KYC, Virtual Card, Transactions, Bills, Leaderboard, Support, Settings)
 
+## Global State & Context (artifacts/giftcard-trader)
+
+- **ThemeContext** `contexts/ThemeContext.tsx` — `isDark` toggle, consumed by `useColors()` hook. Settings dark mode switch wired to `useTheme().toggle()`.
+- **WalletContext** `contexts/WalletContext.tsx` — `ngnBalance`, `usdBalance`, `assets[]`, `transactions[]`, `virtualCard*` state. All buy/sell/bills screens call `addTransaction()`, `updateNgnBalance()`/`updateUsdBalance()`. Virtual card uses `fundVirtualCard()`, `withdrawVirtualCard()`, `toggleFreezeCard()`.
+- **NotificationsContext** `contexts/NotificationsContext.tsx` — `notifications[]`, `unreadCount`, `showPanel`, `togglePanel()`, `addNotification()`. Bell icons on Home/Wallet open the panel. All trade actions add notifications.
+- **KycContext** `contexts/KycContext.tsx` — Backend-driven KYC status via API.
+- **NotificationsPanel** `components/NotificationsPanel.tsx` — Slide-down notification panel rendered at root `_layout.tsx`.
+- **Provider order** (_layout.tsx): `ThemeProvider > WalletProvider > NotificationsProvider > KycProvider`.
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

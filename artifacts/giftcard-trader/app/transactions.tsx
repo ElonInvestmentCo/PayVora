@@ -14,11 +14,12 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { useWallet, type WalletTransaction } from "@/contexts/WalletContext";
 
 type TabId = "all" | "crypto" | "giftcard" | "bills" | "card" | "wallet";
 type StatusFilter = "all" | "success" | "pending" | "error";
 
-interface Transaction {
+interface DisplayTransaction {
   id: string;
   txId: string;
   title: string;
@@ -49,22 +50,45 @@ const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
   { id: "error",   label: "Failed" },
 ];
 
-const TRANSACTIONS: Transaction[] = [
-  { id: "1",  txId: "TXN-8F4A21", title: "BTC Sell",             category: "crypto",   amount: "-0.015 BTC",    fiatValue: "$675.00",    fee: "$0.68",  rate: "$45,000/BTC",  date: "Today, 3:45 PM",       status: "success", icon: "trending-down", iconColor: "#F7931A" },
-  { id: "2",  txId: "TXN-3B7C90", title: "Amazon Gift Card",     category: "giftcard", amount: "$100.00",       fiatValue: "₦75,000",    fee: "Free",   rate: "₦750/$1",      date: "Today, 1:20 PM",       status: "success", icon: "shopping-bag",  iconColor: "#FF9900" },
-  { id: "3",  txId: "TXN-5D2E18", title: "ETH Buy",              category: "crypto",   amount: "+0.5 ETH",      fiatValue: "$1,425.00",  fee: "$1.43",  rate: "$2,850/ETH",   date: "Yesterday, 11:10 AM",  status: "pending", icon: "trending-up",   iconColor: "#627EEA" },
-  { id: "4",  txId: "TXN-9A1F67", title: "MTN Airtime",          category: "bills",    amount: "$10.00",        fiatValue: "₦7,500",     fee: "$0.00",  rate: "₦750/$1",      date: "Yesterday, 9:05 AM",   status: "success", icon: "phone",         iconColor: "#F59E0B" },
-  { id: "5",  txId: "TXN-2C8D45", title: "Netflix Subscription",  category: "card",     amount: "-$15.99",       fiatValue: "$15.99",     fee: "$0.00",  rate: "-",            date: "Apr 1, 4:12 PM",       status: "success", icon: "tv",            iconColor: "#EF4444" },
-  { id: "6",  txId: "TXN-7E3B92", title: "SOL Buy",              category: "crypto",   amount: "+18.5 SOL",     fiatValue: "$2,627.00",  fee: "$2.63",  rate: "$142/SOL",     date: "Apr 1, 2:30 PM",       status: "success", icon: "trending-up",   iconColor: "#9945FF" },
-  { id: "7",  txId: "TXN-4F6A13", title: "Wallet Deposit",       category: "wallet",   amount: "+₦150,000",     fiatValue: "$200.00",    fee: "Free",   rate: "₦750/$1",      date: "Mar 31, 10:00 AM",     status: "success", icon: "download",      iconColor: "#00FF88" },
-  { id: "8",  txId: "TXN-1D9C78", title: "iTunes Gift Card",     category: "giftcard", amount: "$50.00",        fiatValue: "₦36,000",    fee: "Free",   rate: "₦720/$1",      date: "Mar 31, 8:45 AM",      status: "pending", icon: "music",         iconColor: "#A3AAAE" },
-  { id: "9",  txId: "TXN-6B2E34", title: "DSTV Premium",         category: "bills",    amount: "$35.00",        fiatValue: "₦26,250",    fee: "$0.00",  rate: "₦750/$1",      date: "Mar 30, 4:20 PM",      status: "error",   icon: "tv",            iconColor: "#8B5CF6" },
-  { id: "10", txId: "TXN-8C5F21", title: "BTC Buy",              category: "crypto",   amount: "+0.02 BTC",     fiatValue: "$900.00",    fee: "$0.90",  rate: "$45,000/BTC",  date: "Mar 30, 2:15 PM",      status: "error",   icon: "trending-up",   iconColor: "#F7931A" },
-  { id: "11", txId: "TXN-3A7D56", title: "Wallet Withdrawal",    category: "wallet",   amount: "-₦75,000",      fiatValue: "$100.00",    fee: "₦100",   rate: "₦750/$1",      date: "Mar 29, 1:00 PM",      status: "success", icon: "upload",        iconColor: "#14B8A6" },
-  { id: "12", txId: "TXN-9F1B88", title: "eSIM — Europe",        category: "bills",    amount: "$15.99",        fiatValue: "$15.99",     fee: "$0.00",  rate: "-",            date: "Mar 29, 11:30 AM",     status: "success", icon: "globe",         iconColor: "#00E5FF" },
-  { id: "13", txId: "TXN-5E4C72", title: "Adobe Creative",       category: "card",     amount: "-$54.99",       fiatValue: "$54.99",     fee: "$0.00",  rate: "-",            date: "Mar 28, 3:00 PM",      status: "success", icon: "pen-tool",      iconColor: "#FF4444" },
-  { id: "14", txId: "TXN-2D8A19", title: "Card Funding",         category: "card",     amount: "+$500.00",      fiatValue: "$500.00",    fee: "$2.50",  rate: "-",            date: "Mar 28, 9:00 AM",      status: "success", icon: "plus",          iconColor: "#00E5FF" },
-];
+const ICON_MAP: Record<string, { icon: string; color: string }> = {
+  gift_card: { icon: "shopping-bag", color: "#FF9900" },
+  crypto:    { icon: "trending-up",  color: "#F7931A" },
+  bills:     { icon: "zap",          color: "#F59E0B" },
+  card:      { icon: "credit-card",  color: "#8B5CF6" },
+  wallet:    { icon: "download",     color: "#00FF88" },
+  transfer:  { icon: "repeat",       color: "#14B8A6" },
+};
+
+function mapWalletTx(tx: WalletTransaction): DisplayTransaction {
+  const mapping = ICON_MAP[tx.type] || { icon: "activity", color: "#94A3B8" };
+  const prefix = tx.direction === "in" ? "+" : "-";
+  const currencySymbol = tx.currency === "NGN" ? "₦" : "$";
+  const amountStr = `${prefix}${currencySymbol}${tx.amount.toLocaleString()}`;
+
+  let catTab: Exclude<TabId, "all"> = "wallet";
+  if (tx.type === "gift_card") catTab = "giftcard";
+  else if (tx.type === "crypto") catTab = "crypto";
+  else if (tx.type === "bills") catTab = "bills";
+  else if (tx.type === "card") catTab = "card";
+  else catTab = "wallet";
+
+  const icon = tx.direction === "out" && tx.type === "crypto" ? "trending-down" : mapping.icon;
+
+  return {
+    id: tx.id,
+    txId: `TXN-${tx.id.replace("t", "").padStart(4, "0")}`,
+    title: tx.title,
+    category: catTab,
+    amount: amountStr,
+    fiatValue: `${currencySymbol}${tx.amount.toLocaleString()}`,
+    fee: tx.amount > 10000 ? `${currencySymbol}${(tx.amount * 0.001).toFixed(2)}` : "Free",
+    rate: tx.currency === "NGN" ? "₦750/$1" : "-",
+    date: tx.date,
+    status: tx.status,
+    icon,
+    iconColor: mapping.color,
+  };
+}
 
 const STATUS_CFG: Record<string, { bg: string; border: string; text: string; label: string }> = {
   success: { bg: "rgba(0,255,136,0.12)", border: "#00FF8830", text: "#00FF88", label: "Completed" },
@@ -72,17 +96,15 @@ const STATUS_CFG: Record<string, { bg: string; border: string; text: string; lab
   error:   { bg: "rgba(239,68,68,0.12)", border: "#EF444430", text: "#EF4444", label: "Failed" },
 };
 
-const VOLUME_BARS = [30, 45, 38, 55, 48, 62, 52, 70, 58, 75, 65, 82, 72, 88, 78, 92];
-
-function VolumeChart() {
-  const max = Math.max(...VOLUME_BARS);
-  const min = Math.min(...VOLUME_BARS);
+function VolumeChart({ data }: { data: number[] }) {
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
   const range = max - min || 1;
   return (
     <View style={vStyles.wrap}>
-      {VOLUME_BARS.map((v, i) => {
+      {data.map((v, i) => {
         const pct = (v - min) / range;
-        const isLast = i === VOLUME_BARS.length - 1;
+        const isLast = i === data.length - 1;
         return (
           <View key={i} style={vStyles.col}>
             <View style={{ height: 4 + pct * 36, borderRadius: 2, backgroundColor: isLast ? "#8B5CF6" : `rgba(0,229,255,${0.2 + pct * 0.6})` }} />
@@ -104,15 +126,18 @@ export default function TransactionsScreen() {
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
+  const { transactions: walletTxs } = useWallet();
 
   const [activeTab, setActiveTab] = useState<TabId>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [selectedTx, setSelectedTx] = useState<DisplayTransaction | null>(null);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
 
+  const allDisplayTxs = useMemo(() => walletTxs.map(mapWalletTx), [walletTxs]);
+
   const filtered = useMemo(() => {
-    let list = TRANSACTIONS;
+    let list = allDisplayTxs;
     if (activeTab !== "all") list = list.filter((t) => t.category === activeTab);
     if (statusFilter !== "all") list = list.filter((t) => t.status === statusFilter);
     if (search.trim()) {
@@ -120,18 +145,33 @@ export default function TransactionsScreen() {
       list = list.filter((t) => t.title.toLowerCase().includes(q) || t.txId.toLowerCase().includes(q));
     }
     return list;
-  }, [activeTab, statusFilter, search]);
+  }, [allDisplayTxs, activeTab, statusFilter, search]);
 
-  const totalVolume = TRANSACTIONS.reduce((s, t) => {
-    const num = parseFloat(t.fiatValue.replace(/[^0-9.]/g, "")) || 0;
-    return s + num;
-  }, 0);
+  const totalVolume = useMemo(() =>
+    allDisplayTxs.reduce((s, t) => {
+      const num = parseFloat(t.fiatValue.replace(/[^0-9.]/g, "")) || 0;
+      return s + num;
+    }, 0),
+  [allDisplayTxs]);
 
-  const completedCount = TRANSACTIONS.filter((t) => t.status === "success").length;
+  const completedCount = allDisplayTxs.filter((t) => t.status === "success").length;
+
+  const volumeBars = useMemo(() => {
+    const bars: number[] = [];
+    const step = Math.max(1, Math.floor(allDisplayTxs.length / 16));
+    for (let i = 0; i < 16; i++) {
+      const idx = Math.min(i * step, allDisplayTxs.length - 1);
+      if (idx >= 0 && allDisplayTxs[idx]) {
+        bars.push(parseFloat(allDisplayTxs[idx].fiatValue.replace(/[^0-9.]/g, "")) || 30);
+      } else {
+        bars.push(30 + Math.random() * 60);
+      }
+    }
+    return bars;
+  }, [allDisplayTxs]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8} testID="back-button">
           <Feather name="arrow-left" size={20} color={colors.foreground} />
@@ -144,12 +184,11 @@ export default function TransactionsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
 
-        {/* Summary stats */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Total Transactions</Text>
             <View style={styles.statValRow}>
-              <Text style={[styles.statValue, { color: colors.foreground }]}>{TRANSACTIONS.length}</Text>
+              <Text style={[styles.statValue, { color: colors.foreground }]}>{allDisplayTxs.length}</Text>
               <View style={[styles.trendPill, { backgroundColor: "rgba(0,255,136,0.12)" }]}>
                 <Feather name="trending-up" size={10} color="#00FF88" />
                 <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#00FF88" }}>+12%</Text>
@@ -168,16 +207,14 @@ export default function TransactionsScreen() {
           </View>
         </View>
 
-        {/* Volume chart */}
         <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.chartHeader}>
             <Text style={[styles.chartTitle, { color: colors.foreground }]}>Transaction Volume</Text>
             <Text style={[styles.chartSub, { color: colors.primary }]}>{completedCount} completed</Text>
           </View>
-          <VolumeChart />
+          <VolumeChart data={volumeBars} />
         </View>
 
-        {/* Search */}
         <View style={[styles.searchRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Feather name="search" size={16} color={colors.mutedForeground} />
           <TextInput
@@ -195,7 +232,6 @@ export default function TransactionsScreen() {
           )}
         </View>
 
-        {/* Tabs */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
           {TABS.map((t) => (
             <TouchableOpacity
@@ -210,7 +246,6 @@ export default function TransactionsScreen() {
           ))}
         </ScrollView>
 
-        {/* Status filter pills */}
         {showStatusFilter && (
           <View style={styles.statusFilters}>
             {STATUS_FILTERS.map((sf) => {
@@ -232,12 +267,10 @@ export default function TransactionsScreen() {
           </View>
         )}
 
-        {/* Result count */}
         <Text style={[styles.resultCount, { color: colors.mutedForeground }]}>
           {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
         </Text>
 
-        {/* Transaction list */}
         {filtered.map((tx) => {
           const st = STATUS_CFG[tx.status];
           return (
@@ -256,7 +289,7 @@ export default function TransactionsScreen() {
                 <Text style={[styles.txDate, { color: colors.mutedForeground }]}>{tx.date}</Text>
               </View>
               <View style={styles.txRight}>
-                <Text style={[styles.txAmount, { color: tx.amount.startsWith("+") || tx.amount.startsWith("$") ? "#00FF88" : colors.foreground }]}>
+                <Text style={[styles.txAmount, { color: tx.amount.startsWith("+") ? "#00FF88" : colors.foreground }]}>
                   {tx.amount}
                 </Text>
                 <View style={[styles.statusBadge, { backgroundColor: st.bg, borderColor: st.border }]}>
@@ -279,7 +312,6 @@ export default function TransactionsScreen() {
         )}
       </ScrollView>
 
-      {/* Transaction Detail Modal */}
       <Modal transparent visible={!!selectedTx} animationType="fade" onRequestClose={() => setSelectedTx(null)}>
         <Pressable style={styles.overlay} onPress={() => setSelectedTx(null)}>
           <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>

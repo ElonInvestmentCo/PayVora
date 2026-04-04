@@ -12,55 +12,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useKyc } from "@/contexts/KycContext";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 type FilterTab = "all" | "crypto" | "fiat";
 
-interface Asset {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: number;
-  fiatValue: number;
-  change: number;
-  icon: string;
-  color: string;
-  type: "crypto" | "fiat";
-}
-
-interface Tx {
-  id: string;
-  action: "Buy" | "Sell" | "Deposit" | "Withdraw";
-  asset: string;
-  amount: string;
-  fiat: string;
-  date: string;
-  status: "success" | "pending" | "error";
-  type: "crypto" | "fiat";
-}
-
-const ASSETS: Asset[] = [
-  { id: "btc",  name: "Bitcoin",   symbol: "BTC",  balance: 0.3425,  fiatValue: 15412.5,  change: 2.4,  icon: "bold",        color: "#F7931A", type: "crypto" },
-  { id: "eth",  name: "Ethereum",  symbol: "ETH",  balance: 4.125,   fiatValue: 11756.25, change: -1.2, icon: "triangle",    color: "#627EEA", type: "crypto" },
-  { id: "sol",  name: "Solana",    symbol: "SOL",  balance: 18.5,    fiatValue: 2627,     change: 5.8,  icon: "sun",         color: "#9945FF", type: "crypto" },
-  { id: "usdt", name: "Tether",    symbol: "USDT", balance: 2500,    fiatValue: 2500,     change: 0.01, icon: "dollar-sign", color: "#26A17B", type: "crypto" },
-  { id: "bnb",  name: "BNB",       symbol: "BNB",  balance: 2.8,     fiatValue: 873.6,    change: 1.1,  icon: "hexagon",     color: "#F3BA2F", type: "crypto" },
-  { id: "ngn",  name: "Naira",     symbol: "NGN",  balance: 253750,  fiatValue: 253750,   change: 0,    icon: "dollar-sign", color: "#00E5FF", type: "fiat" },
-  { id: "usd",  name: "US Dollar", symbol: "USD",  balance: 12450,   fiatValue: 12450,    change: 0,    icon: "dollar-sign", color: "#14B8A6", type: "fiat" },
-];
-
-const TRANSACTIONS: Tx[] = [
-  { id: "1", action: "Buy",      asset: "BTC",  amount: "+0.015 BTC",    fiat: "-$675.00",    date: "Today, 3:45 PM",       status: "success", type: "crypto" },
-  { id: "2", action: "Deposit",  asset: "NGN",  amount: "+₦150,000",     fiat: "",            date: "Today, 1:20 PM",       status: "success", type: "fiat" },
-  { id: "3", action: "Sell",     asset: "ETH",  amount: "-0.5 ETH",      fiat: "+$1,425.00",  date: "Yesterday, 11:10 AM",  status: "pending", type: "crypto" },
-  { id: "4", action: "Withdraw", asset: "NGN",  amount: "-₦75,000",      fiat: "",            date: "Yesterday, 9:05 AM",   status: "success", type: "fiat" },
-  { id: "5", action: "Buy",      asset: "SOL",  amount: "+5.0 SOL",      fiat: "-$710.00",    date: "Apr 1, 4:30 PM",       status: "success", type: "crypto" },
-  { id: "6", action: "Sell",     asset: "BTC",  amount: "-0.02 BTC",     fiat: "+$900.00",    date: "Mar 31, 2:15 PM",      status: "error",   type: "crypto" },
-  { id: "7", action: "Deposit",  asset: "USD",  amount: "+$5,000",       fiat: "",            date: "Mar 30, 10:00 AM",     status: "success", type: "fiat" },
-];
-
 const CHART_POINTS = [42, 45, 43, 48, 46, 50, 47, 53, 51, 55, 52, 58, 56, 60, 57, 62, 59, 64, 61, 66, 63, 68, 65, 70];
 
-const totalBalance = ASSETS.reduce((s, a) => s + (a.type === "fiat" && a.symbol === "NGN" ? a.fiatValue / 750 : a.fiatValue), 0);
+const ICON_MAP: Record<string, string> = {
+  BTC: "bold", ETH: "triangle", SOL: "sun", USDT: "dollar-sign",
+  BNB: "hexagon", NGN: "dollar-sign", USD: "dollar-sign",
+};
 
 function PortfolioChart() {
   const max = Math.max(...CHART_POINTS);
@@ -117,14 +79,30 @@ export default function WalletScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { kycStatus } = useKyc();
+  const { assets, transactions, ngnBalance, usdBalance } = useWallet();
+  const { togglePanel } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   const [filter, setFilter] = useState<FilterTab>("all");
 
-  const filteredAssets = filter === "all" ? ASSETS : ASSETS.filter((a) => a.type === filter);
-  const filteredTx = filter === "all" ? TRANSACTIONS : TRANSACTIONS.filter((t) => t.type === filter);
+  const filteredAssets = filter === "all" ? assets : assets.filter((a) => a.type === filter);
+
+  const walletTxs = transactions.slice(0, 7).map((t) => ({
+    id: t.id,
+    action: (t.direction === "in" ? (t.type === "crypto" ? "Sell" : "Deposit") : (t.type === "crypto" ? "Buy" : "Withdraw")) as "Buy" | "Sell" | "Deposit" | "Withdraw",
+    asset: t.currency,
+    amount: `${t.direction === "in" ? "+" : "-"}${t.currency === "NGN" ? "₦" : "$"}${t.amount.toLocaleString()}`,
+    fiat: "",
+    date: t.date,
+    status: t.status,
+    type: (t.type === "crypto" ? "crypto" : "fiat") as "crypto" | "fiat",
+  }));
+
+  const filteredTx = filter === "all" ? walletTxs : walletTxs.filter((t) => t.type === filter);
+
+  const totalBalance = assets.reduce((s, a) => s + (a.type === "fiat" && a.symbol === "NGN" ? a.value : a.value), 0);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -135,7 +113,7 @@ export default function WalletScreen() {
         {/* Header */}
         <View style={styles.headerRow}>
           <Text style={[styles.title, { color: colors.foreground }]}>Wallet Balance</Text>
-          <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
+          <TouchableOpacity onPress={togglePanel} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
             <Feather name="bell" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
         </View>
@@ -224,45 +202,46 @@ export default function WalletScreen() {
 
         {/* Assets list */}
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Assets</Text>
-        {filteredAssets.map((asset) => (
-          <View key={asset.id} style={[styles.assetRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={[styles.assetIcon, { backgroundColor: `${asset.color}22` }]}>
-              <Feather name={asset.icon as any} size={18} color={asset.color} />
+        {filteredAssets.map((asset) => {
+          const iconName = ICON_MAP[asset.symbol] || "circle";
+          return (
+            <View key={asset.id} style={[styles.assetRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.assetIcon, { backgroundColor: `${asset.color}22` }]}>
+                <Feather name={iconName as any} size={18} color={asset.color} />
+              </View>
+              <View style={styles.assetInfo}>
+                <Text style={[styles.assetName, { color: colors.foreground }]}>{asset.name}</Text>
+                <Text style={[styles.assetBal, { color: colors.mutedForeground }]}>
+                  {asset.type === "fiat"
+                    ? `${asset.symbol === "NGN" ? "₦" : "$"}${asset.balance.toLocaleString()}`
+                    : `${asset.balance} ${asset.symbol}`}
+                </Text>
+              </View>
+              <View style={styles.assetRight}>
+                <Text style={[styles.assetFiat, { color: colors.foreground }]}>
+                  ${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </Text>
+                {asset.change !== 0 && (
+                  <View style={styles.assetChangeRow}>
+                    <Feather
+                      name={asset.change >= 0 ? "trending-up" : "trending-down"}
+                      size={10}
+                      color={asset.change >= 0 ? "#00FF88" : "#FF4444"}
+                    />
+                    <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: asset.change >= 0 ? "#00FF88" : "#FF4444" }}>
+                      {asset.change >= 0 ? "+" : ""}{asset.change}%
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
-            <View style={styles.assetInfo}>
-              <Text style={[styles.assetName, { color: colors.foreground }]}>{asset.name}</Text>
-              <Text style={[styles.assetBal, { color: colors.mutedForeground }]}>
-                {asset.type === "fiat"
-                  ? `${asset.symbol === "NGN" ? "₦" : "$"}${asset.balance.toLocaleString()}`
-                  : `${asset.balance} ${asset.symbol}`}
-              </Text>
-            </View>
-            <View style={styles.assetRight}>
-              <Text style={[styles.assetFiat, { color: colors.foreground }]}>
-                ${asset.type === "fiat" && asset.symbol === "NGN"
-                  ? (asset.fiatValue / 750).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                  : asset.fiatValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </Text>
-              {asset.change !== 0 && (
-                <View style={styles.assetChangeRow}>
-                  <Feather
-                    name={asset.change >= 0 ? "trending-up" : "trending-down"}
-                    size={10}
-                    color={asset.change >= 0 ? "#00FF88" : "#FF4444"}
-                  />
-                  <Text style={{ fontSize: 11, fontFamily: "Inter_500Medium", color: asset.change >= 0 ? "#00FF88" : "#FF4444" }}>
-                    {asset.change >= 0 ? "+" : ""}{asset.change}%
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        ))}
+          );
+        })}
 
         {/* Transaction History */}
         <View style={styles.txHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground, marginBottom: 0 }]}>Transaction History</Text>
-          <TouchableOpacity activeOpacity={0.8}>
+          <TouchableOpacity onPress={() => router.push("/transactions")} activeOpacity={0.8}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>

@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 interface Message {
   id: string;
@@ -86,6 +87,7 @@ export default function SupportScreen() {
   const botPad = isWeb ? 34 : insets.bottom;
   const scrollRef = useRef<ScrollView>(null);
 
+  const { addNotification } = useNotifications();
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -121,9 +123,10 @@ export default function SupportScreen() {
       setTyping(false);
       const id = String(nextId.current++);
       setMessages((prev) => [...prev, { id, text: reply, sender: "agent", time: getTimeNow() }]);
+      addNotification({ title: "Support Reply", message: reply.slice(0, 80) + (reply.length > 80 ? "..." : ""), type: "info" });
       scrollToEnd();
     }, 2000 + Math.random() * 1500);
-  }, [scrollToEnd]);
+  }, [scrollToEnd, addNotification]);
 
   const handleSend = useCallback((text?: string) => {
     const msg = (text || input).trim();

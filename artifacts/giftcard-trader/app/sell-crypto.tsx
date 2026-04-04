@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 type CryptoId = "btc" | "eth" | "usdt" | "sol" | "xrp" | "bnb";
 type OrderType = "market" | "limit";
@@ -82,6 +84,8 @@ const chartStyles = StyleSheet.create({
 export default function SellCryptoScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { updateUsdBalance, addTransaction } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
@@ -112,12 +116,29 @@ export default function SellCryptoScreen() {
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
     setModalVisible(false);
+    updateUsdBalance(payout);
+    addTransaction({
+      type: "crypto",
+      category: "Crypto",
+      title: `${crypto.name} Sold`,
+      amount: payout,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "in",
+    });
+    addNotification({
+      title: "Crypto Sold",
+      message: `Sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert(
       "Sell Order Placed!",
       `Successfully sold ${numAmount} ${crypto.symbol} for $${payout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       [{ text: "Done", onPress: () => router.back() }]
     );
-  }, [numAmount, crypto, payout]);
+  }, [numAmount, crypto, payout, updateUsdBalance, addTransaction, addNotification]);
 
   const summaryRows = useMemo(() => [
     { label: "Asset",        value: `${crypto.name} (${crypto.symbol})` },

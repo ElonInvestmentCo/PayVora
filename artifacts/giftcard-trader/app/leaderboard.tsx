@@ -107,13 +107,27 @@ export default function LeaderboardScreen() {
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
-    let list = TRADERS;
+    const multipliers: Record<TimeTab, number> = { daily: 0.08, weekly: 0.35, monthly: 1, alltime: 2.5 };
+    const m = multipliers[timeTab];
+    let list = TRADERS.map((t) => ({
+      ...t,
+      profit: Math.round(t.profit * m),
+      pctChange: parseFloat((t.pctChange * m).toFixed(1)),
+      totalVolume: `$${((parseFloat(t.totalVolume.replace(/[^0-9.]/g, "")) * m)).toFixed(0)}${t.totalVolume.includes("M") ? "M" : "K"}`,
+    })).sort((a, b) => b.profit - a.profit);
+    if (assetFilter !== "all") {
+      list = list.filter((_, i) => {
+        if (assetFilter === "crypto") return i % 3 !== 2;
+        if (assetFilter === "giftcards") return i % 4 !== 3;
+        return i % 5 !== 4;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((t) => t.username.toLowerCase().includes(q));
     }
     return list;
-  }, [search]);
+  }, [search, timeTab, assetFilter]);
 
   const top3 = filtered.slice(0, 3);
   const rest = filtered.slice(3);

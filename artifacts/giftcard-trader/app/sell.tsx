@@ -18,6 +18,8 @@ import { useColors } from "@/hooks/useColors";
 import { CardTypeSelector, CARD_TYPES } from "@/components/CardTypeSelector";
 import { RateCard } from "@/components/RateCard";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 type Currency = "USD" | "GBP" | "EUR" | "CAD" | "AUD";
 
@@ -34,6 +36,8 @@ const CURRENCIES: Currency[] = ["USD", "GBP", "EUR", "CAD", "AUD"];
 export default function SellScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { updateNgnBalance, addTransaction } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
@@ -73,12 +77,29 @@ export default function SellScreen() {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
+    updateNgnBalance(payout);
+    addTransaction({
+      type: "gift_card",
+      category: "Gift Cards",
+      title: `${cardInfo?.name} Gift Card Sold`,
+      amount: payout,
+      currency: "NGN",
+      status: "success",
+      date: "Just now",
+      direction: "in",
+    });
+    addNotification({
+      title: "Trade Completed",
+      message: `Your ${cardInfo?.name} card trade for ${currency}${numAmount} completed. ₦${payout.toLocaleString()} credited.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert(
       "Trade Submitted!",
       `Your ${cardInfo?.name} card trade for ${currency}${numAmount} (₦${payout.toLocaleString()}) has been submitted and is being reviewed.`,
       [{ text: "OK", onPress: () => router.back() }]
     );
-  }, [amount, imageUri, numAmount, payout, cardInfo, currency]);
+  }, [amount, imageUri, numAmount, payout, cardInfo, currency, updateNgnBalance, addTransaction, addNotification]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>

@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 type ActiveTab = "bills" | "esims";
 type ServiceId = "airtime" | "data" | "electricity" | "tv" | "internet";
@@ -83,6 +85,8 @@ const STATUS_CFG: Record<string, { bg: string; border: string; text: string; lab
 export default function BillsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { usdBalance, updateUsdBalance, addTransaction } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
@@ -107,21 +111,63 @@ export default function BillsScreen() {
       Alert.alert("Error", "Please fill in all fields with valid values.");
       return;
     }
+    if (numAmount > usdBalance) {
+      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
+      return;
+    }
     setPayLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     setPayLoading(false);
+    updateUsdBalance(-numAmount);
+    addTransaction({
+      type: "bills",
+      category: "Bills",
+      title: `${provider} ${SERVICES.find(s => s.id === selectedService)?.label}`,
+      amount: numAmount,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "out",
+    });
+    addNotification({
+      title: "Bill Paid",
+      message: `$${numAmount.toFixed(2)} ${selectedService} payment to ${provider} completed.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert("Payment Successful", `$${numAmount.toFixed(2)} ${selectedService} payment to ${provider} completed.`);
     setPhone(""); setAmount(""); setProvider("");
-  }, [isValidBill, numAmount, selectedService, provider]);
+  }, [isValidBill, numAmount, selectedService, provider, usdBalance, updateUsdBalance, addTransaction, addNotification]);
 
   const handleBuyEsim = useCallback(async () => {
     if (!selectedPlan) return;
+    if (selectedPlan.price > usdBalance) {
+      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
+      return;
+    }
     setBuyLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     setBuyLoading(false);
     setPlanModal(false);
+    updateUsdBalance(-selectedPlan.price);
+    addTransaction({
+      type: "bills",
+      category: "Bills",
+      title: `eSIM — ${selectedPlan.region}`,
+      amount: selectedPlan.price,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "out",
+    });
+    addNotification({
+      title: "eSIM Purchased",
+      message: `${selectedPlan.region} ${selectedPlan.data} plan activated. Check your email for the QR code.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert("eSIM Purchased!", `${selectedPlan.region} ${selectedPlan.data} plan activated. Check your email for the QR code.`);
-  }, [selectedPlan]);
+  }, [selectedPlan, usdBalance, updateUsdBalance, addTransaction, addNotification]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>

@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useWallet } from "@/contexts/WalletContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 type CryptoId = "btc" | "eth" | "usdt" | "sol" | "xrp" | "bnb";
 type PaymentMethod = "wallet" | "card" | "bank";
@@ -40,7 +42,7 @@ const CRYPTOS: Crypto[] = [
 ];
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; detail: string }[] = [
-  { id: "wallet", label: "USD Wallet",       icon: "credit-card", detail: "$12,450.00 available" },
+  { id: "wallet", label: "USD Wallet",       icon: "credit-card", detail: "USD Wallet" },
   { id: "card",   label: "Debit / Credit Card", icon: "credit-card", detail: "Visa ending 4242" },
   { id: "bank",   label: "Bank Transfer",    icon: "briefcase",   detail: "Chase ••• 8891" },
 ];
@@ -89,6 +91,8 @@ const PRESETS = [50, 100, 250, 500, 1000];
 export default function BuyCryptoScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { usdBalance, updateUsdBalance, addTransaction } = useWallet();
+  const { addNotification } = useNotifications();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
@@ -112,16 +116,37 @@ export default function BuyCryptoScreen() {
   }, []);
 
   const handleConfirm = useCallback(async () => {
+    if (payment === "wallet" && totalCost > usdBalance) {
+      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
+      return;
+    }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
     setModalVisible(false);
+    if (payment === "wallet") updateUsdBalance(-totalCost);
+    addTransaction({
+      type: "crypto",
+      category: "Crypto",
+      title: `${crypto.name} Purchase`,
+      amount: totalCost,
+      currency: "USD",
+      status: "success",
+      date: "Just now",
+      direction: "out",
+    });
+    addNotification({
+      title: "Crypto Purchased",
+      message: `Bought ${cryptoAmount.toFixed(8)} ${crypto.symbol} for $${totalCost.toFixed(2)}.`,
+      type: "success",
+      time: "Just now",
+    });
     Alert.alert(
       "Purchase Complete!",
       `You bought ${cryptoAmount.toFixed(8)} ${crypto.symbol} for $${totalCost.toFixed(2)}`,
       [{ text: "Done", onPress: () => router.back() }]
     );
-  }, [cryptoAmount, crypto, totalCost]);
+  }, [cryptoAmount, crypto, totalCost, payment, usdBalance, updateUsdBalance, addTransaction, addNotification]);
 
   const summaryRows = useMemo(() => [
     { label: "Asset",         value: `${crypto.name} (${crypto.symbol})` },
@@ -157,7 +182,7 @@ export default function BuyCryptoScreen() {
         <View style={[styles.balancePill, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.balanceDot, { backgroundColor: colors.success }]} />
           <Text style={[styles.balanceLbl, { color: colors.mutedForeground }]}>USD Wallet</Text>
-          <Text style={[styles.balanceAmt, { color: colors.foreground }]}>$12,450.00</Text>
+          <Text style={[styles.balanceAmt, { color: colors.foreground }]}>${usdBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
         </View>
 
         {/* Live price + mini chart */}

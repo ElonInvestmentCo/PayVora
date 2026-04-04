@@ -16,10 +16,19 @@ import { StatusBar } from "expo-status-bar";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { KycProvider } from "@/contexts/KycContext";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { WalletProvider } from "@/contexts/WalletContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+function DynamicStatusBar() {
+  const { isDark } = useTheme();
+  return <StatusBar style={isDark ? "light" : "dark"} />;
+}
 
 function RootLayoutNav() {
   return (
@@ -126,14 +135,21 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <KycProvider>
-                <StatusBar style="light" />
-                <RootLayoutNav />
-              </KycProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
+          <ThemeProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <WalletProvider>
+                  <NotificationsProvider>
+                    <KycProvider>
+                      <DynamicStatusBar />
+                      <RootLayoutNav />
+                      <NotificationsPanel />
+                    </KycProvider>
+                  </NotificationsProvider>
+                </WalletProvider>
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </ThemeProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
