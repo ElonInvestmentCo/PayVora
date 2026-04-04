@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useKyc } from "@/contexts/KycContext";
 
 const LANGUAGES = ["English", "Spanish", "French", "Arabic", "Chinese", "Portuguese"];
 const CURRENCIES = ["USD", "NGN", "EUR", "GBP", "CAD", "AUD"];
@@ -54,6 +55,7 @@ const SESSIONS = [
 export default function SettingsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { kycStatus } = useKyc();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
@@ -156,10 +158,21 @@ export default function SettingsScreen() {
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, { color: colors.foreground }]}>Alex Johnson</Text>
               <Text style={[styles.profileEmail, { color: colors.mutedForeground }]}>alex.johnson@email.com</Text>
-              <View style={[styles.verifiedBadge, { backgroundColor: "rgba(0,255,136,0.12)", borderColor: "#00FF8830" }]}>
-                <Feather name="check-circle" size={10} color="#00FF88" />
-                <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#00FF88" }}>Verified</Text>
-              </View>
+              <TouchableOpacity onPress={() => router.push("/kyc")} activeOpacity={0.8}>
+                <View style={[styles.verifiedBadge, {
+                  backgroundColor: kycStatus === "verified" ? "rgba(0,255,136,0.12)" : kycStatus === "pending" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
+                  borderColor: kycStatus === "verified" ? "#00FF8830" : kycStatus === "pending" ? "#F59E0B30" : "#EF444430",
+                }]}>
+                  <Feather
+                    name={kycStatus === "verified" ? "check-circle" : kycStatus === "pending" ? "clock" : "alert-circle"}
+                    size={10}
+                    color={kycStatus === "verified" ? "#00FF88" : kycStatus === "pending" ? "#F59E0B" : "#EF4444"}
+                  />
+                  <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: kycStatus === "verified" ? "#00FF88" : kycStatus === "pending" ? "#F59E0B" : "#EF4444" }}>
+                    {kycStatus === "verified" ? "Verified" : kycStatus === "pending" ? "Pending" : "Not Verified"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity activeOpacity={0.8} style={[styles.editBtn, { backgroundColor: "rgba(0,229,255,0.1)", borderColor: colors.primary + "30" }]}>
               <Feather name="edit-2" size={14} color={colors.primary} />

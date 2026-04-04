@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: kyc
+    description: KYC verification operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /kyc/status:
+    get:
+      operationId: getKycStatus
+      tags: [kyc]
+      summary: Get KYC status
+      description: Returns the current KYC verification status
+      responses:
+        "200":
+          description: KYC status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycStatusResponse"
+  /kyc/submit:
+    post:
+      operationId: submitKyc
+      tags: [kyc]
+      summary: Submit KYC verification
+      description: Submit personal information for KYC verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KycSubmitRequest"
+      responses:
+        "200":
+          description: KYC submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycStatusResponse"
+  /kyc/review:
+    patch:
+      operationId: reviewKyc
+      tags: [kyc]
+      summary: Admin review KYC
+      description: Admin approves or rejects KYC verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KycReviewRequest"
+      responses:
+        "200":
+          description: KYC reviewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KycReviewResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +86,61 @@ components:
           type: string
       required:
         - status
-
+    KycStatusResponse:
+      type: object
+      properties:
+        kycStatus:
+          type: string
+          enum: [not_verified, pending, verified, rejected]
+        fullName:
+          type: string
+        email:
+          type: string
+        dob:
+          type: string
+        address:
+          type: string
+        idType:
+          type: string
+        submittedAt:
+          type: string
+          nullable: true
+        reviewedAt:
+          type: string
+          nullable: true
+      required:
+        - kycStatus
+    KycSubmitRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+        dob:
+          type: string
+        address:
+          type: string
+        idType:
+          type: string
+      required:
+        - fullName
+        - dob
+        - address
+    KycReviewRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, rejected, not_verified]
+      required:
+        - status
+    KycReviewResponse:
+      type: object
+      properties:
+        kycStatus:
+          type: string
+          enum: [not_verified, pending, verified, rejected]
+        reviewedAt:
+          type: string
+          nullable: true
+      required:
+        - kycStatus

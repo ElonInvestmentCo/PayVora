@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { useKyc } from "@/contexts/KycContext";
 
 interface MenuItem {
   icon: string;
@@ -22,11 +23,10 @@ interface MenuItem {
   badgeColor?: string;
 }
 
-const MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
+const STATIC_MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
   {
     title: "Account",
     items: [
-      { icon: "shield",      label: "KYC Verification",  subtitle: "Identity verified",        color: "#00FF88", route: "/kyc",          badge: "Verified",  badgeColor: "#00FF88" },
       { icon: "credit-card", label: "Virtual Card",       subtitle: "Manage your dollar card",   color: "#8B5CF6", route: "/virtual-card" },
       { icon: "repeat",      label: "Transactions",       subtitle: "View all transactions",     color: "#00E5FF", route: "/transactions" },
     ],
@@ -47,6 +47,13 @@ const MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
   },
 ];
 
+const KYC_BADGE_MAP: Record<string, { badge: string; badgeColor: string; subtitle: string }> = {
+  not_verified: { badge: "Unverified", badgeColor: "#EF4444", subtitle: "Tap to verify your identity" },
+  pending:      { badge: "Pending",    badgeColor: "#F59E0B", subtitle: "Verification under review" },
+  verified:     { badge: "Verified",   badgeColor: "#00FF88", subtitle: "Identity verified" },
+  rejected:     { badge: "Rejected",   badgeColor: "#EF4444", subtitle: "Verification declined — resubmit" },
+};
+
 const STATS = [
   { label: "Trades", value: "142", color: "#00E5FF" },
   { label: "Volume", value: "$42K", color: "#00FF88" },
@@ -59,10 +66,32 @@ export default function ProfileScreen() {
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
+  const { kycStatus } = useKyc();
+
+  const kycBadge = KYC_BADGE_MAP[kycStatus] || KYC_BADGE_MAP.not_verified;
+
+  const kycItem: MenuItem = {
+    icon: "shield",
+    label: "KYC Verification",
+    subtitle: kycBadge.subtitle,
+    color: kycBadge.badgeColor,
+    route: "/kyc",
+    badge: kycBadge.badge,
+    badgeColor: kycBadge.badgeColor,
+  };
+
+  const menuSections = [
+    {
+      title: "Account",
+      items: [kycItem, ...STATIC_MENU_SECTIONS[0].items],
+    },
+    ...STATIC_MENU_SECTIONS.slice(1),
+  ];
+
+  const verifiedBadge = kycStatus === "verified";
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 12, borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>Profile</Text>
         <TouchableOpacity onPress={() => router.push("/settings")} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
@@ -71,19 +100,28 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]}>
-        {/* Profile card */}
         <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.avatar, { backgroundColor: "rgba(0,229,255,0.12)", borderColor: colors.primary }]}>
             <Text style={[styles.avatarText, { color: colors.primary }]}>AJ</Text>
           </View>
           <Text style={[styles.profileName, { color: colors.foreground }]}>Alex Johnson</Text>
           <Text style={[styles.profileEmail, { color: colors.mutedForeground }]}>alex.johnson@email.com</Text>
-          <View style={[styles.verifiedRow, { backgroundColor: "rgba(0,255,136,0.1)", borderColor: "#00FF8830" }]}>
-            <Feather name="check-circle" size={12} color="#00FF88" />
-            <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#00FF88" }}>Verified Account</Text>
-          </View>
+          {verifiedBadge ? (
+            <View style={[styles.verifiedRow, { backgroundColor: "rgba(0,255,136,0.1)", borderColor: "#00FF8830" }]}>
+              <Feather name="check-circle" size={12} color="#00FF88" />
+              <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#00FF88" }}>Verified Account</Text>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={() => router.push("/kyc")} activeOpacity={0.8}>
+              <View style={[styles.verifiedRow, { backgroundColor: "rgba(239,68,68,0.1)", borderColor: "#EF444430" }]}>
+                <Feather name="alert-circle" size={12} color="#EF4444" />
+                <Text style={{ fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#EF4444" }}>
+                  {kycStatus === "pending" ? "Verification Pending" : "Not Verified"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
-          {/* Stats */}
           <View style={styles.statsRow}>
             {STATS.map((s) => (
               <View key={s.label} style={styles.statItem}>
@@ -94,8 +132,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Menu sections */}
-        {MENU_SECTIONS.map((section) => (
+        {menuSections.map((section) => (
           <View key={section.title} style={styles.menuSection}>
             <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>{section.title}</Text>
             <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>

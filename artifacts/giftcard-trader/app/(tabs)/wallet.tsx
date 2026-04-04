@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { useKyc } from "@/contexts/KycContext";
 
 type FilterTab = "all" | "crypto" | "fiat";
 
@@ -115,6 +116,7 @@ const STATUS_CFG: Record<string, { bg: string; border: string; text: string; lab
 export default function WalletScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { kycStatus } = useKyc();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
@@ -153,16 +155,22 @@ export default function WalletScreen() {
           <PortfolioChart />
         </View>
 
-        {/* Warning banner */}
-        <View style={[styles.alertBanner, { backgroundColor: "rgba(245,158,11,0.1)", borderColor: "#F59E0B30" }]}>
-          <Feather name="alert-circle" size={16} color="#F59E0B" />
-          <Text style={[styles.alertText, { color: "#F59E0B" }]}>
-            Complete KYC verification to increase your withdrawal limit.
-          </Text>
-          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push("/kyc")}>
-            <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#F59E0B" }}>Verify</Text>
-          </TouchableOpacity>
-        </View>
+        {kycStatus !== "verified" && (
+          <View style={[styles.alertBanner, {
+            backgroundColor: kycStatus === "pending" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
+            borderColor: kycStatus === "pending" ? "#F59E0B30" : "#EF444430",
+          }]}>
+            <Feather name={kycStatus === "pending" ? "clock" : "alert-circle"} size={16} color={kycStatus === "pending" ? "#F59E0B" : "#EF4444"} />
+            <Text style={[styles.alertText, { color: kycStatus === "pending" ? "#F59E0B" : "#EF4444" }]}>
+              {kycStatus === "pending" ? "Your KYC verification is under review." : "Complete KYC verification to increase your withdrawal limit."}
+            </Text>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => router.push("/kyc")}>
+              <Text style={{ fontSize: 12, fontFamily: "Inter_600SemiBold", color: kycStatus === "pending" ? "#F59E0B" : "#EF4444" }}>
+                {kycStatus === "pending" ? "View" : "Verify"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Action buttons */}
         <View style={styles.actionRow}>

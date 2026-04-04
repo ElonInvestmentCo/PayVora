@@ -9,21 +9,22 @@ import {
   Platform,
   Modal,
   Pressable,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { GlowButton } from "@/components/GlowButton";
+import { useKyc, type KycStatus } from "@/contexts/KycContext";
 
-type KycStatus = "not_verified" | "pending" | "verified";
 type IdType = "passport" | "drivers_license" | "national_id";
 
 const STATUS_MAP: Record<KycStatus, { label: string; color: string; bg: string; border: string; icon: string }> = {
   not_verified: { label: "Not Verified",  color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "#EF444430", icon: "x-circle" },
   pending:      { label: "Pending Review", color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "#F59E0B30", icon: "clock" },
   verified:     { label: "Verified",       color: "#00FF88", bg: "rgba(0,255,136,0.12)",  border: "#00FF8830", icon: "check-circle" },
+  rejected:     { label: "Rejected",       color: "#EF4444", bg: "rgba(239,68,68,0.12)",  border: "#EF444430", icon: "alert-circle" },
 };
 
 const ID_TYPES: { id: IdType; label: string; icon: string }[] = [
@@ -46,8 +47,15 @@ export default function KycScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const botPad = isWeb ? 34 : insets.bottom;
 
+  const { kycStatus, kycData, loading, submitKyc, refresh } = useKyc();
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
   const [step, setStep] = useState(0);
-  const [kycStatus, setKycStatus] = useState<KycStatus>("not_verified");
   const [confirmModal, setConfirmModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -56,6 +64,15 @@ export default function KycScreen() {
   const [address, setAddress] = useState("");
 
   const [idType, setIdType] = useState<IdType>("passport");
+
+  React.useEffect(() => {
+    if (kycData) {
+      if (kycData.fullName) setFullName(kycData.fullName);
+      if (kycData.dob) setDob(kycData.dob);
+      if (kycData.address) setAddress(kycData.address);
+      if (kycData.idType) setIdType(kycData.idType as IdType);
+    }
+  }, [kycData]);
   const [frontUploaded, setFrontUploaded] = useState(false);
   const [backUploaded, setBackUploaded] = useState(false);
 
@@ -74,15 +91,16 @@ export default function KycScreen() {
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setSubmitting(false);
-    setConfirmModal(false);
-    setKycStatus("pending");
-    setTimeout(() => {
-      setKycStatus("verified");
-    }, 4000);
-  }, []);
+    try {
+      await submitKyc({ fullName, dob, address, idType });
+      setConfirmModal(false);
+    } catch {
+    } finally {
+      setSubmitting(false);
+    }
+  }, [fullName, dob, address, idType, submitKyc]);
 
+  const showForm = kycStatus === "not_verified" || kycStatus === "rejected";
   const stCfg = STATUS_MAP[kycStatus];
 
   const STEPS = [
@@ -91,9 +109,16 @@ export default function KycScreen() {
     { label: "Selfie",        icon: "camera" },
   ];
 
+  if (loading) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
           <Feather name="arrow-left" size={20} color={colors.foreground} />
@@ -106,7 +131,6 @@ export default function KycScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
 
-        {/* KYC Status Banner */}
         <View style={[styles.statusBanner, { backgroundColor: stCfg.bg, borderColor: stCfg.border }]}>
           <View style={[styles.statusIconWrap, { backgroundColor: `${stCfg.color}20` }]}>
             <Feather name={stCfg.icon as any} size={20} color={stCfg.color} />
@@ -116,16 +140,16 @@ export default function KycScreen() {
             <Text style={[styles.statusSub, { color: colors.mutedForeground }]}>
               {kycStatus === "not_verified" ? "Complete verification to unlock all features" :
                kycStatus === "pending" ? "Your documents are being reviewed" :
+               kycStatus === "rejected" ? "Your verification was declined. Please resubmit." :
                "Your identity has been verified"}
             </Text>
           </View>
         </View>
 
-        {/* Step Progress */}
         <View style={styles.stepRow}>
           {STEPS.map((s, i) => {
             const done = i < step || kycStatus === "verified";
-            const active = i === step && kycStatus === "not_verified";
+            const active = i === step && showForm;
             const lineColor = done ? "#00FF88" : colors.border;
             return (
               <React.Fragment key={i}>
@@ -148,9 +172,8 @@ export default function KycScreen() {
           })}
         </View>
 
-        {kycStatus !== "not_verified" ? (
+        {!showForm ? (
           <>
-            {/* Status details for pending/verified */}
             <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.bigStatusIcon, { backgroundColor: `${stCfg.color}15` }]}>
                 <Feather name={stCfg.icon as any} size={36} color={stCfg.color} />
@@ -177,7 +200,6 @@ export default function KycScreen() {
           </>
         ) : (
           <>
-            {/* Step 1: Personal Info */}
             {step === 0 && (
               <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.cardHeader}>
@@ -230,7 +252,6 @@ export default function KycScreen() {
               </View>
             )}
 
-            {/* Step 2: ID Verification */}
             {step === 1 && (
               <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.cardHeader}>
@@ -258,7 +279,6 @@ export default function KycScreen() {
 
                 <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginTop: 20, marginBottom: 10 }]}>Upload Documents</Text>
 
-                {/* Front */}
                 <TouchableOpacity
                   onPress={() => setFrontUploaded(true)}
                   activeOpacity={0.8}
@@ -291,7 +311,6 @@ export default function KycScreen() {
                   )}
                 </TouchableOpacity>
 
-                {/* Back */}
                 <TouchableOpacity
                   onPress={() => setBackUploaded(true)}
                   activeOpacity={0.8}
@@ -327,7 +346,6 @@ export default function KycScreen() {
               </View>
             )}
 
-            {/* Step 3: Selfie */}
             {step === 2 && (
               <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.cardHeader}>
@@ -381,7 +399,6 @@ export default function KycScreen() {
               </View>
             )}
 
-            {/* Tips */}
             <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.cardHeader}>
                 <Feather name="info" size={18} color="#F59E0B" />
@@ -395,7 +412,6 @@ export default function KycScreen() {
               ))}
             </View>
 
-            {/* Navigation buttons */}
             <View style={styles.navBtns}>
               {step > 0 && (
                 <TouchableOpacity onPress={() => setStep(step - 1)} activeOpacity={0.8} style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -415,7 +431,6 @@ export default function KycScreen() {
         )}
       </ScrollView>
 
-      {/* Confirmation Modal */}
       <Modal transparent visible={confirmModal} animationType="fade" onRequestClose={() => setConfirmModal(false)}>
         <Pressable style={styles.overlay} onPress={() => setConfirmModal(false)}>
           <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
@@ -467,101 +482,88 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
   },
+  headerTitle: { fontSize: 20, fontFamily: "Inter_700Bold" },
   iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
 
   content: { padding: 20, gap: 16 },
 
   statusBanner: {
-    flexDirection: "row", alignItems: "center", gap: 14,
-    borderRadius: 14, padding: 16, borderWidth: 1,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    borderRadius: 14, borderWidth: 1, padding: 14,
   },
-  statusIconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  statusInfo: { flex: 1, gap: 4 },
-  statusLabel: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  statusIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  statusInfo: { flex: 1, gap: 2 },
+  statusLabel: { fontSize: 14, fontFamily: "Inter_700Bold" },
   statusSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
 
-  stepRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 0 },
-  stepItem: { alignItems: "center", gap: 6, width: 80 },
+  stepRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginVertical: 4 },
+  stepItem: { alignItems: "center", gap: 6 },
   stepCircle: {
-    width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", borderWidth: 1.5,
+    width: 32, height: 32, borderRadius: 16,
+    alignItems: "center", justifyContent: "center", borderWidth: 1.5,
   },
   stepNum: { fontSize: 13, fontFamily: "Inter_700Bold" },
-  stepLabel: { fontSize: 10, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  stepLine: { width: 40, height: 2, borderRadius: 1, marginBottom: 20 },
+  stepLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
+  stepLine: { width: 36, height: 2, borderRadius: 1, marginBottom: 16 },
 
   card: { borderRadius: 16, padding: 18, borderWidth: 1 },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
   cardTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
 
-  fieldGroup: { marginBottom: 16 },
-  fieldLabel: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 8 },
+  fieldGroup: { marginBottom: 14 },
+  fieldLabel: { fontSize: 12, fontFamily: "Inter_500Medium", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 },
   inputRow: {
     flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 14, height: 52,
+    borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, height: 48,
   },
-  textInput: { flex: 1, fontSize: 15, fontFamily: "Inter_500Medium" },
+  textInput: { flex: 1, fontSize: 14, fontFamily: "Inter_400Regular" },
 
   idTypeRow: { flexDirection: "row", gap: 8 },
-  idTypeBtn: {
-    flex: 1, borderRadius: 12, borderWidth: 1, paddingVertical: 14, alignItems: "center", gap: 6,
-  },
-  idTypeLabel: { fontSize: 10, fontFamily: "Inter_600SemiBold", textAlign: "center" },
+  idTypeBtn: { flex: 1, borderRadius: 12, borderWidth: 1, paddingVertical: 14, alignItems: "center", gap: 6 },
+  idTypeLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
 
-  uploadCard: {
-    borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", overflow: "hidden",
-  },
+  uploadCard: { borderRadius: 14, borderWidth: 1, borderStyle: "dashed", overflow: "hidden" },
   uploadPlaceholder: { alignItems: "center", padding: 24, gap: 8 },
   uploadIconCircle: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
   uploadTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  uploadSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
-
-  uploadedContent: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16 },
+  uploadSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  uploadedContent: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },
   uploadedIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   uploadedTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  uploadedSub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  uploadedSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
 
-  selfieCard: {
-    borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", overflow: "hidden",
-  },
+  selfieCard: { borderRadius: 14, borderWidth: 1, borderStyle: "dashed", overflow: "hidden" },
   selfiePlaceholder: { alignItems: "center", padding: 32, gap: 10 },
   selfieIconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center" },
+  selfieGuide: { flexDirection: "row", alignItems: "flex-start", gap: 10, borderRadius: 12, borderWidth: 1, padding: 14, marginTop: 14 },
+  guideTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  guideSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2, lineHeight: 18 },
 
-  selfieGuide: {
-    flexDirection: "row", gap: 12, borderRadius: 12, padding: 14, borderWidth: 1, marginTop: 14,
-  },
-  guideTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginBottom: 4 },
-  guideSub: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  tipRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 },
+  tipDot: { width: 6, height: 6, borderRadius: 3 },
+  tipText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1 },
 
-  tipRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 10 },
-  tipDot: { width: 6, height: 6, borderRadius: 3, marginTop: 6 },
-  tipText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 20 },
-
-  navBtns: { flexDirection: "row", gap: 10 },
-  backBtn: {
-    flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 14,
-    borderWidth: 1, paddingHorizontal: 18, paddingVertical: 16,
-  },
+  navBtns: { flexDirection: "row", gap: 12, marginTop: 4 },
+  backBtn: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, paddingHorizontal: 18, height: 50 },
   backBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 
-  bigStatusIcon: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", alignSelf: "center", marginBottom: 16 },
-  bigStatusTitle: { fontSize: 18, fontFamily: "Inter_700Bold", textAlign: "center", marginBottom: 8 },
-  bigStatusSub: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 22 },
+  bigStatusIcon: { width: 72, height: 72, borderRadius: 36, alignSelf: "center", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  bigStatusTitle: { fontSize: 20, fontFamily: "Inter_700Bold", textAlign: "center" },
+  bigStatusSub: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 8, lineHeight: 20 },
   verifiedPerks: { marginTop: 20, gap: 10 },
   perkRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   perkText: { fontSize: 14, fontFamily: "Inter_500Medium" },
 
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end", padding: 16 },
-  modal: { borderRadius: 20, padding: 20, borderWidth: 1, maxHeight: "90%" },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", justifyContent: "center", alignItems: "center", padding: 24 },
+  modal: { borderRadius: 20, borderWidth: 1, padding: 24, width: "100%", maxWidth: 400 },
+  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
   modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-
-  confirmIcon: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", alignSelf: "center", marginBottom: 16 },
-  confirmText: { fontSize: 17, fontFamily: "Inter_700Bold", textAlign: "center", marginBottom: 8 },
-  confirmSub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20, marginBottom: 16, color: "#94A3B8" },
+  confirmIcon: { width: 64, height: 64, borderRadius: 32, alignSelf: "center", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  confirmText: { fontSize: 16, fontFamily: "Inter_700Bold", textAlign: "center" },
+  confirmSub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 8, marginBottom: 16, lineHeight: 19 },
   confirmRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1 },
   confirmLbl: { fontSize: 13, fontFamily: "Inter_400Regular" },
   confirmVal: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  cancelBtn: { alignItems: "center", paddingVertical: 12, marginTop: 4 },
+  cancelBtn: { alignSelf: "center", paddingVertical: 12, marginTop: 8 },
   cancelText: { fontSize: 14, fontFamily: "Inter_500Medium" },
 });

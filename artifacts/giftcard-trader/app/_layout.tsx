@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { KycProvider } from "@/contexts/KycContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -127,8 +128,10 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
-              <StatusBar style="light" />
-              <RootLayoutNav />
+              <KycProvider>
+                <StatusBar style="light" />
+                <RootLayoutNav />
+              </KycProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
