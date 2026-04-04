@@ -1,0 +1,218 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft, Wallet, ArrowUp, ArrowDown, TrendingUp, TrendingDown, CheckCircle, Clock, XCircle, Activity } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+// Types
+type Asset = {
+  id: string;
+  name: string;
+  symbol: string;
+  balance: string;
+  value: string;
+  change: string;
+  isPositive: boolean;
+};
+
+type Transaction = {
+  id: string;
+  type: 'buy' | 'sell' | 'deposit' | 'withdraw';
+  title: string;
+  amount: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+};
+
+// Mock Data
+const assets: Asset[] = [
+  { id: '1', name: 'Bitcoin', symbol: 'BTC', balance: '0.4521', value: '$19,342.50', change: '+2.45%', isPositive: true },
+  { id: '2', name: 'Ethereum', symbol: 'ETH', balance: '4.250', value: '$8,500.00', change: '-1.20%', isPositive: false },
+  { id: '3', name: 'Tether', symbol: 'USDT', balance: '5,420.00', value: '$5,420.00', change: '+0.01%', isPositive: true },
+  { id: '4', name: 'Solana', symbol: 'SOL', balance: '120.5', value: '$12,050.00', change: '+5.67%', isPositive: true },
+];
+
+const transactions: Transaction[] = [
+  { id: '1', type: 'buy', title: 'Bought Bitcoin', amount: '+0.05 BTC', date: '2 mins ago', status: 'completed' },
+  { id: '2', type: 'sell', title: 'Sold Ethereum', amount: '-1.2 ETH', date: '1 hour ago', status: 'completed' },
+  { id: '3', type: 'deposit', title: 'Bank Deposit', amount: '+$2,000.00', date: '3 hours ago', status: 'pending' },
+  { id: '4', type: 'withdraw', title: 'Withdraw to Card', amount: '-$500.00', date: '1 day ago', status: 'failed' },
+];
+
+export default function WalletScreen() {
+  const router = useRouter();
+  const [filter, setFilter] = useState<'All' | 'Crypto' | 'Fiat'>('All');
+
+  const filteredTransactions = transactions.filter(t => {
+    if (filter === 'All') return true;
+    if (filter === 'Crypto') return t.type === 'buy' || t.type === 'sell';
+    if (filter === 'Fiat') return t.type === 'deposit' || t.type === 'withdraw';
+    return true;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-500';
+      case 'pending': return 'text-amber-500';
+      case 'failed': return 'text-red-500';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return <CheckCircle size={16} className="text-green-500" />;
+      case 'pending': return <Clock size={16} className="text-amber-500" />;
+      case 'failed': return <XCircle size={16} className="text-red-500" />;
+      default: return null;
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+      {/* Header */}
+      <View className="px-6 py-4 flex-row items-center justify-between">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ArrowLeft className="text-foreground" size={24} />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold text-foreground">Wallet Balance</Text>
+        </View>
+        <ThemeToggle />
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 128, gap: 24 }}>
+        
+        {/* Balance Card with Gradient Chart Effect */}
+        <View className="px-6">
+          <LinearGradient
+            colors={['#00E5FF', '#8B5CF6']} // Primary to Accent gradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 16, padding: 24 }}
+          >
+            <Text className="text-white/80 text-sm mb-1">Total Balance</Text>
+            <Text className="text-white text-3xl font-bold mb-2">$45,312.50</Text>
+            <View className="flex-row items-center gap-2">
+              <View className="bg-white/20 px-2 py-1 rounded-full flex-row items-center gap-1">
+                <TrendingUp size={12} className="text-white" />
+                <Text className="text-white text-xs font-semibold">+12.5%</Text>
+              </View>
+              <Text className="text-white/60 text-xs">vs last month</Text>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Action Buttons */}
+        <View className="px-6 flex-row gap-4">
+          <TouchableOpacity className="flex-1 bg-card rounded-xl p-4 items-center border border-border">
+            <Wallet size={24} className="text-primary mb-2" />
+            <Text className="text-foreground font-semibold">Deposit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity className="flex-1 bg-card rounded-xl p-4 items-center border border-border">
+            <ArrowUp size={24} className="text-secondary mb-2" />
+            <Text className="text-foreground font-semibold">Withdraw</Text>
+          </TouchableOpacity>
+          <TouchableOpacity className="flex-1 bg-card rounded-xl p-4 items-center border border-border">
+            <ArrowLeft size={24} className="text-muted-foreground mb-2" />
+            <Text className="text-foreground font-semibold">Transfer</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Assets List */}
+        <View className="px-6">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-lg font-bold text-foreground">Your Assets</Text>
+            <TouchableOpacity>
+              <Text className="text-primary text-sm">See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View className="gap-3">
+            {assets.map((asset) => (
+              <View key={asset.id} className="bg-card rounded-xl p-4 flex-row items-center justify-between border border-border">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-10 h-10 rounded-full bg-muted items-center justify-center">
+                    <Activity size={20} className="text-foreground" />
+                  </View>
+                  <View>
+                    <Text className="text-foreground font-semibold">{asset.name}</Text>
+                    <Text className="text-muted-foreground text-sm">{asset.balance} {asset.symbol}</Text>
+                  </View>
+                </View>
+                <View className="items-end">
+                  <Text className="text-foreground font-semibold">{asset.value}</Text>
+                  <View className="flex-row items-center gap-1">
+                    <Text className={`text-xs ${asset.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                      {asset.change}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Transactions */}
+        <View className="px-6">
+          <Text className="text-lg font-bold text-foreground mb-4">Recent Transactions</Text>
+          
+          {/* Filter Tabs */}
+          <View className="flex-row gap-2 mb-4">
+            {['All', 'Crypto', 'Fiat'].map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setFilter(tab as any)}
+                className={`px-4 py-2 rounded-full ${
+                  filter === tab ? 'bg-primary' : 'bg-card'
+                }`}
+              >
+                <Text className={`text-sm font-medium ${
+                  filter === tab ? 'text-primary-foreground' : 'text-muted-foreground'
+                }`}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View className="gap-3">
+            {filteredTransactions.map((tx) => (
+              <View key={tx.id} className="bg-card rounded-xl p-4 flex-row items-center justify-between border border-border">
+                <View className="flex-row items-center gap-3">
+                  <View className={`w-10 h-10 rounded-full bg-muted items-center justify-center ${
+                    tx.type === 'buy' || tx.type === 'deposit' ? 'bg-green-500/10' : 'bg-red-500/10'
+                  }`}>
+                    {tx.type === 'buy' && <TrendingUp size={20} className="text-green-500" />}
+                    {tx.type === 'sell' && <TrendingDown size={20} className="text-red-500" />}
+                    {tx.type === 'deposit' && <ArrowDown size={20} className="text-green-500" />}
+                    {tx.type === 'withdraw' && <ArrowUp size={20} className="text-red-500" />}
+                  </View>
+                  <View>
+                    <Text className="text-foreground font-semibold">{tx.title}</Text>
+                    <Text className="text-muted-foreground text-sm">{tx.date}</Text>
+                  </View>
+                </View>
+                <View className="items-end">
+                  <Text className={`font-semibold ${
+                    tx.type === 'buy' || tx.type === 'deposit' ? 'text-green-500' : 'text-foreground'
+                  }`}>
+                    {tx.amount}
+                  </Text>
+                  <View className="flex-row items-center gap-1 mt-1">
+                    {getStatusIcon(tx.status)}
+                    <Text className={`text-xs capitalize ${getStatusColor(tx.status)}`}>
+                      {tx.status}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
