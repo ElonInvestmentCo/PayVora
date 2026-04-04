@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -20,6 +19,7 @@ import { useKyc } from "@/contexts/KycContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import { XStack, YStack } from "@/components/Stacks";
+import { SizableText, Paragraph, Strong } from "@/components/Typography";
 
 type FilterTab = "All" | "Crypto" | "Fiat";
 
@@ -165,7 +165,7 @@ export default function WalletScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={["top", "left", "right"]}>
       <XStack justifyContent="space-between" alignItems="center" paddingHorizontal={24} paddingVertical={16} style={{ borderBottomWidth: 1, borderBottomColor: borderClr }}>
-        <Text className={`text-xl font-bold`} style={{ color: fg }}>Wallet Balance</Text>
+        <SizableText size="$7" fontWeight="bold" color={fg}>Wallet Balance</SizableText>
         <XStack alignItems="center" gap={12}>
           <TouchableOpacity onPress={togglePanel} activeOpacity={0.8}>
             <Feather name="bell" size={22} color={muted} />
@@ -182,16 +182,16 @@ export default function WalletScreen() {
             end={{ x: 1, y: 1 }}
             style={{ borderRadius: 16, padding: 24 }}
           >
-            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginBottom: 4 }}>Total Balance</Text>
-            <Text style={{ color: "#FFFFFF", fontSize: 30, fontWeight: "bold", marginBottom: 8 }}>
+            <SizableText size="$4" color="rgba(255,255,255,0.8)" marginBottom={4}>Total Balance</SizableText>
+            <SizableText size="$9" fontWeight="bold" color="#FFFFFF" marginBottom={8}>
               ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
+            </SizableText>
             <XStack alignItems="center" gap={8}>
               <XStack alignItems="center" gap={4} style={{ backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 }}>
                 <Feather name="trending-up" size={12} color="#FFFFFF" />
-                <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600" }}>+3.2%</Text>
+                <SizableText size="$2" fontWeight="600" color="#FFFFFF">+3.2%</SizableText>
               </XStack>
-              <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>vs last month</Text>
+              <SizableText size="$2" color="rgba(255,255,255,0.6)">vs last month</SizableText>
             </XStack>
           </LinearGradient>
         </View>
@@ -208,13 +208,13 @@ export default function WalletScreen() {
             style={{ marginHorizontal: 24 }}
           >
             <Feather name={kycStatus === "pending" ? "clock" : "alert-circle"} size={16} color={kycStatus === "pending" ? "#F59E0B" : "#EF4444"} />
-            <Text style={{ flex: 1, fontSize: 12, color: kycStatus === "pending" ? "#F59E0B" : "#EF4444" }}>
+            <SizableText size="$2" color={kycStatus === "pending" ? "#F59E0B" : "#EF4444"} flex={1}>
               {kycStatus === "pending" ? "Your KYC verification is under review." : "Complete KYC verification to increase your withdrawal limit."}
-            </Text>
+            </SizableText>
             <TouchableOpacity activeOpacity={0.8} onPress={() => router.push("/kyc")}>
-              <Text style={{ fontSize: 12, fontWeight: "600", color: kycStatus === "pending" ? "#F59E0B" : "#EF4444" }}>
+              <SizableText size="$2" fontWeight="600" color={kycStatus === "pending" ? "#F59E0B" : "#EF4444"}>
                 {kycStatus === "pending" ? "View" : "Verify"}
-              </Text>
+              </SizableText>
             </TouchableOpacity>
           </XStack>
         )}
@@ -225,26 +225,26 @@ export default function WalletScreen() {
             style={{ flex: 1, padding: 16, alignItems: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr, borderRadius: 12 }}
           >
             <Feather name="download" size={24} color="#00E5FF" style={{ marginBottom: 8 }} />
-            <Text style={{ color: fg, fontWeight: "600" }}>Deposit</Text>
+            <SizableText size="$4" fontWeight="600" color={fg}>Deposit</SizableText>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => { hapticLight(); openWithdraw("USD"); }}
             style={{ flex: 1, padding: 16, alignItems: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr, borderRadius: 12 }}
           >
             <Feather name="upload" size={24} color="#14B8A6" style={{ marginBottom: 8 }} />
-            <Text style={{ color: fg, fontWeight: "600" }}>Withdraw</Text>
+            <SizableText size="$4" fontWeight="600" color={fg}>Withdraw</SizableText>
           </TouchableOpacity>
           <TouchableOpacity
             style={{ flex: 1, padding: 16, alignItems: "center", backgroundColor: cardBg, borderWidth: 1, borderColor: borderClr, borderRadius: 12 }}
           >
             <Feather name="repeat" size={24} color={muted} style={{ marginBottom: 8 }} />
-            <Text style={{ color: fg, fontWeight: "600" }}>Transfer</Text>
+            <SizableText size="$4" fontWeight="600" color={fg}>Transfer</SizableText>
           </TouchableOpacity>
         </XStack>
 
         <YStack paddingHorizontal={24}>
           <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 18, fontWeight: "bold", color: fg }}>Your Assets</Text>
+            <SizableText size="$6" fontWeight="bold" color={fg}>Your Assets</SizableText>
             <XStack gap={8}>
               {(["All", "Crypto", "Fiat"] as FilterTab[]).map((tab) => (
                 <TouchableOpacity
@@ -257,13 +257,9 @@ export default function WalletScreen() {
                     backgroundColor: filter === tab ? "#00E5FF" : (isDark ? "#1E293B" : "#F1F5F9"),
                   }}
                 >
-                  <Text style={{
-                    fontSize: 14,
-                    fontWeight: "500",
-                    color: filter === tab ? "#0A1428" : muted,
-                  }}>
+                  <SizableText size="$4" fontWeight="500" color={filter === tab ? "#0A1428" : muted}>
                     {tab}
-                  </Text>
+                  </SizableText>
                 </TouchableOpacity>
               ))}
             </XStack>
@@ -291,18 +287,18 @@ export default function WalletScreen() {
                     <Feather name="activity" size={20} color={asset.color} />
                   </View>
                   <YStack>
-                    <Text style={{ fontWeight: "600", color: fg }}>{asset.name}</Text>
-                    <Text style={{ fontSize: 14, color: muted }}>
+                    <SizableText size="$4" fontWeight="600" color={fg}>{asset.name}</SizableText>
+                    <SizableText size="$4" color={muted}>
                       {asset.type === "fiat"
                         ? `${asset.symbol === "NGN" ? "₦" : "$"}${asset.balance.toLocaleString()}`
                         : `${asset.balance} ${asset.symbol}`}
-                    </Text>
+                    </SizableText>
                   </YStack>
                 </XStack>
                 <YStack alignItems="flex-end">
-                  <Text style={{ fontWeight: "600", color: fg }}>
+                  <SizableText size="$4" fontWeight="600" color={fg}>
                     ${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
+                  </SizableText>
                   {asset.change !== 0 && (
                     <XStack alignItems="center" gap={4}>
                       <Feather
@@ -310,9 +306,9 @@ export default function WalletScreen() {
                         size={12}
                         color={asset.change >= 0 ? "#22C55E" : "#EF4444"}
                       />
-                      <Text style={{ fontSize: 12, color: asset.change >= 0 ? "#22C55E" : "#EF4444" }}>
+                      <SizableText size="$2" color={asset.change >= 0 ? "#22C55E" : "#EF4444"}>
                         {asset.change >= 0 ? "+" : ""}{asset.change}%
-                      </Text>
+                      </SizableText>
                     </XStack>
                   )}
                 </YStack>
@@ -323,9 +319,9 @@ export default function WalletScreen() {
 
         <YStack paddingHorizontal={24}>
           <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 16 }}>
-            <Text style={{ fontSize: 18, fontWeight: "bold", color: fg }}>Recent Transactions</Text>
+            <SizableText size="$6" fontWeight="bold" color={fg}>Recent Transactions</SizableText>
             <TouchableOpacity onPress={() => router.push("/transactions")} activeOpacity={0.8}>
-              <Text style={{ color: "#00E5FF", fontSize: 14 }}>See All</Text>
+              <SizableText size="$4" color="#00E5FF">See All</SizableText>
             </TouchableOpacity>
           </XStack>
 
@@ -346,15 +342,15 @@ export default function WalletScreen() {
                       <Feather name={iconName as any} size={20} color={isIn ? "#22C55E" : "#EF4444"} />
                     </View>
                     <YStack>
-                      <Text style={{ fontWeight: "600", color: fg }}>{tx.title}</Text>
-                      <Text style={{ fontSize: 14, color: muted }}>{tx.date}</Text>
+                      <SizableText size="$4" fontWeight="600" color={fg}>{tx.title}</SizableText>
+                      <SizableText size="$4" color={muted}>{tx.date}</SizableText>
                     </YStack>
                   </XStack>
                   <YStack alignItems="flex-end">
-                    <Text style={{ fontWeight: "600", color: isIn ? "#22C55E" : fg }}>{tx.amount}</Text>
+                    <SizableText size="$4" fontWeight="600" color={isIn ? "#22C55E" : fg}>{tx.amount}</SizableText>
                     <XStack alignItems="center" gap={4} style={{ marginTop: 4 }}>
                       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: stColor }} />
-                      <Text style={{ fontSize: 12, color: stColor }}>{stLabel}</Text>
+                      <SizableText size="$2" color={stColor}>{stLabel}</SizableText>
                     </XStack>
                   </YStack>
                 </XStack>
@@ -364,7 +360,7 @@ export default function WalletScreen() {
             {filteredTx.length === 0 && (
               <YStack alignItems="center" padding={32} backgroundColor={cardBg} borderRadius={12} borderWidth={1} borderColor={borderClr}>
                 <Feather name="inbox" size={28} color={muted} />
-                <Text style={{ color: muted, fontSize: 14, marginTop: 8 }}>No transactions found</Text>
+                <SizableText size="$4" color={muted} marginTop={8}>No transactions found</SizableText>
               </YStack>
             )}
           </YStack>
@@ -377,9 +373,9 @@ export default function WalletScreen() {
             <View style={{ width: 48, height: 4, borderRadius: 2, backgroundColor: borderClr, alignSelf: "center", marginBottom: 24 }} />
 
             <XStack justifyContent="space-between" alignItems="center" style={{ marginBottom: 24 }}>
-              <Text style={{ fontSize: 20, fontWeight: "bold", color: fg }}>
+              <SizableText size="$7" fontWeight="bold" color={fg}>
                 {modalMode === "deposit" ? `Deposit ${selectedAssetSymbol}` : `Withdraw ${selectedAssetSymbol}`}
-              </Text>
+              </SizableText>
               <TouchableOpacity onPress={() => setModalMode(null)} activeOpacity={0.8}>
                 <Feather name="x" size={22} color={muted} />
               </TouchableOpacity>
@@ -388,12 +384,12 @@ export default function WalletScreen() {
             {modalMode === "deposit" && (
               <>
                 <View style={{ padding: 16, borderRadius: 12, backgroundColor: bg, borderWidth: 1, borderColor: borderClr, marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, color: muted, marginBottom: 4 }}>Network</Text>
-                  <Text style={{ fontWeight: "600", color: fg }}>{depositInfo.network}</Text>
+                  <SizableText size="$4" color={muted} marginBottom={4}>Network</SizableText>
+                  <SizableText size="$true" fontWeight="600" color={fg}>{depositInfo.network}</SizableText>
                 </View>
                 <View style={{ padding: 16, borderRadius: 12, backgroundColor: bg, borderWidth: 1, borderColor: borderClr, marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, color: muted, marginBottom: 4 }}>Deposit Address</Text>
-                  <Text style={{ color: "#00E5FF", fontSize: 14 }} numberOfLines={2}>{depositInfo.address}</Text>
+                  <SizableText size="$4" color={muted} marginBottom={4}>Deposit Address</SizableText>
+                  <SizableText size="$4" color="#00E5FF" numberOfLines={2}>{depositInfo.address}</SizableText>
                 </View>
                 <TouchableOpacity
                   activeOpacity={0.8}
@@ -401,20 +397,20 @@ export default function WalletScreen() {
                   style={{ backgroundColor: "#00E5FF", paddingVertical: 16, borderRadius: 12, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, marginBottom: 16 }}
                 >
                   <Feather name="copy" size={16} color="#0A1428" />
-                  <Text style={{ color: "#0A1428", fontWeight: "bold", fontSize: 16 }}>Copy Address</Text>
+                  <Strong color="#0A1428" style={{ fontSize: 16 }}>Copy Address</Strong>
                 </TouchableOpacity>
                 <XStack alignItems="flex-start" gap={8} padding={12} borderRadius={12} borderWidth={1} backgroundColor="rgba(245,158,11,0.1)" borderColor="rgba(245,158,11,0.2)">
                   <Feather name="alert-triangle" size={14} color="#F59E0B" style={{ marginTop: 2 }} />
-                  <Text style={{ color: "#F59E0B", fontSize: 12, flex: 1 }}>
+                  <Paragraph size="$2" color="#F59E0B" flex={1}>
                     Only send {selectedAssetSymbol} to this address. Sending other assets may result in permanent loss.
-                  </Text>
+                  </Paragraph>
                 </XStack>
               </>
             )}
 
             {modalMode === "withdraw" && (
               <>
-                <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>Amount</Text>
+                <SizableText size="$4" color={muted} marginBottom={8}>Amount</SizableText>
                 <XStack alignItems="center" padding={16} borderRadius={12} backgroundColor={bg} borderWidth={1} borderColor={borderClr} style={{ marginBottom: 16 }}>
                   <TextInput
                     style={{ flex: 1, fontSize: 20, fontWeight: "600", color: fg }}
@@ -425,11 +421,11 @@ export default function WalletScreen() {
                     keyboardType="decimal-pad"
                   />
                   <View style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? "#1E293B" : "#E2E8F0" }}>
-                    <Text style={{ fontWeight: "bold", color: fg }}>{selectedAssetSymbol}</Text>
+                    <Strong color={fg}>{selectedAssetSymbol}</Strong>
                   </View>
                 </XStack>
 
-                <Text style={{ fontSize: 14, color: muted, marginBottom: 8 }}>Destination Address</Text>
+                <SizableText size="$4" color={muted} marginBottom={8}>Destination Address</SizableText>
                 <TextInput
                   style={{ padding: 16, borderRadius: 12, backgroundColor: bg, borderWidth: 1, borderColor: borderClr, color: fg, fontSize: 16, marginBottom: 16 }}
                   value={withdrawAddress}
@@ -440,8 +436,8 @@ export default function WalletScreen() {
                 />
 
                 <XStack justifyContent="space-between" paddingVertical={12} style={{ borderTopWidth: 1, borderTopColor: borderClr, marginBottom: 16 }}>
-                  <Text style={{ fontSize: 14, color: muted }}>Network Fee</Text>
-                  <Text style={{ fontSize: 14, fontWeight: "600", color: fg }}>~$2.50</Text>
+                  <SizableText size="$4" color={muted}>Network Fee</SizableText>
+                  <SizableText size="$4" fontWeight="600" color={fg}>~$2.50</SizableText>
                 </XStack>
 
                 <TouchableOpacity
@@ -453,7 +449,7 @@ export default function WalletScreen() {
                   {processing ? (
                     <ActivityIndicator color="#0A1428" />
                   ) : (
-                    <Text style={{ color: "#0A1428", fontWeight: "bold", fontSize: 18 }}>Withdraw</Text>
+                    <Strong color="#0A1428" style={{ fontSize: 18 }}>Withdraw</Strong>
                   )}
                 </TouchableOpacity>
               </>

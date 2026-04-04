@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -18,6 +17,7 @@ import { TransactionItem, Transaction } from "@/components/TransactionItem";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import { XStack, YStack } from "@/components/Stacks";
+import { SizableText, Strong } from "@/components/Typography";
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -50,8 +50,8 @@ export default function HomeScreen() {
         {/* Header */}
         <XStack justifyContent="space-between" alignItems="center" style={styles.header}>
           <YStack>
-            <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Good morning</Text>
-            <Text style={[styles.username, { color: colors.foreground }]}>Alex Johnson</Text>
+            <SizableText size="$3" color={colors.mutedForeground} marginBottom={2}>Good morning</SizableText>
+            <SizableText size="$8" fontWeight="bold" color={colors.foreground}>Alex Johnson</SizableText>
           </YStack>
           <XStack gap={8}>
             <TouchableOpacity
@@ -102,16 +102,16 @@ export default function HomeScreen() {
               <View style={[styles.quickIcon, { backgroundColor: `${action.color}18` }]}>
                 <Feather name={action.icon as any} size={20} color={action.color} />
               </View>
-              <Text style={[styles.quickLabel, { color: colors.mutedForeground }]}>{action.label}</Text>
+              <SizableText size="$1" fontWeight="500" color={colors.mutedForeground} style={{ textAlign: "center" }}>{action.label}</SizableText>
             </TouchableOpacity>
           ))}
         </XStack>
 
         {/* Transactions */}
         <XStack justifyContent="space-between" alignItems="center" style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Transactions</Text>
+          <SizableText size="$6" fontWeight="bold" color={colors.foreground}>Recent Transactions</SizableText>
           <TouchableOpacity onPress={() => router.push("/transactions")}>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
+            <SizableText size="$3" fontWeight="500" color={colors.primary}>See all</SizableText>
           </TouchableOpacity>
         </XStack>
         {recentTxs.map((t) => (
@@ -134,7 +134,7 @@ export default function HomeScreen() {
           style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
         >
           <Feather name="dollar-sign" size={22} color={colors.primaryForeground} />
-          <Text style={[styles.fabText, { color: colors.primaryForeground }]}>Sell Card</Text>
+          <Strong color={colors.primaryForeground} style={{ fontSize: 15 }}>Sell Card</Strong>
         </TouchableOpacity>
       </View>
     </View>
