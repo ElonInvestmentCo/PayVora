@@ -61,6 +61,7 @@
   "dependencies": {
     "@tamagui/config": "2.0.0-rc.36",
     "@tamagui/focus-scope": "2.0.0-rc.36",
+    "expo-clipboard": "^56.0.3",
     "http-proxy-middleware": "^3.0.5",
     "tamagui": "2.0.0-rc.36"
   }
