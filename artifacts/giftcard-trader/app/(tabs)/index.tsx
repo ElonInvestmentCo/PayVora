@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useRef, useCallback } from "react";
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Platform,
+  Animated,
+  Pressable,
+  ViewStyle,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,23 +22,160 @@ import { useNotifications } from "@/contexts/NotificationsContext";
 import { XStack, YStack } from "@/components/Stacks";
 import { SizableText, Strong } from "@/components/Typography";
 
+/* ─── Premium Action Button ─────────────────────────── */
+interface PremiumActionBtnProps {
+  label: string;
+  icon: string;
+  color: string;
+  glowColor: string;
+  onPress: () => void;
+  testID?: string;
+}
+
+function PremiumActionBtn({ label, icon, color, glowColor, onPress, testID }: PremiumActionBtnProps) {
+  const scaleAnim  = useRef(new Animated.Value(1)).current;
+  const glowAnim   = useRef(new Animated.Value(0)).current;
+
+  const pressIn = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, { toValue: 0.92, friction: 6, tension: 200, useNativeDriver: false }),
+      Animated.timing(glowAnim,  { toValue: 1, duration: 120, useNativeDriver: false }),
+    ]).start();
+  }, [scaleAnim, glowAnim]);
+
+  const pressOut = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, { toValue: 1,    friction: 4, tension: 120, useNativeDriver: false }),
+      Animated.timing(glowAnim,  { toValue: 0, duration: 250, useNativeDriver: false }),
+    ]).start();
+  }, [scaleAnim, glowAnim]);
+
+  const bgColor = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#0e0e1a", "#111828"],
+  });
+
+  const nativeShadow = Platform.OS !== "web"
+    ? {
+        shadowColor:   glowColor,
+        shadowOffset:  { width: 0, height: 0 },
+        shadowOpacity: 0.75,
+        shadowRadius:  14,
+        elevation:     10,
+      }
+    : {};
+
+  const webGlow = Platform.OS === "web"
+    ? { boxShadow: `0 0 18px ${glowColor}90, 0 0 36px ${glowColor}40, 0 4px 14px rgba(0,0,0,0.55)` } as any
+    : {};
+
+  return (
+    <Pressable
+      testID={testID}
+      onPressIn={pressIn}
+      onPressOut={pressOut}
+      onPress={() => { hapticLight(); onPress(); }}
+      style={{ flex: 1 }}
+    >
+      <Animated.View
+        style={[
+          pb.btn,
+          nativeShadow,
+          webGlow,
+          { backgroundColor: bgColor, transform: [{ scale: scaleAnim }] },
+        ]}
+      >
+        {/* icon container with subtle inner glow ring */}
+        <View style={[pb.iconRing, { borderColor: `${color}35`, backgroundColor: `${color}14` }]}>
+          <View style={[pb.iconCore, { backgroundColor: `${color}22` }]}>
+            <Feather name={icon as any} size={22} color={color} />
+          </View>
+        </View>
+
+        {/* label */}
+        <SizableText
+          size="$1"
+          fontWeight="600"
+          color="rgba(220,230,255,0.85)"
+          style={pb.label}
+        >
+          {label}
+        </SizableText>
+
+        {/* bottom accent bar */}
+        <View style={[pb.accentBar, { backgroundColor: color }]} />
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+const pb = StyleSheet.create({
+  btn: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    overflow: "hidden",
+    position: "relative",
+  },
+  iconRing: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconCore: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    textAlign: "center",
+    letterSpacing: 0.2,
+  },
+  accentBar: {
+    position: "absolute",
+    bottom: 0,
+    left: "20%",
+    right: "20%",
+    height: 2,
+    borderRadius: 2,
+    opacity: 0.6,
+  },
+});
+
+/* ─── Home Screen ────────────────────────────────────── */
+const QUICK_ACTIONS = [
+  { label: "Buy Card",    icon: "shopping-bag", color: "#00FF88", glowColor: "#00FF88", route: "/buy" },
+  { label: "Sell Card",   icon: "dollar-sign",  color: "#00E5FF", glowColor: "#00E5FF", route: "/sell" },
+  { label: "Dollar Card", icon: "credit-card",  color: "#8B5CF6", glowColor: "#8B5CF6", route: "/virtual-card" },
+  { label: "Bills",       icon: "smartphone",   color: "#F59E0B", glowColor: "#F59E0B", route: "/bills" },
+] as const;
+
 export default function HomeScreen() {
-  const colors = useColors();
-  const insets = useSafeAreaInsets();
-  const isWeb = Platform.OS === "web";
+  const colors     = useColors();
+  const insets     = useSafeAreaInsets();
+  const isWeb      = Platform.OS === "web";
   const { ngnBalance, transactions } = useWallet();
   const { unreadCount, togglePanel } = useNotifications();
 
-  const topPad = isWeb ? 67 : insets.top;
+  const topPad    = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   const recentTxs: Transaction[] = transactions.slice(0, 4).map((t) => ({
-    id: t.id,
+    id:       t.id,
     cardType: t.title,
-    amount: t.amount,
-    payout: t.currency === "NGN" ? t.amount : t.amount * 750,
-    status: t.status,
-    date: t.date,
+    amount:   t.amount,
+    payout:   t.currency === "NGN" ? t.amount : t.amount * 750,
+    status:   t.status,
+    date:     t.date,
   }));
 
   return (
@@ -75,37 +215,35 @@ export default function HomeScreen() {
         </XStack>
 
         {/* Wallet Card */}
-        <WalletCard
-          balance={ngnBalance}
-          onWithdraw={() => {}}
-          onDeposit={() => {}}
-        />
+        <WalletCard balance={ngnBalance} onWithdraw={() => {}} onDeposit={() => {}} />
 
         {/* Live Rate */}
         <RateCard rate={750} fromCurrency="$" toCurrency="₦" change={2.3} />
 
-        {/* Quick Actions */}
-        <XStack gap={12} style={styles.quickActions}>
-          {[
-            { label: "Buy Card",     icon: "shopping-bag",  color: "#00FF88",      onPress: () => { hapticLight(); router.push("/buy"); } },
-            { label: "Sell Card",    icon: "dollar-sign",   color: colors.primary, onPress: () => { hapticLight(); router.push("/sell"); } },
-            { label: "Dollar Card",  icon: "credit-card",   color: "#8B5CF6",      onPress: () => { hapticLight(); router.push("/virtual-card"); } },
-            { label: "Bills",        icon: "smartphone",    color: "#F59E0B",      onPress: () => { hapticLight(); router.push("/bills"); } },
-          ].map((action) => (
-            <TouchableOpacity
+        {/* Quick Actions label */}
+        <SizableText
+          size="$4"
+          fontWeight="700"
+          color={colors.foreground}
+          style={{ marginBottom: 12, letterSpacing: 0.3 }}
+        >
+          Quick Actions
+        </SizableText>
+
+        {/* Premium buttons */}
+        <View style={styles.quickActions}>
+          {QUICK_ACTIONS.map((action) => (
+            <PremiumActionBtn
               key={action.label}
-              activeOpacity={0.8}
-              onPress={action.onPress}
+              label={action.label}
+              icon={action.icon}
+              color={action.color}
+              glowColor={action.glowColor}
+              onPress={() => router.push(action.route as any)}
               testID={`quick-action-${action.label.toLowerCase().replace(" ", "-")}`}
-              style={[styles.quickBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
-              <View style={[styles.quickIcon, { backgroundColor: `${action.color}18` }]}>
-                <Feather name={action.icon as any} size={20} color={action.color} />
-              </View>
-              <SizableText size="$1" fontWeight="500" color={colors.mutedForeground} style={{ textAlign: "center" }}>{action.label}</SizableText>
-            </TouchableOpacity>
+            />
           ))}
-        </XStack>
+        </View>
 
         {/* Transactions */}
         <XStack justifyContent="space-between" alignItems="center" style={styles.sectionHeader}>
@@ -121,10 +259,7 @@ export default function HomeScreen() {
 
       {/* Floating Sell Button */}
       <View
-        style={[
-          styles.fabWrap,
-          { bottom: bottomPad + (isWeb ? 84 : 72) },
-        ]}
+        style={[styles.fabWrap, { bottom: bottomPad + (isWeb ? 84 : 72) }]}
         pointerEvents="box-none"
       >
         <TouchableOpacity
@@ -142,97 +277,40 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root:    { flex: 1 },
   content: { paddingHorizontal: 20 },
+
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  greeting: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    marginBottom: 2,
-  },
-  username: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
+    flexDirection: "row", justifyContent: "space-between",
+    alignItems: "center", marginBottom: 24,
   },
   notifBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
+    width: 42, height: 42, borderRadius: 12,
+    alignItems: "center", justifyContent: "center", borderWidth: 1,
   },
   notifDot: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    position: "absolute", top: 8, right: 8,
+    width: 8, height: 8, borderRadius: 4,
   },
+
   quickActions: {
     flexDirection: "row",
     gap: 10,
-    marginBottom: 24,
+    marginBottom: 28,
   },
-  quickBtn: {
-    flex: 1,
-    borderRadius: 14,
-    padding: 12,
-    alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-  },
-  quickIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_500Medium",
-    textAlign: "center",
-  },
+
   sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
+    flexDirection: "row", justifyContent: "space-between",
+    alignItems: "center", marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_700Bold",
-  },
-  seeAll: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-  },
+
   fabWrap: {
-    position: "absolute",
-    right: 20,
-    alignItems: "flex-end",
+    position: "absolute", right: 20, alignItems: "flex-end",
   },
   fab: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderRadius: 28,
-    paddingHorizontal: 22,
-    paddingVertical: 14,
+    flexDirection: "row", alignItems: "center", gap: 8,
+    borderRadius: 28, paddingHorizontal: 22, paddingVertical: 14,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
-    shadowRadius: 18,
-    elevation: 10,
-  },
-  fabText: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
+    shadowOpacity: 0.55, shadowRadius: 18, elevation: 10,
   },
 });
