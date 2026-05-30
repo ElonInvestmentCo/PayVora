@@ -17,6 +17,7 @@ import { hapticSuccess, hapticError } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { BrandLogo } from "@/components/BrandLogo";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,12 +27,12 @@ type PaymentMethod = "wallet" | "card" | "crypto";
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const GIFT_CARDS = [
-  { id: "amazon",     name: "Amazon",      icon: "shopping-bag", color: "#FF9900" },
-  { id: "apple",      name: "Apple",       icon: "music",        color: "#A3AAAE" },
-  { id: "google",     name: "Google Play", icon: "play",         color: "#34A853" },
-  { id: "steam",      name: "Steam",       icon: "monitor",      color: "#1B2838" },
-  { id: "netflix",    name: "Netflix",     icon: "tv",           color: "#E50914" },
-  { id: "xbox",       name: "Xbox",        icon: "square",       color: "#107C10" },
+  { id: "amazon",  name: "Amazon",      color: "#FF9900" },
+  { id: "apple",   name: "Apple",       color: "#A2AAAD" },
+  { id: "google",  name: "Google Play", color: "#34A853" },
+  { id: "steam",   name: "Steam",       color: "#4A90D9" },
+  { id: "netflix", name: "Netflix",     color: "#E50914" },
+  { id: "xbox",    name: "Xbox",        color: "#107C10" },
 ];
 
 const COUNTRIES = [
@@ -243,9 +244,13 @@ export default function BuyScreen() {
                     },
                   ]}
                 >
-                  <View style={[styles.cardIconWrap, { backgroundColor: `${gc.color}22` }]}>
-                    <Feather name={gc.icon as any} size={18} color={gc.color} />
-                  </View>
+                  <BrandLogo
+                    id={gc.id}
+                    name={gc.name}
+                    color={gc.color}
+                    size={36}
+                    borderRadius={10}
+                  />
                   <Text style={[styles.cardName, { color: active ? colors.primary : colors.foreground }]}>
                     {gc.name}
                   </Text>

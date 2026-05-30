@@ -1,0 +1,195 @@
+TASK: Replace all placeholder gift card images with real brand logos and implement them across the entire application.
+
+PAGES TO UPDATE:
+- Buy Giftcards
+- Sell Giftcards
+- Giftcard Search
+- Featured Giftcards
+- Giftcard Details
+- Trading Screens
+
+STEP 1 — CREATE ASSET DIRECTORY
+
+/public/assets/giftcards/
+
+STEP 2 — DOWNLOAD OFFICIAL LOGOS
+
+Use the following sources:
+
+Amazon:
+https://www.amazon.com
+
+Apple:
+https://www.apple.com
+
+Google Play:
+https://play.google.com
+
+Steam:
+https://store.steampowered.com
+
+Xbox:
+https://www.xbox.com
+
+PlayStation:
+https://www.playstation.com
+
+Nintendo:
+https://www.nintendo.com
+
+Roblox:
+https://www.roblox.com
+
+Razer Gold:
+https://gold.razer.com
+
+eBay:
+https://www.ebay.com
+
+Starbucks:
+https://www.starbucks.com
+
+Nike:
+https://www.nike.com
+
+Adidas:
+https://www.adidas.com
+
+Target:
+https://www.target.com
+
+Walmart:
+https://www.walmart.com
+
+Netflix:
+https://www.netflix.com
+
+Spotify:
+https://www.spotify.com
+
+Uber:
+https://www.uber.com
+
+Airbnb:
+https://www.airbnb.com
+
+Sephora:
+https://www.sephora.com
+
+Best Buy:
+https://www.bestbuy.com
+
+Home Depot:
+https://www.homedepot.com
+
+Nordstrom:
+https://www.nordstrom.com
+
+Macy's:
+https://www.macys.com
+
+Visa:
+https://www.visa.com
+
+Mastercard:
+https://www.mastercard.com
+
+American Express:
+https://www.americanexpress.com
+
+STEP 3 — USE CLEARBIT LOGOS API
+
+For automatic logo downloads use:
+
+https://logo.clearbit.com/amazon.com
+https://logo.clearbit.com/apple.com
+https://logo.clearbit.com/google.com
+https://logo.clearbit.com/steampowered.com
+https://logo.clearbit.com/xbox.com
+https://logo.clearbit.com/playstation.com
+https://logo.clearbit.com/nintendo.com
+https://logo.clearbit.com/roblox.com
+https://logo.clearbit.com/razer.com
+https://logo.clearbit.com/ebay.com
+https://logo.clearbit.com/starbucks.com
+https://logo.clearbit.com/nike.com
+https://logo.clearbit.com/adidas.com
+https://logo.clearbit.com/target.com
+https://logo.clearbit.com/walmart.com
+https://logo.clearbit.com/netflix.com
+https://logo.clearbit.com/spotify.com
+https://logo.clearbit.com/uber.com
+https://logo.clearbit.com/airbnb.com
+https://logo.clearbit.com/sephora.com
+https://logo.clearbit.com/bestbuy.com
+https://logo.clearbit.com/homedepot.com
+https://logo.clearbit.com/nordstrom.com
+https://logo.clearbit.com/macys.com
+https://logo.clearbit.com/visa.com
+https://logo.clearbit.com/mastercard.com
+https://logo.clearbit.com/americanexpress.com
+
+Download every logo and save locally.
+
+STEP 4 — CREATE CENTRAL REGISTRY
+
+Create:
+
+src/data/giftcards.ts
+
+Example:
+
+export const giftcards = [
+{
+id: "amazon",
+name: "Amazon",
+logo: "/assets/giftcards/amazon.png",
+category: "shopping"
+},
+{
+id: "xbox",
+name: "Xbox",
+logo: "/assets/giftcards/xbox.png",
+category: "games"
+}
+];
+
+STEP 5 — REPLACE ALL HARDCODED IMAGES
+
+Search entire codebase and replace:
+- Remote URLs
+- Placeholder images
+- Dummy assets
+
+with references from giftcards.ts.
+
+STEP 6 — ADD FALLBACKS
+
+onError={(e)=>{
+e.currentTarget.src="/assets/giftcards/default.png";
+}}
+
+STEP 7 — IMAGE OPTIMIZATION
+
+- Convert to WebP
+- Lazy load images
+- Retina quality
+- Consistent card ratio
+- Rounded corners
+- Responsive sizing
+
+STEP 8 — VERIFY
+
+Confirm:
+✓ Buy page uses real logos
+✓ Sell page uses real logos
+✓ Search uses real logos
+✓ No placeholder images remain
+✓ No broken images
+✓ Mobile and desktop rendering verified
+
+OUTPUT:
+- List of files modified
+- List of logos downloaded
+- Registry file created
+- Components updated

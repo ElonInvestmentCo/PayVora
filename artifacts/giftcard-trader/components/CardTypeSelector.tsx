@@ -6,24 +6,23 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export interface CardType {
   id: string;
   name: string;
-  icon: string;
   rate: number;
   color: string;
 }
 
 export const CARD_TYPES: CardType[] = [
-  { id: "amazon", name: "Amazon", icon: "shopping-bag", rate: 750, color: "#FF9900" },
-  { id: "itunes", name: "iTunes", icon: "music", rate: 720, color: "#FC3C44" },
-  { id: "steam", name: "Steam", icon: "layers", rate: 700, color: "#1B2838" },
-  { id: "google", name: "Google Play", icon: "play", rate: 710, color: "#34A853" },
-  { id: "visa", name: "Visa", icon: "credit-card", rate: 760, color: "#1A1F71" },
-  { id: "ebay", name: "eBay", icon: "tag", rate: 680, color: "#E43137" },
+  { id: "amazon", name: "Amazon",      rate: 750, color: "#FF9900" },
+  { id: "itunes", name: "iTunes",      rate: 720, color: "#FC3C44" },
+  { id: "steam",  name: "Steam",       rate: 700, color: "#4A90D9" },
+  { id: "google", name: "Google Play", rate: 710, color: "#34A853" },
+  { id: "visa",   name: "Visa",        rate: 760, color: "#1A1F71" },
+  { id: "ebay",   name: "eBay",        rate: 680, color: "#E43137" },
 ];
 
 interface CardTypeSelectorProps {
@@ -56,18 +55,13 @@ export function CardTypeSelector({ selected, onSelect }: CardTypeSelectorProps) 
                 },
               ]}
             >
-              <View
-                style={[
-                  styles.iconWrap,
-                  { backgroundColor: isSelected ? "rgba(0,229,255,0.2)" : "rgba(148,163,184,0.1)" },
-                ]}
-              >
-                <Feather
-                  name={card.icon as any}
-                  size={18}
-                  color={isSelected ? colors.primary : colors.mutedForeground}
-                />
-              </View>
+              <BrandLogo
+                id={card.id}
+                name={card.name}
+                color={card.color}
+                size={38}
+                borderRadius={12}
+              />
               <Text
                 style={[
                   styles.cardName,
@@ -108,13 +102,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     borderWidth: 1.5,
-  },
-  iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
   },
   cardName: {
     fontSize: 11,

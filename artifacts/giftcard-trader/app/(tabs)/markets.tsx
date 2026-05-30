@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type MarketTab = "all" | "crypto" | "giftcards" | "trending";
 
@@ -24,6 +25,7 @@ interface Asset {
   volume: string;
   icon: string;
   iconColor: string;
+  brandId?: string;
   category: "crypto" | "giftcards";
   sparkline: number[];
 }
@@ -42,10 +44,14 @@ const ASSETS: Asset[] = [
   { id: "4",  name: "BNB",           symbol: "BNB",    price: "$312.40",    change: -1.23, volume: "$2.1B",  icon: "trending-down", iconColor: "#F3BA2F", category: "crypto",    sparkline: [35,33,36,30,32,28,30,29] },
   { id: "5",  name: "USDT",          symbol: "USDT",   price: "$1.00",      change: 0.01,  volume: "$42.1B", icon: "minus",         iconColor: "#26A17B", category: "crypto",    sparkline: [50,50,50,50,50,50,50,50] },
   { id: "6",  name: "XRP",           symbol: "XRP",    price: "$0.6245",    change: -2.85, volume: "$1.8B",  icon: "trending-down", iconColor: "#00AAE4", category: "crypto",    sparkline: [40,38,42,35,37,32,34,31] },
-  { id: "7",  name: "Amazon",        symbol: "AMZN",   price: "$25 – $500", change: 4.20,  volume: "12.4K",  icon: "shopping-bag",  iconColor: "#FF9900", category: "giftcards", sparkline: [25,28,30,32,35,33,38,40] },
-  { id: "8",  name: "iTunes",        symbol: "AAPL",   price: "$10 – $200", change: 1.80,  volume: "8.2K",   icon: "music",         iconColor: "#A3AAAE", category: "giftcards", sparkline: [30,32,31,34,33,35,34,36] },
-  { id: "9",  name: "Steam",         symbol: "STEAM",  price: "$20 – $100", change: 6.50,  volume: "5.6K",   icon: "monitor",       iconColor: "#1B2838", category: "giftcards", sparkline: [20,22,25,28,30,35,33,40] },
-  { id: "10", name: "Google Play",   symbol: "GOOG",   price: "$10 – $150", change: -0.50, volume: "3.8K",   icon: "play",          iconColor: "#4285F4", category: "giftcards", sparkline: [35,34,36,33,35,32,34,33] },
+  { id: "7",  name: "Amazon",        symbol: "AMZN",   price: "$25 – $500", change: 4.20,  volume: "12.4K",  icon: "shopping-bag",  iconColor: "#FF9900", brandId: "amazon",  category: "giftcards", sparkline: [25,28,30,32,35,33,38,40] },
+  { id: "8",  name: "iTunes",        symbol: "AAPL",   price: "$10 – $200", change: 1.80,  volume: "8.2K",   icon: "music",         iconColor: "#FC3C44", brandId: "itunes",  category: "giftcards", sparkline: [30,32,31,34,33,35,34,36] },
+  { id: "9",  name: "Steam",         symbol: "STEAM",  price: "$20 – $100", change: 6.50,  volume: "5.6K",   icon: "monitor",       iconColor: "#4A90D9", brandId: "steam",   category: "giftcards", sparkline: [20,22,25,28,30,35,33,40] },
+  { id: "10", name: "Google Play",   symbol: "GOOG",   price: "$10 – $150", change: -0.50, volume: "3.8K",   icon: "play",          iconColor: "#34A853", brandId: "google",  category: "giftcards", sparkline: [35,34,36,33,35,32,34,33] },
+  { id: "11", name: "Netflix",       symbol: "NFLX",   price: "$25 – $100", change: 2.10,  volume: "6.1K",   icon: "tv",            iconColor: "#E50914", brandId: "netflix", category: "giftcards", sparkline: [28,30,29,33,31,36,34,38] },
+  { id: "12", name: "Xbox",          symbol: "XBOX",   price: "$15 – $100", change: 3.30,  volume: "4.4K",   icon: "square",        iconColor: "#107C10", brandId: "xbox",    category: "giftcards", sparkline: [22,24,26,29,28,32,30,35] },
+  { id: "13", name: "Spotify",       symbol: "SPOT",   price: "$10 – $60",  change: 1.50,  volume: "3.2K",   icon: "music",         iconColor: "#1DB954", brandId: "spotify", category: "giftcards", sparkline: [20,21,23,22,25,24,26,27] },
+  { id: "14", name: "eBay",          symbol: "EBAY",   price: "$25 – $200", change: -0.80, volume: "2.9K",   icon: "tag",           iconColor: "#E43137", brandId: "ebay",    category: "giftcards", sparkline: [33,32,34,31,33,30,32,31] },
 ];
 
 function MiniChart({ data, positive }: { data: number[]; positive: boolean }) {
@@ -174,9 +180,19 @@ export default function MarketsScreen() {
               onPress={() => asset.category === "crypto" ? router.push("/buy-crypto") : router.push("/buy")}
               style={[styles.assetRow, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
-              <View style={[styles.assetIcon, { backgroundColor: `${asset.iconColor}18` }]}>
-                <Feather name={asset.icon as any} size={16} color={asset.iconColor} />
-              </View>
+              {asset.brandId ? (
+                <BrandLogo
+                  id={asset.brandId}
+                  name={asset.name}
+                  color={asset.iconColor}
+                  size={38}
+                  borderRadius={10}
+                />
+              ) : (
+                <View style={[styles.assetIcon, { backgroundColor: `${asset.iconColor}18` }]}>
+                  <Feather name={asset.icon as any} size={16} color={asset.iconColor} />
+                </View>
+              )}
               <View style={styles.assetInfo}>
                 <Text style={[styles.assetName, { color: colors.foreground }]}>{asset.name}</Text>
                 <Text style={[styles.assetSymbol, { color: colors.mutedForeground }]}>{asset.symbol}</Text>
