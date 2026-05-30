@@ -301,7 +301,7 @@ const d = StyleSheet.create({
     marginVertical: 24,
     alignItems: "center",
   },
-  cardTouchable: { width: CARD_W, height: CARD_H, borderRadius: 18, overflow: "hidden" },
+  cardTouchable: { width: CARD_W, height: CARD_H },
 
   card: {
     width: CARD_W,
