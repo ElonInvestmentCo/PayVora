@@ -603,6 +603,8 @@ const fc = StyleSheet.create({
     justifyContent: "center",
     marginVertical: 24,
     height: CARD_H + 22,
+    borderRadius: 18,
+    overflow: "hidden",
   },
   card: {
     width: CARD_W,
@@ -620,6 +622,8 @@ const fc = StyleSheet.create({
   cardAbsolute: {
     position: "absolute",
     top: 0,
+    borderRadius: 18,
+    overflow: "hidden",
   },
 
   /* row helpers */

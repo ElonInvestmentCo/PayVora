@@ -301,7 +301,7 @@ const d = StyleSheet.create({
     marginVertical: 24,
     alignItems: "center",
   },
-  cardTouchable: { width: CARD_W, height: CARD_H },
+  cardTouchable: { width: CARD_W, height: CARD_H, borderRadius: 18, overflow: "hidden" },
 
   card: {
     width: CARD_W,
@@ -311,7 +311,7 @@ const d = StyleSheet.create({
     overflow: "hidden",
     ...CARD_SHADOW,
   },
-  cardAbsolute: { position: "absolute", top: 0, left: 0 },
+  cardAbsolute: { position: "absolute", top: 0, left: 0, borderRadius: 18, overflow: "hidden" },
 
   /* MASTERCARD */
   networkLabel: {
