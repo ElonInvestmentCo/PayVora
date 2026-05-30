@@ -383,6 +383,7 @@ export default function VirtualCardScreen() {
       expiry="12/24"
       cvv="491"
       showDetails={showDetails}
+      frozen={virtualCardFrozen}
     />
   ) : (
     <FlipCard

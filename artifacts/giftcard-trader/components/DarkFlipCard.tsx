@@ -1,12 +1,17 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Platform,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
+import { Feather } from "@expo/vector-icons";
+
+/* useNativeDriver is unsupported on Expo Web — fall back to JS there */
+const ND = Platform.OS !== "web";
 
 /* ─── Card dimensions ─────────────────────────────────── */
 const CARD_W = 320;
@@ -66,6 +71,27 @@ function ContactlessIcon() {
   );
 }
 
+/* ─── Frost crystal decoration ────────────────────────── */
+function FrostCrystals() {
+  const positions = [
+    { top: 10,  left: 10,  size: 14, opacity: 0.35 },
+    { top: 12,  left: 270, size: 10, opacity: 0.28 },
+    { top: 155, left: 18,  size: 10, opacity: 0.28 },
+    { top: 160, left: 278, size: 14, opacity: 0.35 },
+    { top: 80,  left: 4,   size: 8,  opacity: 0.22 },
+    { top: 78,  left: 300, size: 8,  opacity: 0.22 },
+  ];
+  return (
+    <>
+      {positions.map((p, i) => (
+        <View key={i} style={{ position: "absolute", top: p.top, left: p.left, opacity: p.opacity }}>
+          <Feather name="star" size={p.size} color="#E0F7FA" />
+        </View>
+      ))}
+    </>
+  );
+}
+
 /* ─── Props ───────────────────────────────────────────── */
 export interface DarkFlipCardProps {
   cardNumber?: string;
@@ -73,6 +99,7 @@ export interface DarkFlipCardProps {
   expiry?: string;
   cvv?: string;
   showDetails?: boolean;
+  frozen?: boolean;
 }
 
 /* ─── Component ───────────────────────────────────────── */
@@ -82,46 +109,77 @@ export function DarkFlipCard({
   expiry = "12/24",
   cvv = "***",
   showDetails = true,
+  frozen = false,
 }: DarkFlipCardProps) {
+
   /* ── flip animation ── */
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [flipped, setFlipped] = useState(false);
 
   const handleFlip = useCallback(() => {
+    if (frozen) return; // block flipping while frozen
     Animated.spring(flipAnim, {
       toValue: flipped ? 0 : 1,
       friction: 8,
       tension: 10,
-      useNativeDriver: true,
+      useNativeDriver: ND,
     }).start();
     setFlipped((f) => !f);
-  }, [flipped, flipAnim]);
+  }, [flipped, flipAnim, frozen]);
+
+  /* ── frost overlay animation ── */
+  const frostAnim = useRef(new Animated.Value(0)).current;
+  const frostScale = useRef(new Animated.Value(1.08)).current;
+
+  useEffect(() => {
+    if (frozen) {
+      // when card is frozen: flip back to front first
+      Animated.spring(flipAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 10,
+        useNativeDriver: ND,
+      }).start(() => setFlipped(false));
+
+      // fade + scale frost in
+      Animated.parallel([
+        Animated.timing(frostAnim, {
+          toValue: 1,
+          duration: 420,
+          useNativeDriver: ND,
+        }),
+        Animated.spring(frostScale, {
+          toValue: 1,
+          friction: 9,
+          tension: 60,
+          useNativeDriver: ND,
+        }),
+      ]).start();
+    } else {
+      // fade frost out
+      frostScale.setValue(1.08);
+      Animated.timing(frostAnim, {
+        toValue: 0,
+        duration: 320,
+        useNativeDriver: ND,
+      }).start();
+    }
+  }, [frozen]);
 
   /* ── copy-to-clipboard toast ── */
   const toastAnim = useRef(new Animated.Value(0)).current;
-  const [copied, setCopied] = useState(false);
 
   const handleCopyNumber = useCallback(async () => {
-    if (flipped) return; // only copy from the front face
+    if (flipped || frozen) return;
     await Clipboard.setStringAsync(cardNumber);
-    setCopied(true);
-    // fade in
     Animated.sequence([
-      Animated.timing(toastAnim, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }),
+      Animated.timing(toastAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
       Animated.delay(1200),
-      Animated.timing(toastAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setCopied(false));
-  }, [cardNumber, flipped, toastAnim]);
+      Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start();
+  }, [cardNumber, flipped, frozen, toastAnim]);
 
-  /* ── derived values ── */
+  /* ── derived ── */
   const frontRotY = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
   const backRotY  = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
   const frontOp   = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [1, 1, 0, 0] });
@@ -131,65 +189,45 @@ export function DarkFlipCard({
   const maskedExpiry = showDetails ? expiry : "**/**";
   const maskedCvv    = showDetails ? cvv : "***";
 
-  /* toast translate: slides up slightly */
   const toastTranslateY = toastAnim.interpolate({ inputRange: [0, 1], outputRange: [6, 0] });
 
   return (
     <View style={d.outerWrap}>
-      {/* ══ FRONT ══ */}
       <TouchableOpacity activeOpacity={1} onPress={handleFlip} style={d.cardTouchable}>
+
+        {/* ══ FRONT ══ */}
         <Animated.View
           style={[
             d.card,
-            {
-              opacity: frontOp,
-              transform: [{ perspective: 1000 }, { rotateY: frontRotY }],
-            },
+            { opacity: frontOp, transform: [{ perspective: 1000 }, { rotateY: frontRotY }] },
           ]}
         >
           <Text style={d.networkLabel}>MASTERCARD</Text>
+          <View style={d.chipWrap}><ChipIcon /></View>
+          <View style={d.contactlessWrap}><ContactlessIcon /></View>
+          <View style={d.logoWrap}><MastercardLogo /></View>
 
-          <View style={d.chipWrap}>
-            <ChipIcon />
-          </View>
-
-          <View style={d.contactlessWrap}>
-            <ContactlessIcon />
-          </View>
-
-          <View style={d.logoWrap}>
-            <MastercardLogo />
-          </View>
-
-          {/* Tappable card number */}
           <TouchableOpacity
             onPress={handleCopyNumber}
             activeOpacity={0.7}
             style={d.numberTouchable}
             accessibilityLabel="Tap to copy card number"
           >
-            <Text style={d.cardNumber} numberOfLines={1}>
-              {maskedNum}
-            </Text>
+            <Text style={d.cardNumber} numberOfLines={1}>{maskedNum}</Text>
           </TouchableOpacity>
 
           <View style={d.expiryBlock}>
             <Text style={d.validThruLabel}>VALID THRU</Text>
             <Text style={d.expiryValue}>{maskedExpiry}</Text>
           </View>
-
           <Text style={d.holderName}>{holderName}</Text>
         </Animated.View>
 
         {/* ══ BACK ══ */}
         <Animated.View
           style={[
-            d.card,
-            d.cardAbsolute,
-            {
-              opacity: backOp,
-              transform: [{ perspective: 1000 }, { rotateY: backRotY }],
-            },
+            d.card, d.cardAbsolute,
+            { opacity: backOp, transform: [{ perspective: 1000 }, { rotateY: backRotY }] },
           ]}
         >
           <View style={d.magStripe} />
@@ -200,18 +238,41 @@ export function DarkFlipCard({
             </View>
           </View>
         </Animated.View>
+
+        {/* ══ FROST OVERLAY ══ */}
+        <Animated.View
+          pointerEvents={frozen ? "auto" : "none"}
+          style={[
+            d.frostOverlay,
+            {
+              opacity: frostAnim,
+              transform: [{ scale: frostScale }],
+            },
+          ]}
+        >
+          {/* icy gradient layers */}
+          <View style={d.frostBase} />
+          <View style={d.frostSheen} />
+
+          {/* corner crystal decorations */}
+          <FrostCrystals />
+
+          {/* centre lock badge */}
+          <View style={d.frozenBadge}>
+            <View style={d.frozenIconRing}>
+              <Feather name="lock" size={22} color="#B2EBF2" />
+            </View>
+            <Text style={d.frozenLabel}>CARD FROZEN</Text>
+            <Text style={d.frozenSub}>Tap Unfreeze to reactivate</Text>
+          </View>
+        </Animated.View>
+
       </TouchableOpacity>
 
       {/* ══ "Copied!" toast ══ */}
       <Animated.View
         pointerEvents="none"
-        style={[
-          d.toast,
-          {
-            opacity: toastAnim,
-            transform: [{ translateY: toastTranslateY }],
-          },
-        ]}
+        style={[d.toast, { opacity: toastAnim, transform: [{ translateY: toastTranslateY }] }]}
       >
         <View style={d.toastInner}>
           <View style={d.toastDot} />
@@ -240,11 +301,7 @@ const d = StyleSheet.create({
     marginVertical: 24,
     alignItems: "center",
   },
-
-  cardTouchable: {
-    width: CARD_W,
-    height: CARD_H,
-  },
+  cardTouchable: { width: CARD_W, height: CARD_H },
 
   card: {
     width: CARD_W,
@@ -254,154 +311,148 @@ const d = StyleSheet.create({
     overflow: "hidden",
     ...CARD_SHADOW,
   },
-  cardAbsolute: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-  },
+  cardAbsolute: { position: "absolute", top: 0, left: 0 },
 
-  /* MASTERCARD label */
+  /* MASTERCARD */
   networkLabel: {
-    position: "absolute",
-    top: 14,
-    right: 16,
-    color: "#FFFFFF",
-    fontSize: 8,
-    letterSpacing: 1.6,
-    fontFamily: "Inter_600SemiBold",
-    opacity: 0.9,
+    position: "absolute", top: 14, right: 16,
+    color: "#FFFFFF", fontSize: 8, letterSpacing: 1.6,
+    fontFamily: "Inter_600SemiBold", opacity: 0.9,
   },
 
-  /* EMV chip */
+  /* chip */
   chipWrap: { position: "absolute", top: 48, left: 32 },
   chipOuter: {
-    width: 38,
-    height: 30,
-    backgroundColor: "#C8A84B",
-    borderRadius: 5,
-    overflow: "hidden",
-    borderWidth: 0.5,
-    borderColor: "#9a7320",
+    width: 38, height: 30, backgroundColor: "#C8A84B",
+    borderRadius: 5, overflow: "hidden",
+    borderWidth: 0.5, borderColor: "#9a7320",
     justifyContent: "space-between",
   },
   chipRow:     { flexDirection: "row", height: 9 },
   chipCell:    { flex: 1, borderWidth: 0.5, borderColor: "#9a7320" },
   chipCellTall:{ flex: 1 },
 
-  /* Contactless arcs */
+  /* contactless */
   contactlessWrap: { position: "absolute", top: 66, left: 258 },
   clWrap: { width: 26, height: 26, alignItems: "center", justifyContent: "center" },
 
-  /* Mastercard logo */
+  /* logo */
   logoWrap: { position: "absolute", top: 138, left: 248 },
   mcWrap:   { flexDirection: "row", width: 50, height: 30, alignItems: "center" },
   mcCircle: { width: 30, height: 30, borderRadius: 15 },
   mcLens: {
-    position: "absolute",
-    left: 18,
-    top: 7,
-    width: 14,
-    height: 16,
-    backgroundColor: "#FF3D00",
-    opacity: 0.75,
+    position: "absolute", left: 18, top: 7,
+    width: 14, height: 16,
+    backgroundColor: "#FF3D00", opacity: 0.75,
   },
 
-  /* Card number — tappable zone */
+  /* number */
   numberTouchable: {
-    position: "absolute",
-    top: 92,
-    left: 16,
-    right: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: 8,
+    position: "absolute", top: 92, left: 16, right: 16,
+    paddingVertical: 8, paddingHorizontal: 6, borderRadius: 8,
   },
   cardNumber: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 2.5,
+    color: "#FFFFFF", fontSize: 14,
+    fontFamily: "Inter_700Bold", letterSpacing: 2.5,
   },
 
-  /* Expiry */
+  /* expiry */
   expiryBlock: { position: "absolute", top: 138, left: 22 },
   validThruLabel: {
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 6,
-    letterSpacing: 1,
-    fontFamily: "Inter_500Medium",
-    marginBottom: 2,
+    color: "rgba(255,255,255,0.45)", fontSize: 6,
+    letterSpacing: 1, fontFamily: "Inter_500Medium", marginBottom: 2,
   },
   expiryValue: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 2,
+    color: "#FFFFFF", fontSize: 11,
+    fontFamily: "Inter_700Bold", letterSpacing: 2,
   },
 
-  /* Holder name */
+  /* holder name */
   holderName: {
-    position: "absolute",
-    top: 166,
-    left: 22,
-    color: "#FFFFFF",
-    fontSize: 9,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1.5,
+    position: "absolute", top: 166, left: 22,
+    color: "#FFFFFF", fontSize: 9,
+    fontFamily: "Inter_700Bold", letterSpacing: 1.5,
     textTransform: "uppercase",
   },
 
-  /* Back face */
+  /* back */
   magStripe: {
-    position: "absolute",
-    top: 50,
-    left: 0,
-    right: 0,
-    height: 44,
+    position: "absolute", top: 50, left: 0, right: 0, height: 44,
     backgroundColor: "#1a1a1a",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#333",
+    borderTopWidth: 1, borderBottomWidth: 1, borderColor: "#333",
   },
   backMidRow: {
-    position: "absolute",
-    top: 110,
-    left: 16,
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    position: "absolute", top: 110, left: 16, right: 16,
+    flexDirection: "row", alignItems: "center", gap: 10,
   },
   sigStrip: { flex: 1, height: 32, backgroundColor: "#FFFFFF", borderRadius: 3, opacity: 0.93 },
   cvvBox:   { width: 64, height: 32, backgroundColor: "#FFFFFF", borderRadius: 3, alignItems: "center", justifyContent: "center" },
   cvvCode:  { color: "#111111", fontSize: 13, fontFamily: "Inter_700Bold", letterSpacing: 3, textAlign: "center" },
 
-  /* Copied! toast */
-  toast: {
-    marginTop: 12,
+  /* ── frost overlay ── */
+  frostOverlay: {
+    position: "absolute",
+    top: 0, left: 0,
+    width: CARD_W,
+    height: CARD_H,
+    borderRadius: 18,
+    overflow: "hidden",
     alignItems: "center",
+    justifyContent: "center",
   },
-  toastInner: {
-    flexDirection: "row",
+  /* solid icy base */
+  frostBase: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(180, 230, 250, 0.38)",
+    borderRadius: 18,
+  },
+  /* lighter sheen strip across the top */
+  frostSheen: {
+    position: "absolute",
+    top: 0, left: 0, right: 0,
+    height: CARD_H * 0.45,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: "rgba(224, 247, 255, 0.22)",
+  },
+
+  /* centre badge */
+  frozenBadge: {
     alignItems: "center",
     gap: 6,
+  },
+  frozenIconRing: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(0, 180, 220, 0.22)",
+    borderWidth: 1.5,
+    borderColor: "rgba(178, 235, 242, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  frozenLabel: {
+    color: "#E0F7FA",
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 2.5,
+  },
+  frozenSub: {
+    color: "rgba(224,247,255,0.65)",
+    fontSize: 9,
+    fontFamily: "Inter_400Regular",
+    letterSpacing: 0.4,
+  },
+
+  /* toast */
+  toast: { marginTop: 12, alignItems: "center" },
+  toastInner: {
+    flexDirection: "row", alignItems: "center", gap: 6,
     backgroundColor: "rgba(0,0,0,0.72)",
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: "rgba(0,229,255,0.25)",
+    borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7,
+    borderWidth: 1, borderColor: "rgba(0,229,255,0.25)",
   },
-  toastDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: "#00E5FF",
-  },
-  toastText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.3,
-  },
+  toastDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#00E5FF" },
+  toastText: { color: "#FFFFFF", fontSize: 12, fontFamily: "Inter_600SemiBold", letterSpacing: 0.3 },
 });
