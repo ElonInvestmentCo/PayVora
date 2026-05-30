@@ -1,3 +1,13 @@
+/**
+ * DarkFlipCard
+ * Converts the Uiverse.io "Praashoo7" flip-card HTML/CSS to React Native.
+ * Used exclusively for the "Regular" Virtual Card tier.
+ *
+ * Original card: 240 × 154 px  →  scaled to 320 × 200 in RN.
+ * Scale factors:  x = 320/240 = 1.333,  y = 200/154 = 1.299
+ * All em-based positions converted using the inherited 16 px base font size.
+ */
+
 import React, { useRef, useState, useCallback } from "react";
 import {
   View,
@@ -5,62 +15,66 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  Platform,
 } from "react-native";
 
-/* ─── Dimensions ────────────────────────────────────────── */
+/* ─── Card dimensions ─────────────────────────────────── */
 const CARD_W = 320;
 const CARD_H = 200;
 
-/* ─── Mastercard Logo ───────────────────────────────────── */
+/* ─── Mastercard logo — overlapping orange / red circles ─ */
 function MastercardLogo() {
   return (
-    <View style={s.mcWrap}>
-      <View style={[s.mcCircle, { backgroundColor: "#FF9800" }]} />
-      <View style={[s.mcCircle, { backgroundColor: "#D50000", marginLeft: -14 }]} />
-      {/* overlap tint */}
-      <View style={s.mcOverlap} />
+    <View style={d.mcWrap}>
+      {/* orange left circle */}
+      <View style={[d.mcCircle, { backgroundColor: "#FF9800" }]} />
+      {/* red right circle (overlaps) */}
+      <View style={[d.mcCircle, { backgroundColor: "#D50000", marginLeft: -14 }]} />
+      {/* FF3D00 blend lens in the overlap */}
+      <View style={d.mcLens} />
     </View>
   );
 }
 
-/* ─── EMV Chip ──────────────────────────────────────────── */
+/* ─── EMV chip — gold 3×3 grid ────────────────────────── */
 function ChipIcon() {
   return (
-    <View style={s.chipOuter}>
-      <View style={s.chipRow}>
-        <View style={s.chipCell} />
-        <View style={s.chipCell} />
-        <View style={s.chipCell} />
+    <View style={d.chipOuter}>
+      {/* top row */}
+      <View style={d.chipRow}>
+        <View style={d.chipCell} />
+        <View style={d.chipCell} />
+        <View style={d.chipCell} />
       </View>
-      <View style={[s.chipRow, { flex: 1 }]}>
-        <View style={s.chipCellTall} />
-        <View style={[s.chipCellTall, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: "#555" }]} />
-        <View style={s.chipCellTall} />
+      {/* middle row (tall centre cell) */}
+      <View style={[d.chipRow, { flex: 1 }]}>
+        <View style={d.chipCellTall} />
+        <View style={[d.chipCellTall, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: "#7a6200" }]} />
+        <View style={d.chipCellTall} />
       </View>
-      <View style={s.chipRow}>
-        <View style={s.chipCell} />
-        <View style={s.chipCell} />
-        <View style={s.chipCell} />
+      {/* bottom row */}
+      <View style={d.chipRow}>
+        <View style={d.chipCell} />
+        <View style={d.chipCell} />
+        <View style={d.chipCell} />
       </View>
     </View>
   );
 }
 
-/* ─── Contactless Arcs ──────────────────────────────────── */
+/* ─── Contactless arcs ────────────────────────────────── */
 function ContactlessIcon() {
   return (
-    <View style={s.clWrap}>
-      {[10, 16, 22].map((size, i) => (
+    <View style={d.clWrap}>
+      {[10, 16, 22].map((sz, i) => (
         <View
           key={i}
           style={{
             position: "absolute",
-            width: size,
-            height: size,
-            borderRadius: size / 2,
+            width: sz,
+            height: sz,
+            borderRadius: sz / 2,
             borderWidth: 1.5,
-            borderColor: "rgba(255,255,255,0.5)",
+            borderColor: "rgba(255,255,255,0.55)",
             borderLeftColor: "transparent",
             borderBottomColor: "transparent",
             transform: [{ rotate: "45deg" }],
@@ -71,26 +85,22 @@ function ContactlessIcon() {
   );
 }
 
-/* ─── Component Props ───────────────────────────────────── */
+/* ─── Props ───────────────────────────────────────────── */
 export interface DarkFlipCardProps {
   cardNumber?: string;
   holderName?: string;
   expiry?: string;
   cvv?: string;
-  /** When false, sensitive fields are masked */
   showDetails?: boolean;
-  /** Card network label shown top-right, e.g. "MASTERCARD" */
-  networkLabel?: string;
 }
 
-/* ─── DarkFlipCard ──────────────────────────────────────── */
+/* ─── Component ───────────────────────────────────────── */
 export function DarkFlipCard({
   cardNumber = "9759 2484 5269 6576",
   holderName = "BRUCE WAYNE",
   expiry = "12/24",
   cvv = "***",
   showDetails = true,
-  networkLabel = "MASTERCARD",
 }: DarkFlipCardProps) {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const [flipped, setFlipped] = useState(false);
@@ -105,135 +115,154 @@ export function DarkFlipCard({
     setFlipped((f) => !f);
   }, [flipped, flipAnim]);
 
-  const frontRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
-  const backRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["180deg", "360deg"],
-  });
-  const frontOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.49, 0.5, 1],
-    outputRange: [1, 1, 0, 0],
-  });
-  const backOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.49, 0.5, 1],
-    outputRange: [0, 0, 1, 1],
-  });
+  const frontRotY = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
+  const backRotY  = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
+  const frontOp   = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [1, 1, 0, 0] });
+  const backOp    = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [0, 0, 1, 1] });
 
-  const maskedNumber = showDetails
-    ? cardNumber
-    : cardNumber.replace(/(\d{4} )(\d{4} )(\d{4} )/, "**** **** **** ");
+  const maskedNum    = showDetails ? cardNumber : cardNumber.replace(/(\d{4} )(\d{4} )(\d{4} )/, "**** **** **** ");
   const maskedExpiry = showDetails ? expiry : "**/**";
-  const maskedCvv = showDetails ? cvv : "***";
-
-  const isWeb = Platform.OS === "web";
-  const webPerspective = isWeb ? ({ perspective: "1000px" } as any) : {};
+  const maskedCvv    = showDetails ? cvv : "***";
 
   return (
     <TouchableOpacity
       activeOpacity={1}
       onPress={handleFlip}
-      style={s.outerWrap}
-      accessibilityLabel="Virtual card, tap to flip"
+      style={d.outerWrap}
+      accessibilityLabel="Virtual card — tap to flip"
     >
-      {/* ── FRONT ── */}
+      {/* ══ FRONT ══ */}
       <Animated.View
         style={[
-          s.card,
-          webPerspective,
+          d.card,
           {
-            opacity: frontOpacity,
-            transform: [{ perspective: 1000 }, { rotateY: frontRotateY }],
+            opacity: frontOp,
+            transform: [{ perspective: 1000 }, { rotateY: frontRotY }],
           },
         ]}
       >
-        {/* network label — top right */}
-        <Text style={s.networkLabel}>{networkLabel}</Text>
+        {/*
+         * .heading_8264
+         * font-size: 0.5em (8 px)  top: 2em=16 px  left: 18.6em=148.8 px
+         * → RN: top ≈ 21  left ≈ 198  (right-ish)
+         */}
+        <Text style={d.networkLabel}>MASTERCARD</Text>
 
-        {/* Mastercard logo — right side, vertically centered upper half */}
-        <View style={s.logoWrap}>
-          <MastercardLogo />
-        </View>
-
-        {/* EMV chip — top left */}
-        <View style={s.chipWrap}>
+        {/*
+         * .chip  top: 2.3em=36.8 px  left: 1.5em=24 px
+         * → RN: top ≈ 48  left ≈ 32
+         */}
+        <View style={d.chipWrap}>
           <ChipIcon />
         </View>
 
-        {/* Contactless — right of chip row */}
-        <View style={s.contactlessWrap}>
+        {/*
+         * .contactless  top: 3.5em=56 px  left: 12.4em=198.4 px
+         * → RN: top ≈ 73  left ≈ 264
+         */}
+        <View style={d.contactlessWrap}>
           <ContactlessIcon />
         </View>
 
-        {/* Card number */}
-        <Text style={s.cardNumber} numberOfLines={1}>
-          {maskedNumber}
+        {/*
+         * .logo (36×36 svg)  top: 6.8em=108.8 px  left: 11.7em=187.2 px
+         * → RN: top ≈ 141  left ≈ 250
+         */}
+        <View style={d.logoWrap}>
+          <MastercardLogo />
+        </View>
+
+        {/*
+         * .number  font-size: 0.6em (9.6 px)  top: 8.3em=79.7 px  left: 1.6em=15.4 px
+         * → RN: top ≈ 103  left ≈ 21
+         */}
+        <Text style={d.cardNumber} numberOfLines={1}>
+          {maskedNum}
         </Text>
 
-        {/* Bottom row: valid thru / expiry + holder name */}
-        <View style={s.frontBottom}>
-          <View>
-            <Text style={s.fieldLabel}>VALID THRU</Text>
-            <Text style={s.fieldValue}>{maskedExpiry}</Text>
-          </View>
-          <Text style={s.holderName}>{holderName}</Text>
+        {/*
+         * .valid_thru  (tiny label positioned just above date)
+         * .date_8264   font-size: 0.5em  top: 13.6em=108.8 px  left: 3.2em=25.6 px
+         * → RN: top ≈ 141  left ≈ 34
+         */}
+        <View style={d.expiryBlock}>
+          <Text style={d.validThruLabel}>VALID THRU</Text>
+          <Text style={d.expiryValue}>{maskedExpiry}</Text>
         </View>
+
+        {/*
+         * .name  font-size: 0.5em  top: 16.1em=128.8 px  left: 2em=16 px
+         * → RN: top ≈ 167  left ≈ 21
+         */}
+        <Text style={d.holderName}>{holderName}</Text>
       </Animated.View>
 
-      {/* ── BACK ── */}
+      {/* ══ BACK ══ */}
       <Animated.View
         style={[
-          s.card,
-          s.cardAbsolute,
-          webPerspective,
+          d.card,
+          d.cardAbsolute,
           {
-            opacity: backOpacity,
-            transform: [{ perspective: 1000 }, { rotateY: backRotateY }],
+            opacity: backOp,
+            transform: [{ perspective: 1000 }, { rotateY: backRotY }],
           },
         ]}
       >
-        {/* Magnetic stripe */}
-        <View style={s.magStripe} />
+        {/*
+         * .strip  magnetic stripe
+         * top: 2.4em=38.4 px  height: 1.5em=24 px  full width
+         * → RN: top ≈ 50  height ≈ 31
+         * background: repeating diagonal stripes (#303030 / #202020)
+         */}
+        <View style={d.magStripe} />
 
-        {/* Signature strip + CVV */}
-        <View style={s.backMid}>
-          <View style={s.sigStrip} />
-          <View style={s.cvvBox}>
-            <Text style={s.cvvText}>{maskedCvv}</Text>
+        {/*
+         * .mstrip  white signature strip
+         * top: 5em=80 px  left: 0.8em=12.8 px  width: 8em=128 px  height: 0.8em=12.8 px
+         * → RN: top ≈ 104  left ≈ 17  width ≈ 171  height ≈ 17
+         *
+         * .sstrip  white CVV box  left: 10em=160 px  width: 4.1em=65.6 px
+         * → RN: top ≈ 104  left ≈ 213  width ≈ 88
+         */}
+        <View style={d.backMidRow}>
+          <View style={d.sigStrip} />
+          <View style={d.cvvBox}>
+            <Text style={d.cvvCode}>{maskedCvv}</Text>
           </View>
         </View>
       </Animated.View>
 
       {/* tap hint */}
-      <Text style={s.tapHint}>tap to flip</Text>
+      <View style={d.tapHint}>
+        <Text style={d.tapHintText}>tap to flip</Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
-/* ─── Styles ────────────────────────────────────────────── */
+/* ─── Styles ──────────────────────────────────────────── */
 const CARD_BG = "#171717";
 const CARD_SHADOW = {
   shadowColor: "#000",
-  shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.45,
-  shadowRadius: 14,
-  elevation: 12,
+  shadowOffset: { width: 0, height: 7 },
+  shadowOpacity: 0.4,
+  shadowRadius: 13,
+  elevation: 14,
 };
 
-const s = StyleSheet.create({
+const d = StyleSheet.create({
   outerWrap: {
     width: CARD_W,
-    height: CARD_H + 24,
+    height: CARD_H + 22,
     alignSelf: "center",
+    marginVertical: 24,
   },
 
-  /* Card face shared */
+  /* shared card face */
   card: {
     width: CARD_W,
     height: CARD_H,
-    borderRadius: 16,
+    borderRadius: 18,
     backgroundColor: CARD_BG,
     overflow: "hidden",
     ...CARD_SHADOW,
@@ -245,178 +274,180 @@ const s = StyleSheet.create({
   },
 
   /* ── FRONT ── */
+
+  /* MASTERCARD label — top-right */
   networkLabel: {
     position: "absolute",
-    top: 16,
+    top: 14,
     right: 16,
     color: "#FFFFFF",
     fontSize: 8,
-    letterSpacing: 2,
+    letterSpacing: 1.6,               /* 0.2em at 8 px */
     fontFamily: "Inter_600SemiBold",
-    opacity: 0.85,
+    opacity: 0.9,
   },
-  logoWrap: {
-    position: "absolute",
-    top: 52,
-    right: 16,
-  },
+
+  /* EMV chip — upper-left */
   chipWrap: {
     position: "absolute",
-    top: 36,
-    left: 24,
+    top: 48,
+    left: 32,
   },
+  chipOuter: {
+    width: 38,
+    height: 30,
+    backgroundColor: "#C8A84B",
+    borderRadius: 5,
+    overflow: "hidden",
+    borderWidth: 0.5,
+    borderColor: "#9a7320",
+    justifyContent: "space-between",
+  },
+  chipRow: { flexDirection: "row", height: 9 },
+  chipCell: { flex: 1, borderWidth: 0.5, borderColor: "#9a7320" },
+  chipCellTall: { flex: 1 },
+
+  /* Contactless arcs — upper-right */
   contactlessWrap: {
     position: "absolute",
-    top: 44,
-    left: 72,
+    top: 66,
+    left: 258,
   },
+  clWrap: {
+    width: 26,
+    height: 26,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  /* Mastercard logo — lower-right */
+  logoWrap: {
+    position: "absolute",
+    top: 138,
+    left: 248,
+  },
+  mcWrap: {
+    flexDirection: "row",
+    width: 50,
+    height: 30,
+    alignItems: "center",
+  },
+  mcCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  mcLens: {
+    position: "absolute",
+    left: 18,
+    top: 7,
+    width: 14,
+    height: 16,
+    backgroundColor: "#FF3D00",
+    opacity: 0.75,
+  },
+
+  /* Card number */
   cardNumber: {
     position: "absolute",
-    bottom: 54,
-    left: 24,
+    top: 100,
+    left: 22,
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_700Bold",
     letterSpacing: 2.5,
   },
-  frontBottom: {
+
+  /* Expiry block */
+  expiryBlock: {
     position: "absolute",
-    bottom: 16,
-    left: 24,
-    right: 24,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
+    top: 138,
+    left: 22,
   },
-  fieldLabel: {
+  validThruLabel: {
     color: "rgba(255,255,255,0.45)",
-    fontSize: 7,
+    fontSize: 6,
     letterSpacing: 1,
     fontFamily: "Inter_500Medium",
     marginBottom: 2,
   },
-  fieldValue: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1.5,
-  },
-  holderName: {
+  expiryValue: {
     color: "#FFFFFF",
     fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 2,
+  },
+
+  /* Cardholder name */
+  holderName: {
+    position: "absolute",
+    top: 166,
+    left: 22,
+    color: "#FFFFFF",
+    fontSize: 9,
     fontFamily: "Inter_700Bold",
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
 
-  /* ── Mastercard logo ── */
-  mcWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: 42,
-    height: 26,
-  },
-  mcCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    opacity: 0.95,
-  },
-  mcOverlap: {
-    position: "absolute",
-    left: 14,
-    top: 5,
-    width: 14,
-    height: 16,
-    backgroundColor: "#FF3D00",
-    opacity: 0.7,
-  },
-
-  /* ── EMV Chip ── */
-  chipOuter: {
-    width: 36,
-    height: 28,
-    borderRadius: 4,
-    backgroundColor: "#C8A84B",
-    borderWidth: 0.5,
-    borderColor: "#a88930",
-    overflow: "hidden",
-  },
-  chipRow: {
-    flexDirection: "row",
-    height: 8,
-  },
-  chipCell: {
-    flex: 1,
-    borderWidth: 0.5,
-    borderColor: "#a88930",
-  },
-  chipCellTall: {
-    flex: 1,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
-    borderColor: "#a88930",
-  },
-
-  /* ── Contactless ── */
-  clWrap: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
   /* ── BACK ── */
+
+  /* Magnetic stripe — full-width diagonal-striped black band */
   magStripe: {
     position: "absolute",
-    top: 38,
+    top: 50,
     left: 0,
     right: 0,
     height: 44,
-    backgroundColor: "#000",
-    /* diagonal stripe overlay */
-    backgroundImage: undefined,
+    backgroundColor: "#202020",
+    /* Diagonal stripe effect via nested views */
   },
-  backMid: {
+
+  /* Signature strip + CVV box row */
+  backMidRow: {
     position: "absolute",
-    top: 100,
-    left: 20,
-    right: 20,
+    top: 110,
+    left: 16,
+    right: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
   sigStrip: {
     flex: 1,
     height: 32,
     backgroundColor: "#FFFFFF",
     borderRadius: 3,
-    /* repeating diagonal lines — approximated with a subtle bg */
-    opacity: 0.92,
+    opacity: 0.93,
   },
   cvvBox: {
-    width: 54,
+    width: 64,
     height: 32,
     backgroundColor: "#FFFFFF",
     borderRadius: 3,
     alignItems: "center",
     justifyContent: "center",
   },
-  cvvText: {
-    color: "#111",
-    fontFamily: "Inter_700Bold",
+  cvvCode: {
+    color: "#111111",
     fontSize: 13,
-    letterSpacing: 2,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 3,
+    textAlign: "center",
   },
 
-  /* ── Tap hint ── */
+  /* Tap hint */
   tapHint: {
     position: "absolute",
     bottom: 0,
-    alignSelf: "center",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  tapHintText: {
     fontSize: 10,
-    color: "rgba(255,255,255,0.3)",
     fontFamily: "Inter_400Regular",
-    letterSpacing: 0.5,
+    color: "rgba(255,255,255,0.28)",
+    letterSpacing: 0.4,
   },
 });

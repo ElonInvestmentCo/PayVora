@@ -18,6 +18,7 @@ import { useColors } from "@/hooks/useColors";
 import { hapticLight, hapticSuccess, hapticWarning } from "@/utils/haptics";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { DarkFlipCard } from "@/components/DarkFlipCard";
 
 /* ─── Types ─────────────────────────────────────────── */
 type CardTier = "regular" | "platinum";
@@ -374,8 +375,16 @@ export default function VirtualCardScreen() {
     Alert.alert("Withdraw", `Withdrawal of $${amt} initiated from your virtual card.`);
   }, [virtualCardBalance, withdrawVirtualCard, addTransaction, addNotification]);
 
-  /* shared card element */
-  const cardElement = (
+  /* card element — dark style for Regular, gold for Platinum */
+  const cardElement = selectedTier === "regular" ? (
+    <DarkFlipCard
+      cardNumber="9759 2484 5269 6576"
+      holderName="BRUCE WAYNE"
+      expiry="12/24"
+      cvv="491"
+      showDetails={showDetails}
+    />
+  ) : (
     <FlipCard
       config={activeConfig}
       cardNumber="9759 2484 5269 6576"
