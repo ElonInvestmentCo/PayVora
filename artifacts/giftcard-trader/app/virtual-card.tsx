@@ -10,6 +10,7 @@ import {
   Switch,
   Animated,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -24,8 +25,13 @@ type CardTier = "regular" | "platinum";
 interface CardConfig {
   tier: CardTier;
   label: string;
-  cardBg: string;
+  cardTitle: string;
+  gradientFront: readonly [string, string, string];
+  gradientBack:  readonly [string, string, string];
   accentColor: string;
+  textColor: string;
+  subtleColor: string;
+  nameColor: string;
   creationFeeUSD: string;
   creationFeeNGN: string;
   features: string[];
@@ -48,8 +54,13 @@ const CARD_CONFIGS: CardConfig[] = [
   {
     tier: "regular",
     label: "Regular",
-    cardBg: "#171717",
-    accentColor: "#90CAF9",
+    cardTitle: "Gold Plated",
+    gradientFront: ["#edcb78", "#f7e4b2", "#fee08b"],
+    gradientBack:  ["#fee08b", "#f7e4b2", "#edcb78"],
+    accentColor:  "#c9960a",
+    textColor:    "#3a2600",
+    subtleColor:  "rgba(90,60,0,0.55)",
+    nameColor:    "#bea35c",
     creationFeeUSD: "$1.50",
     creationFeeNGN: "₦2,088.00",
     features: [
@@ -60,8 +71,13 @@ const CARD_CONFIGS: CardConfig[] = [
   {
     tier: "platinum",
     label: "Platinum",
-    cardBg: "#1a1400",
-    accentColor: "#FFD54F",
+    cardTitle: "Platinum Gold",
+    gradientFront: ["#c9a032", "#e8c56a", "#d4a843"],
+    gradientBack:  ["#d4a843", "#e8c56a", "#c9a032"],
+    accentColor:  "#a07820",
+    textColor:    "#2e1c00",
+    subtleColor:  "rgba(70,45,0,0.55)",
+    nameColor:    "#a87d2a",
     creationFeeUSD: "$5.00",
     creationFeeNGN: "₦6,960.00",
     features: [
@@ -88,12 +104,12 @@ const STATUS_CFG: Record<string, { bg: string; border: string; text: string; lab
   error:   { bg: "rgba(239,68,68,0.12)",  border: "#EF444430", text: "#EF4444", label: "Failed" },
 };
 
-/* ─── Mastercard Logo ────────────────────────────────── */
+/* ─── Mastercard Logo (silver/platinum circles) ──────── */
 function MastercardLogo() {
   return (
     <View style={fc.mcWrap}>
-      <View style={[fc.mcCircle, { backgroundColor: "#d50000" }]} />
-      <View style={[fc.mcCircle, { backgroundColor: "#ff9800", marginLeft: -10, opacity: 0.9 }]} />
+      <View style={[fc.mcCircle, { backgroundColor: "#d6d6d6" }]} />
+      <View style={[fc.mcCircle, { backgroundColor: "#b8b8b8", marginLeft: -10, opacity: 0.92 }]} />
     </View>
   );
 }
@@ -116,7 +132,7 @@ function ChipIcon() {
 }
 
 /* ─── Contactless arcs ───────────────────────────────── */
-function ContactlessIcon() {
+function ContactlessIcon({ color = "rgba(80,50,0,0.55)" }: { color?: string }) {
   return (
     <View style={fc.clWrap}>
       {[12, 18, 24].map((s, i) => (
@@ -128,7 +144,7 @@ function ContactlessIcon() {
             height: s,
             borderRadius: s / 2,
             borderWidth: 1.5,
-            borderColor: "rgba(255,255,255,0.7)",
+            borderColor: color,
             borderLeftColor: "transparent",
             borderBottomColor: "transparent",
             transform: [{ rotate: "45deg" }],
@@ -164,22 +180,10 @@ function FlipCard({ config, cardNumber, holderName, expiry, cvv, showDetails }: 
     setFlipped(!flipped);
   }, [flipped, flipAnim]);
 
-  const frontRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
-  const backRotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["180deg", "360deg"],
-  });
-  const frontOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.49, 0.5, 1],
-    outputRange: [1, 1, 0, 0],
-  });
-  const backOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.49, 0.5, 1],
-    outputRange: [0, 0, 1, 1],
-  });
+  const frontRotateY = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
+  const backRotateY  = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
+  const frontOpacity = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [1, 1, 0, 0] });
+  const backOpacity  = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [0, 0, 1, 1] });
 
   const maskedNumber = showDetails
     ? cardNumber
@@ -187,76 +191,122 @@ function FlipCard({ config, cardNumber, holderName, expiry, cvv, showDetails }: 
   const maskedExpiry = showDetails ? expiry : "**/**";
   const maskedCvv    = showDetails ? cvv    : "***";
 
+  /* embossed text-shadow (web only — RN supports single shadow) */
+  const embossWeb = Platform.OS === "web"
+    ? ({ textShadow: `-0.2px -0.2px 0.2px rgba(255,255,255,0.9), 0.2px 0.2px 0.3px rgba(80,40,0,0.45)` } as any)
+    : {};
+  const embossNative = Platform.OS !== "web"
+    ? { textShadowColor: "rgba(255,255,255,0.75)", textShadowOffset: { width: -0.4, height: -0.4 }, textShadowRadius: 1 }
+    : {};
+
   return (
     <TouchableOpacity activeOpacity={1} onPress={handleFlip} style={fc.outerWrap}>
-      {/* FRONT */}
+
+      {/* ── FRONT ── */}
       <Animated.View
         style={[
           fc.card,
-          { backgroundColor: config.cardBg, opacity: frontOpacity, transform: [{ perspective: 1000 }, { rotateY: frontRotateY }] },
+          {
+            opacity: frontOpacity,
+            transform: [{ perspective: 1000 }, { rotateY: frontRotateY }],
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.65)",
+          },
         ]}
       >
-        {/* glow accent blob */}
-        <View style={[fc.glow, { backgroundColor: config.accentColor }]} />
+        {/* gold gradient fill */}
+        <LinearGradient
+          colors={config.gradientFront}
+          start={{ x: 0.15, y: 0 }}
+          end={{ x: 0.85, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
 
-        {/* row 1: MASTERCARD label + logo */}
+        {/* ── row 1: card title (top-left) + silver logo (top-right) ── */}
         <View style={fc.row}>
-          <Text style={fc.brandLabel}>MASTERCARD</Text>
+          <Text
+            style={[
+              fc.cardTitle,
+              { color: config.textColor },
+              embossNative,
+              embossWeb,
+            ]}
+          >
+            {config.cardTitle}
+          </Text>
           <MastercardLogo />
         </View>
 
-        {/* row 2: chip + contactless */}
-        <View style={[fc.row, { marginTop: 2 }]}>
+        {/* ── row 2: chip (left) + contactless (right) ── */}
+        <View style={[fc.row, { marginTop: 6 }]}>
           <ChipIcon />
-          <ContactlessIcon />
+          <ContactlessIcon color={config.subtleColor} />
         </View>
 
-        {/* card number */}
-        <Text style={fc.cardNumber}>{maskedNumber}</Text>
+        {/* ── card number ── */}
+        <Text style={[fc.cardNumber, { color: config.textColor }]}>{maskedNumber}</Text>
 
-        {/* bottom row */}
+        {/* ── bottom row ── */}
         <View style={fc.bottomRow}>
           <View>
-            <Text style={fc.fieldLabel}>VALID THRU</Text>
-            <Text style={fc.fieldValue}>{maskedExpiry}</Text>
+            <Text style={[fc.fieldLabel, { color: config.subtleColor }]}>VALID THRU</Text>
+            <Text style={[fc.fieldValue, { color: config.textColor }]}>{maskedExpiry}</Text>
           </View>
           <View style={{ flex: 1 }} />
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={fc.fieldLabel}>CARD HOLDER</Text>
-            <Text style={fc.fieldValue}>{holderName}</Text>
+            <Text style={[fc.fieldLabel, { color: config.subtleColor }]}>CARDHOLDER NAME</Text>
+            <Text style={[fc.holderName, { color: config.nameColor }]}>{holderName}</Text>
           </View>
         </View>
       </Animated.View>
 
-      {/* BACK */}
+      {/* ── BACK ── */}
       <Animated.View
         style={[
           fc.card,
           fc.cardAbsolute,
-          { backgroundColor: config.cardBg, opacity: backOpacity, transform: [{ perspective: 1000 }, { rotateY: backRotateY }] },
+          {
+            opacity: backOpacity,
+            transform: [{ perspective: 1000 }, { rotateY: backRotateY }],
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.55)",
+          },
         ]}
       >
-        {/* magnetic stripe */}
-        <View style={fc.magStripe} />
+        {/* gold gradient (reversed) */}
+        <LinearGradient
+          colors={config.gradientBack}
+          start={{ x: 0.15, y: 0 }}
+          end={{ x: 0.85, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
 
-        {/* signature + CVV row */}
+        {/* white top strip (signature area) */}
+        <View style={fc.topStrip} />
+
+        {/* magnetic stripe */}
+        <View style={[fc.magStripe, { backgroundColor: "#3b2200", borderColor: "#5a3300" }]} />
+
+        {/* signature + CVV */}
         <View style={fc.backMid}>
-          <View style={fc.sigStrip} />
-          <View style={fc.cvvBox}>
-            <Text style={fc.cvvText}>{maskedCvv}</Text>
+          <View style={[fc.sigStrip, { backgroundColor: "#f5ecd6" }]} />
+          <View style={[fc.cvvBox, { backgroundColor: "#fffaf0", borderColor: "rgba(100,70,0,0.25)" }]}>
+            <Text style={[fc.cvvLabel, { color: config.subtleColor }]}>CVV</Text>
+            <Text style={[fc.cvvText, { color: config.textColor }]}>{maskedCvv}</Text>
           </View>
         </View>
 
-        {/* Mastercard logo bottom-right */}
-        <View style={[fc.row, { justifyContent: "flex-end", marginTop: "auto", paddingTop: 12 }]}>
+        {/* contactless + logo row */}
+        <View style={[fc.row, { justifyContent: "space-between", marginTop: "auto", paddingTop: 8 }]}>
+          <ContactlessIcon color={config.subtleColor} />
           <MastercardLogo />
         </View>
       </Animated.View>
 
       {/* tap hint */}
       <View style={fc.tapHint}>
-        <Feather name="refresh-cw" size={10} color="rgba(255,255,255,0.5)" />
-        <Text style={fc.tapHintText}>tap to flip</Text>
+        <Feather name="refresh-cw" size={10} color="rgba(180,140,0,0.6)" />
+        <Text style={[fc.tapHintText, { color: "rgba(160,120,0,0.7)" }]}>tap to flip</Text>
       </View>
     </TouchableOpacity>
   );
@@ -547,28 +597,19 @@ const fc = StyleSheet.create({
   card: {
     width: CARD_W,
     height: CARD_H,
-    borderRadius: 16,
-    padding: 22,
+    borderRadius: 18,
+    padding: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 18,
-    elevation: 12,
+    shadowColor: "#a07820",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    elevation: 14,
     justifyContent: "space-between",
   },
   cardAbsolute: {
     position: "absolute",
     top: 0,
-  },
-  glow: {
-    position: "absolute",
-    bottom: -60,
-    right: -60,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    opacity: 0.07,
   },
 
   /* row helpers */
@@ -582,15 +623,14 @@ const fc = StyleSheet.create({
     alignItems: "flex-end",
   },
 
-  /* brand label */
-  brandLabel: {
-    fontSize: 8,
-    letterSpacing: 2.5,
-    color: "rgba(255,255,255,0.55)",
-    fontFamily: "Inter_600SemiBold",
+  /* card title ("Gold Plated" / "Platinum Gold") */
+  cardTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.6,
   },
 
-  /* Mastercard */
+  /* Mastercard silver circles */
   mcWrap: { flexDirection: "row", width: 36, height: 22, alignItems: "center" },
   mcCircle: { width: 22, height: 22, borderRadius: 11 },
 
@@ -619,38 +659,48 @@ const fc = StyleSheet.create({
 
   /* card text */
   cardNumber: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
     letterSpacing: 2.5,
     textAlign: "center",
     marginVertical: 2,
   },
   fieldLabel: {
-    fontSize: 8,
-    color: "rgba(255,255,255,0.5)",
+    fontSize: 7,
     fontFamily: "Inter_400Regular",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     marginBottom: 2,
   },
   fieldValue: {
     fontSize: 12,
-    color: "#FFFFFF",
     fontFamily: "Inter_700Bold",
     letterSpacing: 1,
   },
+  holderName: {
+    fontSize: 8.5,
+    fontFamily: "Inter_400Regular",
+    letterSpacing: 0.5,
+  },
 
   /* back face */
-  magStripe: {
+  topStrip: {
     position: "absolute",
-    top: 30,
+    top: 0,
     left: 0,
     right: 0,
-    height: 42,
-    backgroundColor: "#111",
+    height: 28,
+    backgroundColor: "rgba(255,255,255,0.72)",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+  },
+  magStripe: {
+    position: "absolute",
+    top: 32,
+    left: 0,
+    right: 0,
+    height: 38,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#333",
   },
   backMid: {
     flexDirection: "row",
@@ -666,17 +716,22 @@ const fc = StyleSheet.create({
     borderRadius: 3,
   },
   cvvBox: {
-    width: 54,
-    height: 32,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 3,
+    width: 58,
+    height: 36,
+    borderRadius: 4,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
+  cvvLabel: {
+    fontSize: 6,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 1.2,
+    marginBottom: 1,
+  },
   cvvText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_700Bold",
-    color: "#111",
     letterSpacing: 3,
   },
 
@@ -689,7 +744,6 @@ const fc = StyleSheet.create({
   },
   tapHintText: {
     fontSize: 10,
-    color: "rgba(255,255,255,0.35)",
     fontFamily: "Inter_400Regular",
   },
 });
