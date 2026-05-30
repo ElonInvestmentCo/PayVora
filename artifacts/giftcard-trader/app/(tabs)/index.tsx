@@ -33,40 +33,34 @@ interface PremiumActionBtnProps {
 }
 
 function PremiumActionBtn({ label, icon, color, glowColor, onPress, testID }: PremiumActionBtnProps) {
-  const scaleAnim  = useRef(new Animated.Value(1)).current;
-  const glowAnim   = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const pressIn = useCallback(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 0.92, friction: 6, tension: 200, useNativeDriver: false }),
-      Animated.timing(glowAnim,  { toValue: 1, duration: 120, useNativeDriver: false }),
-    ]).start();
-  }, [scaleAnim, glowAnim]);
+    Animated.spring(scaleAnim, {
+      toValue: 0.92,
+      friction: 6,
+      tension: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [scaleAnim]);
 
   const pressOut = useCallback(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1,    friction: 4, tension: 120, useNativeDriver: false }),
-      Animated.timing(glowAnim,  { toValue: 0, duration: 250, useNativeDriver: false }),
-    ]).start();
-  }, [scaleAnim, glowAnim]);
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 4,
+      tension: 120,
+      useNativeDriver: false,
+    }).start();
+  }, [scaleAnim]);
 
-  const bgColor = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#0e0e1a", "#111828"],
-  });
-
-  const nativeShadow = Platform.OS !== "web"
+  const glowStyle: ViewStyle = Platform.OS !== "web"
     ? {
         shadowColor:   glowColor,
         shadowOffset:  { width: 0, height: 0 },
-        shadowOpacity: 0.75,
-        shadowRadius:  14,
+        shadowOpacity: 0.7,
+        shadowRadius:  12,
         elevation:     10,
       }
-    : {};
-
-  const webGlow = Platform.OS === "web"
-    ? { boxShadow: `0 0 18px ${glowColor}90, 0 0 36px ${glowColor}40, 0 4px 14px rgba(0,0,0,0.55)` } as any
     : {};
 
   return (
@@ -77,34 +71,41 @@ function PremiumActionBtn({ label, icon, color, glowColor, onPress, testID }: Pr
       onPress={() => { hapticLight(); onPress(); }}
       style={{ flex: 1 }}
     >
-      <Animated.View
-        style={[
-          pb.btn,
-          nativeShadow,
-          webGlow,
-          { backgroundColor: bgColor, transform: [{ scale: scaleAnim }] },
-        ]}
-      >
-        {/* icon container with subtle inner glow ring */}
-        <View style={[pb.iconRing, { borderColor: `${color}35`, backgroundColor: `${color}14` }]}>
-          <View style={[pb.iconCore, { backgroundColor: `${color}22` }]}>
-            <Feather name={icon as any} size={22} color={color} />
-          </View>
-        </View>
-
-        {/* label */}
-        <SizableText
-          size="$1"
-          fontWeight="600"
-          color="rgba(220,230,255,0.85)"
-          style={pb.label}
+      {({ pressed }) => (
+        <Animated.View
+          style={[
+            pb.btn,
+            glowStyle,
+            {
+              backgroundColor: pressed ? "#131a2a" : "#0e0e1a",
+              transform: [{ scale: scaleAnim }],
+              ...(Platform.OS === "web" && {
+                boxShadow: `0 0 16px ${glowColor}70, 0 0 32px ${glowColor}30, 0 4px 12px rgba(0,0,0,0.6)`,
+              } as any),
+            },
+          ]}
         >
-          {label}
-        </SizableText>
+          {/* icon ring */}
+          <View style={[pb.iconRing, { borderColor: `${color}40`, backgroundColor: `${color}12` }]}>
+            <View style={[pb.iconCore, { backgroundColor: `${color}20` }]}>
+              <Feather name={icon as any} size={22} color={color} />
+            </View>
+          </View>
 
-        {/* bottom accent bar */}
-        <View style={[pb.accentBar, { backgroundColor: color }]} />
-      </Animated.View>
+          {/* label */}
+          <SizableText
+            size="$1"
+            fontWeight="600"
+            color="rgba(220,230,255,0.85)"
+            style={pb.label}
+          >
+            {label}
+          </SizableText>
+
+          {/* bottom accent bar */}
+          <View style={[pb.accentBar, { backgroundColor: color }]} />
+        </Animated.View>
+      )}
     </Pressable>
   );
 }
