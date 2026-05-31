@@ -635,13 +635,12 @@ export default function AuthScreen() {
             <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
               <Text style={styles.socialLabel}>🔍  Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.appleBtnWrap} activeOpacity={0.85}>
+            <TouchableOpacity activeOpacity={0.85} style={styles.appleBtnWrap}>
               <Image
-                source={require("@/assets/images/apple-logo.png")}
-                style={styles.appleLogoImg}
+                source={require("@/assets/images/sign-in-with-apple.png")}
+                style={styles.appleSignInImg}
                 resizeMode="contain"
               />
-              <Text style={styles.appleBtnText}>Sign in with Apple</Text>
             </TouchableOpacity>
           </View>
 
@@ -757,24 +756,10 @@ const styles = StyleSheet.create({
 
   appleBtnWrap: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#000000",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    gap: 8,
   },
-  appleLogoImg: {
-    width: 20,
-    height: 20,
-  },
-  appleBtnText: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
-    letterSpacing: 0.2,
+  appleSignInImg: {
+    width: "100%",
+    aspectRatio: 342 / 54,
   },
 
   switchRow: {
