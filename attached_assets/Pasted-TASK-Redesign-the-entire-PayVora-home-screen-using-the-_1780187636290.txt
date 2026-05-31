@@ -1,0 +1,140 @@
+TASK: Redesign the entire PayVora home screen using the uploaded Cash App screen as the design reference.
+
+OBJECTIVE:
+Study the Cash App screen and recreate its layout philosophy, spacing system, hierarchy, card proportions, information architecture, navigation structure, and overall user experience quality for PayVora.
+
+DESIGN REFERENCE:
+Use the uploaded Cash App screenshot as the primary design reference.
+
+RECREATE WITH PIXEL-PERFECT ACCURACY:
+
+* Layout structure
+* Grid system
+* Spacing
+* Margins
+* Padding
+* Card dimensions
+* Border radius
+* Typography hierarchy
+* Section placement
+* Visual balance
+* Navigation positioning
+* Content hierarchy
+
+HOME SCREEN STRUCTURE
+
+HEADER
+
+* Greeting
+* User name
+* Settings button
+* Notification button
+
+PRIMARY BALANCE CARD
+Display:
+
+* Total Balance
+* NGN Balance
+* USD Equivalent
+* Live Status
+
+Actions:
+
+* Withdraw
+* Deposit
+
+FEATURE GRID
+
+Card 1:
+Buy Gift Cards
+
+Card 2:
+Sell Gift Cards
+
+Card 3:
+Buy Crypto
+
+Card 4:
+Wallet
+
+Card 5:
+Market Rates
+
+Card 6:
+Transactions
+
+Card 7:
+Referrals
+
+Card 8:
+Support
+
+Each feature card should follow the exact layout proportions and spacing system seen in the Cash App reference.
+
+MARKET OVERVIEW CARD
+
+Display:
+
+* Live Gift Card Rates
+* Trending Indicator
+* Market Movement
+* Best Selling Gift Card
+* Sell Card CTA
+
+VISUAL STYLE
+
+Create a world-class fintech experience using:
+
+* Luxury dark theme
+* Deep navy backgrounds
+* Neon cyan highlights
+* Glassmorphism
+* Soft ambient glows
+* Layered shadows
+* Premium gradients
+* Modern fintech aesthetics
+
+BOTTOM NAVIGATION
+
+Tabs:
+
+* Home
+* Markets
+* Trade
+* Wallet
+* Profile
+
+Use premium spacing and interaction patterns.
+
+TECHNICAL REQUIREMENTS
+
+* React Native
+* Expo
+* TypeScript
+* Reusable components
+* Responsive layouts
+* Production-ready code
+* Clean architecture
+
+IMPORTANT
+
+Do not create a similar-looking screen only.
+
+Analyze the uploaded Cash App reference and replicate:
+
+* Layout system
+* Visual hierarchy
+* Component sizing
+* User flow
+* Screen organization
+
+Then rebuild it as a premium PayVora gift card and crypto trading experience.
+
+SUCCESS CRITERIA
+
+✓ Pixel-perfect spacing
+✓ Premium fintech quality
+✓ Modern App Store-level UI
+✓ Consistent design system
+✓ Optimized for gift card and crypto trading
+✓ Better than the original reference
