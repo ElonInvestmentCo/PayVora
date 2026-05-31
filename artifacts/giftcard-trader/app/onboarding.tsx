@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
-  Animated,
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,7 +18,8 @@ import Svg, {
 } from "react-native-svg";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 
-const { width: W, height: H } = Dimensions.get("window");
+const { width: W } = Dimensions.get("window");
+const LAST = 2; // SLIDES.length - 1
 
 // ─── Slide Data ───────────────────────────────────────────────────────────────
 const SLIDES = [
@@ -53,8 +53,6 @@ const SLIDES = [
 ] as const;
 
 // ─── Illustrations ────────────────────────────────────────────────────────────
-
-/** Slide 0 — phone-to-phone money transfer */
 function SendReceiveIllustration({ accent }: { accent: string }) {
   return (
     <Svg width={W * 0.72} height={220} viewBox="0 0 260 220">
@@ -73,55 +71,38 @@ function SendReceiveIllustration({ accent }: { accent: string }) {
           <Stop offset="100%" stopColor={accent} stopOpacity="0" />
         </SvgGrad>
       </Defs>
-
-      {/* Left phone */}
       <Rect x="10" y="30" width="80" height="148" rx="14" fill="url(#phone1)" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
       <Rect x="20" y="50" width="60" height="8" rx="4" fill="rgba(255,255,255,0.5)" />
       <Rect x="20" y="66" width="42" height="6" rx="3" fill="rgba(255,255,255,0.25)" />
-      {/* balance badge */}
       <Rect x="16" y="90" width="68" height="36" rx="10" fill="rgba(255,255,255,0.15)" />
       <Rect x="24" y="98" width="32" height="5" rx="2.5" fill="rgba(255,255,255,0.6)" />
       <Rect x="24" y="110" width="48" height="8" rx="4" fill={accent} />
-      {/* send button */}
       <Rect x="16" y="140" width="68" height="26" rx="8" fill={accent} opacity={0.9} />
       <Path d="M42 153h16M50 149l8 4-8 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* Arrow beam */}
       <Path d="M95 110 Q130 90 165 110" stroke="url(#arrowGrad)" strokeWidth="2.5" fill="none" strokeDasharray="4 3" />
       <Path d="M160 106l8 4-6 6" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* Right phone */}
       <Rect x="170" y="30" width="80" height="148" rx="14" fill="url(#phone2)" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
       <Rect x="180" y="50" width="60" height="8" rx="4" fill="rgba(255,255,255,0.5)" />
       <Rect x="180" y="66" width="42" height="6" rx="3" fill="rgba(255,255,255,0.25)" />
       <Rect x="176" y="90" width="68" height="36" rx="10" fill="rgba(255,255,255,0.15)" />
       <Rect x="184" y="98" width="32" height="5" rx="2.5" fill="rgba(255,255,255,0.6)" />
       <Rect x="184" y="110" width="48" height="8" rx="4" fill={accent} />
-      {/* incoming badge */}
       <Rect x="176" y="140" width="68" height="26" rx="8" fill="rgba(255,255,255,0.15)" />
       <Path d="M196 153h16M202 149l8 4-8 4" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* Floating $$$ particles */}
-      {[
-        { x: 115, y: 68, r: 10, label: "$" },
-        { x: 138, y: 48, r: 8, label: "₿" },
-        { x: 102, y: 44, r: 7, label: "+" },
-      ].map((p, i) => (
+      {[{ x: 115, y: 68, r: 10, label: "$" }, { x: 138, y: 48, r: 8, label: "₿" }, { x: 102, y: 44, r: 7, label: "+" }].map((p, i) => (
         <G key={i}>
           <Circle cx={p.x} cy={p.y} r={p.r} fill={accent} opacity={0.85} />
-          <Path d={`M${p.x - 3} ${p.y + 4.5} L${p.x} ${p.y - 4.5} L${p.x + 3} ${p.y + 4.5}`} fill="none" />
         </G>
       ))}
     </Svg>
   );
 }
 
-/** Slide 1 — gift card stack with swap arrows */
 function GiftCardIllustration({ accent }: { accent: string }) {
   const cards = [
-    { colors: ["#60A8FF", "#3A7AEA"] as const, y: 60, rotate: -10, x: 30 },
-    { colors: ["#3A7AEA", "#1A5AFF"] as const, y: 40, rotate: 4, x: 60 },
-    { colors: ["#1A5AFF", "#0C38C0"] as const, y: 20, rotate: -2, x: 45 },
+    { y: 60, rotate: -10, x: 30, grad: "g0" },
+    { y: 40, rotate: 4,   x: 60, grad: "g1" },
+    { y: 20, rotate: -2,  x: 45, grad: "g2" },
   ];
   return (
     <Svg width={W * 0.72} height={220} viewBox="0 0 260 220">
@@ -136,26 +117,20 @@ function GiftCardIllustration({ accent }: { accent: string }) {
           <Stop offset="0%" stopColor="#1A5AFF" /><Stop offset="100%" stopColor="#0C38C0" />
         </SvgGrad>
       </Defs>
-
-      {/* Stacked gift cards */}
       {cards.map((c, i) => (
         <G key={i} transform={`translate(${c.x}, ${c.y}) rotate(${c.rotate})`}>
-          <Rect x="0" y="0" width="160" height="100" rx="16" fill={`url(#g${i})`} opacity={1 - i * 0.08} />
+          <Rect x="0" y="0" width="160" height="100" rx="16" fill={`url(#${c.grad})`} opacity={1 - i * 0.08} />
           <Rect x="12" y="14" width="28" height="20" rx="4" fill="rgba(255,255,255,0.35)" />
           <Rect x="12" y="44" width="90" height="6" rx="3" fill="rgba(255,255,255,0.35)" />
           <Rect x="12" y="56" width="60" height="5" rx="2.5" fill="rgba(255,255,255,0.2)" />
           <Rect x="12" y="72" width="40" height="14" rx="6" fill="rgba(255,255,255,0.15)" />
         </G>
       ))}
-
-      {/* Swap arrows */}
       <G transform="translate(182, 90)">
         <Circle cx="20" cy="20" r="20" fill={accent} opacity={0.15} />
         <Path d="M12 14h16M12 14l4-4M12 14l4 4" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         <Path d="M28 26H12M28 26l-4-4M28 26l-4 4" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </G>
-
-      {/* Rate badge */}
       <Rect x="155" y="142" width="90" height="38" rx="12" fill="rgba(255,255,255,0.12)" stroke={accent} strokeWidth="1.5" />
       <Rect x="163" y="151" width="40" height="5" rx="2.5" fill="rgba(255,255,255,0.5)" />
       <Rect x="163" y="162" width="60" height="7" rx="3.5" fill={accent} />
@@ -163,7 +138,6 @@ function GiftCardIllustration({ accent }: { accent: string }) {
   );
 }
 
-/** Slide 2 — coins + upward chart = rewards/wealth */
 function RewardsIllustration({ accent }: { accent: string }) {
   return (
     <Svg width={W * 0.72} height={220} viewBox="0 0 260 220">
@@ -173,44 +147,21 @@ function RewardsIllustration({ accent }: { accent: string }) {
           <Stop offset="100%" stopColor={accent} stopOpacity="0" />
         </SvgGrad>
       </Defs>
-
-      {/* Chart area */}
-      <Path
-        d="M20 170 L60 140 L100 155 L140 110 L180 90 L220 60 L240 50 L240 180 L20 180 Z"
-        fill="url(#chartFill)"
-      />
-      <Path
-        d="M20 170 L60 140 L100 155 L140 110 L180 90 L220 60 L240 50"
-        stroke={accent}
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Dots on line */}
-      {[
-        [60, 140], [100, 155], [140, 110], [180, 90], [220, 60],
-      ].map(([x, y], i) => (
+      <Path d="M20 170 L60 140 L100 155 L140 110 L180 90 L220 60 L240 50 L240 180 L20 180 Z" fill="url(#chartFill)" />
+      <Path d="M20 170 L60 140 L100 155 L140 110 L180 90 L220 60 L240 50" stroke={accent} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      {[[60, 140], [100, 155], [140, 110], [180, 90], [220, 60]].map(([x, y], i) => (
         <Circle key={i} cx={x} cy={y} r={4} fill={accent} />
       ))}
-
-      {/* Peak badge */}
       <Rect x="192" y="28" width="64" height="28" rx="8" fill={accent} opacity={0.9} />
       <Rect x="200" y="36" width="22" height="5" rx="2.5" fill="rgba(255,255,255,0.7)" />
       <Rect x="200" y="43" width="38" height="5" rx="2.5" fill="rgba(255,255,255,0.5)" />
-
-      {/* Floating reward coin stack */}
       {[0, 1, 2].map((i) => (
         <G key={i} transform={`translate(${20 + i * 2}, ${-i * 14 + 80})`}>
           <Ellipse cx="30" cy="10" rx="30" ry="12" fill={i === 0 ? "#FFB830" : i === 1 ? "#F0A820" : "#E09810"} />
           <Ellipse cx="30" cy="6" rx="30" ry="12" fill={i === 0 ? "#FFD060" : i === 1 ? "#FFBE30" : "#FFB020"} />
-          {i === 0 && (
-            <Path d="M24 5v8M21 7h6c1.5 0 2.5.8 2.5 2S28.5 11 27 11h-6" stroke="rgba(150,80,0,0.6)" strokeWidth="1.5" strokeLinecap="round" />
-          )}
+          {i === 0 && <Path d="M24 5v8M21 7h6c1.5 0 2.5.8 2.5 2S28.5 11 27 11h-6" stroke="rgba(150,80,0,0.6)" strokeWidth="1.5" strokeLinecap="round" />}
         </G>
       ))}
-
-      {/* Star/sparkle */}
       {[[50, 30], [210, 110], [150, 40]].map(([x, y], i) => (
         <G key={i} transform={`translate(${x}, ${y})`}>
           <Path d="M0-6L1.4-1.4L6 0L1.4 1.4L0 6L-1.4 1.4L-6 0L-1.4-1.4Z" fill={accent} opacity={0.7 - i * 0.15} />
@@ -224,51 +175,62 @@ function RewardsIllustration({ accent }: { accent: string }) {
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+
+  // Single source of truth for active slide — only updates when scroll fully settles
   const [activeIdx, setActiveIdx] = useState(0);
-  const dotAnim = useRef(SLIDES.map(() => new Animated.Value(0))).current;
 
-  // Update dot on scroll
-  const onScroll = (e: any) => {
-    const idx = Math.round(e.nativeEvent.contentOffset.x / W);
-    if (idx !== activeIdx) {
-      setActiveIdx(idx);
-    }
-  };
+  // Tracks whether we're on the last slide for button logic
+  const isLast = activeIdx === LAST;
+  const slide = SLIDES[activeIdx];
 
-  const goNext = () => {
+  // ── Snap handler — fires when scroll completely settles (no more motion) ──
+  const onSnapComplete = useCallback((e: any) => {
+    const offset = e.nativeEvent.contentOffset.x;
+    // Round and clamp to valid slide index
+    const raw = offset / W;
+    const idx = Math.max(0, Math.min(Math.round(raw), LAST));
+    setActiveIdx(idx);
+  }, []);
+
+  // ── Next button: set state immediately so UI updates with the scroll ──
+  const goNext = useCallback(() => {
     hapticLight();
-    if (activeIdx < SLIDES.length - 1) {
-      scrollRef.current?.scrollTo({ x: (activeIdx + 1) * W, animated: true });
-      setActiveIdx(activeIdx + 1);
+    if (activeIdx < LAST) {
+      const nextIdx = activeIdx + 1;
+      setActiveIdx(nextIdx);                                    // instant UI update
+      scrollRef.current?.scrollTo({ x: nextIdx * W, animated: true });
     } else {
       hapticSuccess();
       router.replace("/auth");
     }
-  };
+  }, [activeIdx]);
 
-  const skip = () => {
+  const goToSlide = useCallback((idx: number) => {
+    hapticLight();
+    setActiveIdx(idx);
+    scrollRef.current?.scrollTo({ x: idx * W, animated: true });
+  }, []);
+
+  const skip = useCallback(() => {
     hapticLight();
     router.replace("/auth");
-  };
-
-  const slide = SLIDES[activeIdx];
+  }, []);
 
   return (
     <View style={s.root}>
       <StatusBar style="light" />
 
-      {/* ── Full-bleed gradient background (changes per slide) ── */}
+      {/* ── Background gradient — NO key prop so it never remounts ── */}
       <LinearGradient
         colors={[slide.bg1, slide.bg2]}
         style={StyleSheet.absoluteFillObject}
-        key={`bg-${activeIdx}`}
       />
 
       {/* ── Decorative arcs ── */}
       <View style={s.arcTopRight} />
       <View style={[s.arcBottomLeft, { borderColor: `${slide.accent}20` }]} />
 
-      {/* ── Header row ── */}
+      {/* ── Header ── */}
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <View style={s.logoRow}>
           <View style={s.logoDot} />
@@ -279,30 +241,31 @@ export default function OnboardingScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ── Slides (horizontal scroll) ── */}
+      {/* ── Slides (horizontal paging scroll) ── */}
       <ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScroll}
         scrollEventThrottle={16}
+        decelerationRate="fast"
+        disableIntervalMomentum={true}
         style={s.scrollArea}
         contentContainerStyle={s.scrollContent}
+        // Both handlers ensure we catch every snap: momentum flings AND slow drags
+        onMomentumScrollEnd={onSnapComplete}
+        onScrollEndDrag={onSnapComplete}
       >
-        {SLIDES.map((slide) => (
-          <View key={slide.id} style={[s.slide, { width: W }]}>
-            {/* Illustration */}
+        {SLIDES.map((sl) => (
+          <View key={sl.id} style={[s.slide, { width: W }]}>
             <View style={s.illustrationWrap}>
-              {slide.id === 0 && <SendReceiveIllustration accent={slide.accent} />}
-              {slide.id === 1 && <GiftCardIllustration accent={slide.accent} />}
-              {slide.id === 2 && <RewardsIllustration accent={slide.accent} />}
+              {sl.id === 0 && <SendReceiveIllustration accent={sl.accent} />}
+              {sl.id === 1 && <GiftCardIllustration accent={sl.accent} />}
+              {sl.id === 2 && <RewardsIllustration accent={sl.accent} />}
             </View>
-
-            {/* Text content */}
             <View style={s.textWrap}>
-              <Text style={s.slideTitle}>{slide.title}</Text>
-              <Text style={s.slideSubtitle}>{slide.subtitle}</Text>
+              <Text style={s.slideTitle}>{sl.title}</Text>
+              <Text style={s.slideSubtitle}>{sl.subtitle}</Text>
             </View>
           </View>
         ))}
@@ -310,19 +273,17 @@ export default function OnboardingScreen() {
 
       {/* ── Bottom controls ── */}
       <View style={[s.bottom, { paddingBottom: insets.bottom + 20 }]}>
-        {/* Dot indicators */}
+
+        {/* Dot indicators — driven purely by activeIdx */}
         <View style={s.dotsRow}>
           {SLIDES.map((_, i) => (
             <TouchableOpacity
               key={i}
-              onPress={() => {
-                hapticLight();
-                scrollRef.current?.scrollTo({ x: i * W, animated: true });
-                setActiveIdx(i);
-              }}
-              hitSlop={8}
+              onPress={() => goToSlide(i)}
+              hitSlop={10}
+              activeOpacity={0.7}
             >
-              <Animated.View
+              <View
                 style={[
                   s.dot,
                   i === activeIdx
@@ -334,24 +295,34 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        {/* CTA button */}
-        <TouchableOpacity onPress={goNext} activeOpacity={0.85} style={s.ctaWrap}>
+        {/* CTA button — "Next" on slides 0 & 1, "Get Started" only on slide 2 */}
+        <TouchableOpacity
+          onPress={goNext}
+          activeOpacity={0.85}
+          style={s.ctaWrap}
+        >
           <LinearGradient
             colors={[slide.accent, slide.accent]}
             style={s.cta}
           >
-            <Text style={[s.ctaText, activeIdx === SLIDES.length - 1 ? {} : {}]}>
-              {activeIdx === SLIDES.length - 1 ? "Get Started" : "Next"}
-            </Text>
-            {activeIdx < SLIDES.length - 1 && (
-              <Text style={s.ctaArrow}> →</Text>
+            {isLast ? (
+              <Text style={s.ctaText}>Get Started</Text>
+            ) : (
+              <>
+                <Text style={s.ctaText}>Next</Text>
+                <Text style={s.ctaArrow}> →</Text>
+              </>
             )}
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Already have account */}
-        {activeIdx === SLIDES.length - 1 && (
-          <TouchableOpacity onPress={skip} style={{ marginTop: 16 }} activeOpacity={0.7}>
+        {/* "Log in" link — ONLY visible on slide 3 (index 2) */}
+        {isLast && (
+          <TouchableOpacity
+            onPress={skip}
+            style={s.loginLinkWrap}
+            activeOpacity={0.7}
+          >
             <Text style={s.alreadyText}>
               Already have an account?{" "}
               <Text style={[s.alreadyLink, { color: slide.accent }]}>Log in</Text>
@@ -424,7 +395,6 @@ const s = StyleSheet.create({
   bottom: {
     paddingHorizontal: 24,
     alignItems: "center",
-    gap: 0,
   },
   dotsRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   dot: { height: 8, borderRadius: 4 },
@@ -454,8 +424,14 @@ const s = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.2,
   },
-  ctaArrow: { fontSize: 17, fontWeight: "700", color: "#0C38C0", fontFamily: "Inter_700Bold" },
+  ctaArrow: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0C38C0",
+    fontFamily: "Inter_700Bold",
+  },
 
+  loginLinkWrap: { marginTop: 16 },
   alreadyText: {
     fontSize: 14,
     color: "rgba(255,255,255,0.6)",
