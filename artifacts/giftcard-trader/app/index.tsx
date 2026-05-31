@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  Easing,
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,12 +17,11 @@ import Svg, {
   Defs,
   LinearGradient as SvgGrad,
   Stop,
-  G,
 } from "react-native-svg";
 
 const { width: W, height: H } = Dimensions.get("window");
 
-// ─── PayVora P Logo ────────────────────────────────────────────────────────────
+// ─── Logo Icon ─────────────────────────────────────────────────────────────────
 function PayVoraLogo() {
   return (
     <Svg width={72} height={80} viewBox="0 0 72 80">
@@ -40,48 +40,30 @@ function PayVoraLogo() {
           <Stop offset="100%" stopColor="#D0E8FF" />
         </SvgGrad>
       </Defs>
-
-      {/* ── Outer P silhouette (white / ice-blue gradient) ── */}
+      {/* Outer P silhouette */}
       <Path
         d={[
-          "M 10,78",       // bottom-left of stem
-          "L 10,14",       // up the stem
-          "C 10,7 15,2 22,2",  // top-left curve
-          "L 42,2",        // top of bowl
-          "C 56,2 66,12 66,26", // bowl top-right arc
-          "C 66,40 56,50 42,50", // bowl bottom-right arc
-          "L 26,50",       // bowl returns to stem junction
-          "L 26,78",       // down the stem to bottom
-          "Z",
+          "M 10,78", "L 10,14",
+          "C 10,7 15,2 22,2", "L 42,2",
+          "C 56,2 66,12 66,26",
+          "C 66,40 56,50 42,50",
+          "L 26,50", "L 26,78", "Z",
         ].join(" ")}
         fill="url(#logoGrad)"
       />
-
-      {/* ── Bowl interior (blue "card face") ── */}
+      {/* Bowl interior */}
       <Path
         d={[
-          "M 26,14",
-          "L 40,14",
+          "M 26,14", "L 40,14",
           "C 50,14 58,20 58,29",
           "C 58,38 50,44 40,44",
-          "L 26,44",
-          "Z",
+          "L 26,44", "Z",
         ].join(" ")}
         fill="url(#bowlGrad)"
       />
-
-      {/* ── Card chip (white rounded rect in upper bowl) ── */}
-      <Rect
-        x="38"
-        y="17"
-        width="15"
-        height="10"
-        rx="2.5"
-        fill="url(#chipGrad)"
-        opacity={0.92}
-      />
-
-      {/* ── Subtle highlight on stem left edge ── */}
+      {/* Card chip */}
+      <Rect x="38" y="17" width="15" height="10" rx="2.5" fill="url(#chipGrad)" opacity={0.92} />
+      {/* Stem highlight */}
       <Path
         d="M 10,14 C 10,7 15,2 22,2 L 26,2 L 26,14 Z"
         fill="rgba(255,255,255,0.18)"
@@ -90,30 +72,15 @@ function PayVoraLogo() {
   );
 }
 
-// ─── Wave Lines ────────────────────────────────────────────────────────────────
-function WaveLines() {
-  const lines = [
-    "M -40,0  C 60,-18 120,18 220,4   C 320,-10 380,16 480,0",
-    "M -40,20 C 60,2  120,38 220,24  C 320,10  380,36 480,20",
-    "M -40,40 C 60,22 120,58 220,44  C 320,30  380,56 480,40",
-    "M -40,60 C 60,42 120,78 220,64  C 320,50  380,76 480,60",
-    "M -40,80 C 60,62 120,98 220,84  C 320,70  380,96 480,80",
-    "M -40,100 C 60,82 120,118 220,104 C 320,90  380,116 480,100",
-    "M -40,120 C 60,102 120,138 220,124 C 320,110 380,136 480,120",
-  ];
-
+// ─── Wave layer — rendered twice at different offsets ──────────────────────────
+function WaveLayer({ opacity: op }: { opacity: number }) {
   return (
-    <Svg
-      width={W * 0.85}
-      height={160}
-      viewBox={`0 0 ${W * 0.85} 160`}
-      style={styles.waveContainer}
-    >
-      {lines.map((d, i) => (
+    <Svg width={W + 120} height={160} viewBox={`0 0 ${W + 120} 160`}>
+      {[0, 20, 40, 60, 80, 100, 120].map((yBase, i) => (
         <Path
           key={i}
-          d={d}
-          stroke="rgba(255,255,255,0.07)"
+          d={`M -60,${yBase} C ${W * 0.18},${yBase - 18} ${W * 0.45},${yBase + 18} ${W * 0.72},${yBase + 4} C ${W},${yBase - 10} ${W + 60},${yBase + 14} ${W + 120},${yBase}`}
+          stroke={`rgba(255,255,255,${op})`}
           strokeWidth={1.2}
           fill="none"
         />
@@ -124,29 +91,165 @@ function WaveLines() {
 
 // ─── Splash Screen ─────────────────────────────────────────────────────────────
 export default function SplashScreen() {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const logoScale = useRef(new Animated.Value(0.88)).current;
+  // ── Wave parallax ──────────────────────────────────────────────────────────
+  const wave1X = useRef(new Animated.Value(0)).current;
+  const wave2X = useRef(new Animated.Value(0)).current;
+  const waveY  = useRef(new Animated.Value(0)).current;
+
+  // ── Logo entrance + shimmer ────────────────────────────────────────────────
+  const logoScale   = useRef(new Animated.Value(0.8)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const shimmerX    = useRef(new Animated.Value(-100)).current;
+
+  // ── Typography staggered ───────────────────────────────────────────────────
+  const brandOpacity  = useRef(new Animated.Value(0)).current;
+  const brandY        = useRef(new Animated.Value(20)).current;
+  const taglineOpacity = useRef(new Animated.Value(0)).current;
+  const taglineY      = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
+    // ── 1. Wave parallax loops (start immediately, run forever) ──────────────
+    // Wave layer 1: slow rightward drift 7s per cycle
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(wave1X, {
+          toValue: 30,
+          duration: 3500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(wave1X, {
+          toValue: 0,
+          duration: 3500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Wave layer 2: counter-direction, slightly faster 5s per cycle
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(wave2X, {
+          toValue: -20,
+          duration: 2500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(wave2X, {
+          toValue: 0,
+          duration: 2500,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Vertical ripple for depth 4s cycle
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(waveY, {
+          toValue: 8,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveY, {
+          toValue: -4,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveY, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // ── 2. Logo entrance: scale 0.8→1.0 with Ease-Out Back (800ms) + fade ──
     Animated.parallel([
-      Animated.timing(opacity, {
+      Animated.timing(logoScale, {
         toValue: 1,
-        duration: 600,
+        duration: 800,
+        easing: Easing.out(Easing.back(1.7)),
         useNativeDriver: true,
       }),
-      Animated.spring(logoScale, {
+      Animated.timing(logoOpacity, {
         toValue: 1,
-        tension: 60,
-        friction: 8,
+        duration: 400,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
     ]).start();
 
-    const timer = setTimeout(() => {
+    // ── 3. "PayVora" — slide up 20px + fade, delay 300ms ────────────────────
+    Animated.sequence([
+      Animated.delay(300),
+      Animated.parallel([
+        Animated.timing(brandOpacity, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(brandY, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // ── 4. Tagline — slide up 10px + fade, delay 500ms ──────────────────────
+    Animated.sequence([
+      Animated.delay(500),
+      Animated.parallel([
+        Animated.timing(taglineOpacity, {
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(taglineY, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+
+    // ── 5. Shimmer sweep: starts at 1000ms, repeats every 3s ────────────────
+    const startShimmer = () => {
+      shimmerX.setValue(-100);
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(shimmerX, {
+            toValue: 180,
+            duration: 750,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.delay(3000),
+        ])
+      ).start();
+    };
+
+    const shimmerTimer = setTimeout(startShimmer, 1000);
+
+    // ── 6. Navigate to onboarding ─────────────────────────────────────────────
+    const navTimer = setTimeout(() => {
       router.replace("/onboarding");
     }, 2800);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(shimmerTimer);
+      clearTimeout(navTimer);
+    };
   }, []);
 
   return (
@@ -163,32 +266,101 @@ export default function SplashScreen() {
       {/* ── Top-right decorative arc ── */}
       <View style={styles.topRightShape} />
 
-      {/* ── Wave lines (middle-left region) ── */}
-      <WaveLines />
+      {/* ── Wave parallax layer 1 (back, more subtle) ── */}
+      <Animated.View
+        style={[
+          styles.waveContainer,
+          { top: H * 0.50 },
+          { transform: [{ translateX: wave1X }, { translateY: waveY }] },
+        ]}
+        pointerEvents="none"
+      >
+        <WaveLayer opacity={0.055} />
+      </Animated.View>
+
+      {/* ── Wave parallax layer 2 (front, slightly more visible, counter-moves) ── */}
+      <Animated.View
+        style={[
+          styles.waveContainer,
+          { top: H * 0.54 },
+          { transform: [{ translateX: wave2X }] },
+        ]}
+        pointerEvents="none"
+      >
+        <WaveLayer opacity={0.09} />
+      </Animated.View>
 
       {/* ── Bottom decorative shapes ── */}
       <View style={styles.bottomShapeBack} />
       <View style={styles.bottomShapeFront} />
 
-      {/* ── Centred logo + text ── */}
-      <Animated.View
-        style={[
-          styles.content,
-          { opacity, transform: [{ scale: logoScale }] },
-        ]}
-      >
-        <View style={styles.logoWrapper}>
-          <PayVoraLogo />
-        </View>
+      {/* ── Logo + Typography (centred, slightly above mid) ── */}
+      <View style={styles.content}>
 
-        <Text style={styles.brand}>PayVora</Text>
-        <Text style={styles.tagline}>PAY SMART. GROW MORE.</Text>
-      </Animated.View>
+        {/* Logo icon with shimmer overlay */}
+        <Animated.View
+          style={[
+            styles.logoWrapper,
+            {
+              opacity: logoOpacity,
+              transform: [{ scale: logoScale }],
+            },
+          ]}
+        >
+          {/* Clip container — shimmer is clipped to logo bounds */}
+          <View style={styles.logoClip}>
+            <PayVoraLogo />
+            {/* Shimmer sweep overlay */}
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                StyleSheet.absoluteFill,
+                { transform: [{ translateX: shimmerX }] },
+              ]}
+            >
+              <LinearGradient
+                colors={[
+                  "rgba(255,255,255,0)",
+                  "rgba(255,255,255,0.42)",
+                  "rgba(255,255,255,0)",
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.shimmerGradient}
+              />
+            </Animated.View>
+          </View>
+        </Animated.View>
 
-      {/* ── Home-indicator bar ── */}
-      {Platform.OS === "web" && (
-        <View style={styles.homeIndicator} />
-      )}
+        {/* "PayVora" — slide up 20px + fade */}
+        <Animated.Text
+          style={[
+            styles.brand,
+            {
+              opacity: brandOpacity,
+              transform: [{ translateY: brandY }],
+            },
+          ]}
+        >
+          PayVora
+        </Animated.Text>
+
+        {/* Tagline — slide up 10px + fade */}
+        <Animated.Text
+          style={[
+            styles.tagline,
+            {
+              opacity: taglineOpacity,
+              transform: [{ translateY: taglineY }],
+            },
+          ]}
+        >
+          PAY SMART. GROW MORE.
+        </Animated.Text>
+      </View>
+
+      {/* ── Home indicator (web only) ── */}
+      {Platform.OS === "web" && <View style={styles.homeIndicator} />}
     </View>
   );
 }
@@ -201,7 +373,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  /* top-right arc – large rounded shape partially off-screen */
   topRightShape: {
     position: "absolute",
     top: -H * 0.12,
@@ -212,14 +383,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.10)",
   },
 
-  /* wave lines – positioned at ~55% down, left-aligned */
   waveContainer: {
     position: "absolute",
-    top: H * 0.52,
     left: -20,
   },
 
-  /* bottom shapes */
   bottomShapeBack: {
     position: "absolute",
     bottom: -H * 0.06,
@@ -242,7 +410,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "-4deg" }],
   },
 
-  /* logo + text container – vertically centred, slightly above mid */
   content: {
     position: "absolute",
     left: 0,
@@ -252,12 +419,25 @@ const styles = StyleSheet.create({
   },
 
   logoWrapper: {
-    marginBottom: 18,
+    marginBottom: 22,
     shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 12,
+    shadowOpacity: 0.28,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 14,
+  },
+
+  // Clips the shimmer gradient to exactly the logo bounds
+  logoClip: {
+    width: 72,
+    height: 80,
+    overflow: "hidden",
+  },
+
+  // Shimmer gradient — slightly wider than logo for clean edge entry/exit
+  shimmerGradient: {
+    width: 90,
+    height: 80,
   },
 
   brand: {
@@ -265,16 +445,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
     letterSpacing: 0.4,
-    fontFamily: Platform.select({ ios: "System", android: "sans-serif-medium", default: "Inter_700Bold" }),
-    marginBottom: 8,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 10,
   },
 
   tagline: {
     fontSize: 12.5,
-    color: "rgba(255,255,255,0.82)",
-    letterSpacing: 2.4,
+    color: "rgba(255,255,255,0.80)",
+    letterSpacing: 2.6,
     fontWeight: "500",
-    fontFamily: Platform.select({ ios: "System", android: "sans-serif", default: "Inter_500Medium" }),
+    fontFamily: "Inter_500Medium",
   },
 
   homeIndicator: {
