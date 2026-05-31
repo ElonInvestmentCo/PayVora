@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "GiftCard Trader",
+    "name": "PayVora",
     "slug": "giftcard-trader",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,13 +11,13 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A1428"
+      "backgroundColor": "#0C38C0"
     },
     "ios": {
       "supportsTablet": false
     },
     "android": {
-      "backgroundColor": "#0A1428"
+      "backgroundColor": "#0C38C0"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
