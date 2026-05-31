@@ -1,43 +1,58 @@
 import { Tabs } from "expo-router";
-import Svg, { Path, Circle, Rect } from "react-native-svg";
+import Svg, { Path, Circle, Rect, Line } from "react-native-svg";
+
+const DARK_TAB = "#0A0A14";
+const ACTIVE = "#FFFFFF";
+const INACTIVE = "rgba(255,255,255,0.35)";
 
 function HomeIcon({ active }: { active: boolean }) {
-  const c = active ? "#1A5AFF" : "#8E8E93";
+  const c = active ? ACTIVE : INACTIVE;
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={c} strokeWidth={1.8} strokeLinejoin="round" fill={active ? "#1A5AFF22" : "none"} />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={c} strokeWidth={1.8} strokeLinejoin="round" fill={active ? "rgba(255,255,255,0.15)" : "none"} />
       <Path d="M9 21V12h6v9" stroke={c} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function WalletIcon({ active }: { active: boolean }) {
-  const c = active ? "#1A5AFF" : "#8E8E93";
+function MarketsIcon({ active }: { active: boolean }) {
+  const c = active ? ACTIVE : INACTIVE;
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth={1.8} fill={active ? "#1A5AFF22" : "none"} />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="12" width="4" height="9" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Rect x="10" y="6" width="4" height="15" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Rect x="18" y="2" width="4" height="19" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+    </Svg>
+  );
+}
+
+function TradeIcon({ active }: { active: boolean }) {
+  const c = active ? ACTIVE : INACTIVE;
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M7 16V8m0 0L4 11m3-3l3 3" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M17 8v8m0 0l3-3m-3 3l-3-3" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function WalletIcon({ active }: { active: boolean }) {
+  const c = active ? ACTIVE : INACTIVE;
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
       <Path d="M16 12a1 1 0 100 2 1 1 0 000-2z" fill={c} />
       <Path d="M2 9h20" stroke={c} strokeWidth={1.8} />
     </Svg>
   );
 }
 
-function TxIcon({ active }: { active: boolean }) {
-  const c = active ? "#1A5AFF" : "#8E8E93";
+function ProfileIcon({ active }: { active: boolean }) {
+  const c = active ? ACTIVE : INACTIVE;
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="3" width="18" height="18" rx="3" stroke={c} strokeWidth={1.8} fill={active ? "#1A5AFF22" : "none"} />
-      <Path d="M7 8h10M7 12h6M7 16h8" stroke={c} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function SettingsIcon({ active }: { active: boolean }) {
-  const c = active ? "#1A5AFF" : "#8E8E93";
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="3" stroke={c} strokeWidth={1.8} />
-      <Path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke={c} strokeWidth={1.8} />
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="8" r="4" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={c} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -48,15 +63,16 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E5E5EA",
+          backgroundColor: DARK_TAB,
+          borderTopColor: "rgba(255,255,255,0.08)",
           borderTopWidth: 0.5,
           height: 82,
           paddingBottom: 24,
           paddingTop: 10,
+          elevation: 0,
         },
-        tabBarActiveTintColor: "#1A5AFF",
-        tabBarInactiveTintColor: "#8E8E93",
+        tabBarActiveTintColor: ACTIVE,
+        tabBarInactiveTintColor: INACTIVE,
         tabBarLabelStyle: {
           fontSize: 10,
           fontFamily: "Inter_600SemiBold",
@@ -72,6 +88,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="markets"
+        options={{
+          title: "Markets",
+          tabBarIcon: ({ focused }) => <MarketsIcon active={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="rates"
+        options={{
+          title: "Trade",
+          tabBarIcon: ({ focused }) => <TradeIcon active={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="wallet"
         options={{
           title: "Wallet",
@@ -79,19 +109,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="transactions"
+        name="profile"
         options={{
-          title: "Transactions",
-          tabBarIcon: ({ focused }) => <TxIcon active={focused} />,
+          title: "Profile",
+          tabBarIcon: ({ focused }) => <ProfileIcon active={focused} />,
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ focused }) => <SettingsIcon active={focused} />,
-        }}
-      />
+      <Tabs.Screen name="transactions" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }
