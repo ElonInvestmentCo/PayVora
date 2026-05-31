@@ -19,6 +19,7 @@ import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/utils/h
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import Svg, { Path, Polyline, Defs, LinearGradient as SvgGradient, Stop } from "react-native-svg";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
 const { width: W } = Dimensions.get("window");
 const CHART_H = 120;
@@ -103,13 +104,23 @@ export default function TradeScreen() {
 
   const { usdBalance, updateUsdBalance, updateAsset, assets, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
+  const { prices, loading: pricesLoading, lastUpdated } = useLivePrices();
 
   const [selected, setSelected] = useState<CryptoId>("BTC");
   const [side, setSide] = useState<Side>("buy");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const asset = ASSETS.find((a) => a.symbol === selected)!;
+  const liveAssets = useMemo(() =>
+    ASSETS.map((a) => ({
+      ...a,
+      price: prices[a.symbol]?.price ?? a.price,
+      change: prices[a.symbol]?.change ?? a.change,
+    })),
+    [prices]
+  );
+
+  const asset = liveAssets.find((a) => a.symbol === selected)!;
   const numAmount = parseFloat(amount) || 0;
   const fee = numAmount * 0.005;
   const networkFee = numAmount > 0 ? 1.5 : 0;
@@ -162,15 +173,23 @@ export default function TradeScreen() {
       <View style={[styles.header, { paddingTop: topPad + 8 }]}>
         <Text style={styles.headerTitle}>Trade</Text>
         <View style={[styles.liveChip]}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveTxt}>LIVE</Text>
+          {pricesLoading ? (
+            <ActivityIndicator size={8} color="#00C48C" style={{ marginRight: 2 }} />
+          ) : (
+            <View style={styles.liveDot} />
+          )}
+          <Text style={styles.liveTxt}>
+            {lastUpdated
+              ? lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : "LIVE"}
+          </Text>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assetChips}>
-          {ASSETS.map((a) => {
+          {liveAssets.map((a) => {
             const active = a.symbol === selected;
             return (
               <TouchableOpacity

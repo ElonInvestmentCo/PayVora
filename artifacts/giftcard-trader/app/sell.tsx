@@ -20,6 +20,7 @@ import { CardTypeSelector, CARD_TYPES } from "@/components/CardTypeSelector";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
 type SellMode = "gift_card" | "crypto";
 
@@ -32,6 +33,7 @@ export default function SellScreen() {
   const insets = useSafeAreaInsets();
   const { assets, updateNgnBalance, updateUsdBalance, updateAsset, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
+  const { prices } = useLivePrices();
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
@@ -55,7 +57,9 @@ export default function SellScreen() {
   const cryptoAssets = useMemo(() => assets.filter((a) => a.type === "crypto" && a.symbol !== "USDT"), [assets]);
   const selectedCryptoAsset = cryptoAssets.find((a) => a.id === selectedCrypto) || cryptoAssets[0];
   const numCryptoAmount = parseFloat(cryptoAmount) || 0;
-  const cryptoPrice = selectedCryptoAsset ? selectedCryptoAsset.value / selectedCryptoAsset.balance : 0;
+  const cryptoPrice = selectedCryptoAsset
+    ? (prices[selectedCryptoAsset.symbol]?.price ?? (selectedCryptoAsset.balance > 0 ? selectedCryptoAsset.value / selectedCryptoAsset.balance : 0))
+    : 0;
   const cryptoPayout = numCryptoAmount * cryptoPrice;
   const cryptoFee = cryptoPayout * 0.001;
   const cryptoNet = cryptoPayout - cryptoFee;
