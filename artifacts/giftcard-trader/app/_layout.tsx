@@ -93,21 +93,7 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
-        name="transactions"
-        options={{
-          headerShown: false,
-          animation: "slide_from_bottom",
-        }}
-      />
-      <Stack.Screen
         name="kyc"
-        options={{
-          headerShown: false,
-          animation: "slide_from_bottom",
-        }}
-      />
-      <Stack.Screen
-        name="settings"
         options={{
           headerShown: false,
           animation: "slide_from_bottom",
