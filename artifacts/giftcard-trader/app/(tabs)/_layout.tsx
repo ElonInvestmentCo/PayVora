@@ -1,15 +1,14 @@
 import { Tabs } from "expo-router";
-import Svg, { Path, Circle, Rect, Line } from "react-native-svg";
+import Svg, { Path, Circle, Rect } from "react-native-svg";
 
-const DARK_TAB = "#0A0A14";
-const ACTIVE = "#FFFFFF";
-const INACTIVE = "rgba(255,255,255,0.35)";
+const ACTIVE = "#1A5AFF";
+const INACTIVE = "#9A9A9A";
 
 function HomeIcon({ active }: { active: boolean }) {
   const c = active ? ACTIVE : INACTIVE;
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={c} strokeWidth={1.8} strokeLinejoin="round" fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z" stroke={c} strokeWidth={1.8} strokeLinejoin="round" fill={active ? `${ACTIVE}22` : "none"} />
       <Path d="M9 21V12h6v9" stroke={c} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
@@ -19,9 +18,9 @@ function MarketsIcon({ active }: { active: boolean }) {
   const c = active ? ACTIVE : INACTIVE;
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="12" width="4" height="9" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
-      <Rect x="10" y="6" width="4" height="15" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
-      <Rect x="18" y="2" width="4" height="19" rx="1" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Rect x="2" y="12" width="4" height="9" rx="1" stroke={c} strokeWidth={1.8} fill={active ? `${ACTIVE}22` : "none"} />
+      <Rect x="10" y="6" width="4" height="15" rx="1" stroke={c} strokeWidth={1.8} fill={active ? `${ACTIVE}22` : "none"} />
+      <Rect x="18" y="2" width="4" height="19" rx="1" stroke={c} strokeWidth={1.8} fill={active ? `${ACTIVE}22` : "none"} />
     </Svg>
   );
 }
@@ -40,7 +39,7 @@ function WalletIcon({ active }: { active: boolean }) {
   const c = active ? ACTIVE : INACTIVE;
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Rect x="2" y="5" width="20" height="14" rx="2" stroke={c} strokeWidth={1.8} fill={active ? `${ACTIVE}22` : "none"} />
       <Path d="M16 12a1 1 0 100 2 1 1 0 000-2z" fill={c} />
       <Path d="M2 9h20" stroke={c} strokeWidth={1.8} />
     </Svg>
@@ -51,7 +50,7 @@ function ProfileIcon({ active }: { active: boolean }) {
   const c = active ? ACTIVE : INACTIVE;
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="8" r="4" stroke={c} strokeWidth={1.8} fill={active ? "rgba(255,255,255,0.15)" : "none"} />
+      <Circle cx="12" cy="8" r="4" stroke={c} strokeWidth={1.8} fill={active ? `${ACTIVE}22` : "none"} />
       <Path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={c} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
@@ -63,13 +62,15 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: DARK_TAB,
-          borderTopColor: "rgba(255,255,255,0.08)",
-          borderTopWidth: 0.5,
+          backgroundColor: "transparent",
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          shadowOffset: { width: 0, height: 0 },
+          shadowRadius: 0,
           height: 82,
           paddingBottom: 24,
           paddingTop: 10,
-          elevation: 0,
         },
         tabBarActiveTintColor: ACTIVE,
         tabBarInactiveTintColor: INACTIVE,
