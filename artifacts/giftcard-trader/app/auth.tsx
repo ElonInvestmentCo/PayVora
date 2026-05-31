@@ -756,10 +756,12 @@ const styles = StyleSheet.create({
 
   appleBtnWrap: {
     flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   appleSignInImg: {
-    width: "100%",
-    aspectRatio: 342 / 54,
+    width: 44,
+    height: 44,
   },
 
   switchRow: {
