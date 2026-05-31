@@ -119,14 +119,12 @@ const inputStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F4F4F4",
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
     paddingHorizontal: 14,
     minHeight: 52,
   },
-  rowError: { borderColor: "#EF4444" },
+  rowError: { backgroundColor: "#FFF2F2" },
   input: {
     flex: 1,
     fontSize: 15,

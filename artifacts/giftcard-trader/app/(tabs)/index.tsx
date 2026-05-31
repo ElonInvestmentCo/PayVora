@@ -1,23 +1,26 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import Svg, { Path, Circle, Rect, Line } from "react-native-svg";
+import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { useWallet } from "@/contexts/WalletContext";
 import { hapticLight } from "@/utils/haptics";
 
-const { width: W } = Dimensions.get("window");
+const { width: W, height: H } = Dimensions.get("window");
 const CARD_W = (W - 48) / 2;
 
-// ─── Chevron ─────────────────────────────────────────────────────────────────
+// Single-column layout on screens shorter than 720dp (budget/mid-range phones)
+const IS_SMALL = H < 720;
+
+// ─── Chevron ──────────────────────────────────────────────────────────────────
 function ChevronRight({ color = "#8E8E93" }: { color?: string }) {
   return (
     <Svg width={6} height={10} viewBox="0 0 6 10" fill="none">
@@ -29,9 +32,9 @@ function ChevronRight({ color = "#8E8E93" }: { color?: string }) {
 // ─── Card Illustrations ───────────────────────────────────────────────────────
 function BuyGiftIllustration() {
   const cards = [
-    { colors: ["#60A8FF", "#3A7AE8"] as const, rotate: "8deg", right: 8, bottom: 6, w: 68, h: 80 },
-    { colors: ["#3A7AE8", "#1A5AFF"] as const, rotate: "-4deg", left: 28, bottom: 2, w: 68, h: 86 },
-    { colors: ["#1A5AFF", "#0C38C0"] as const, rotate: "0deg", left: 8, bottom: 0, w: 70, h: 90 },
+    { colors: ["#60A8FF", "#3A7AE8"] as const, rotate: "8deg",  right: 8,  bottom: 6, w: 68, h: 80 },
+    { colors: ["#3A7AE8", "#1A5AFF"] as const, rotate: "-4deg", left: 28,  bottom: 2, w: 68, h: 86 },
+    { colors: ["#1A5AFF", "#0C38C0"] as const, rotate: "0deg",  left: 8,   bottom: 0, w: 70, h: 90 },
   ];
   return (
     <View style={ill.giftWrap}>
@@ -39,7 +42,11 @@ function BuyGiftIllustration() {
         <LinearGradient
           key={i}
           colors={c.colors}
-          style={[ill.giftCard, { width: c.w, height: c.h, bottom: c.bottom, ...("right" in c ? { right: (c as any).right } : { left: (c as any).left }), transform: [{ rotate: c.rotate }] }]}
+          style={[ill.giftCard, {
+            width: c.w, height: c.h, bottom: c.bottom,
+            ...("right" in c ? { right: (c as any).right } : { left: (c as any).left }),
+            transform: [{ rotate: c.rotate }],
+          }]}
         >
           <View style={{ padding: 8, gap: 5 }}>
             {[80, 60, 70, 50, 65].slice(0, i === 2 ? 5 : 4).map((w, j) => (
@@ -56,14 +63,18 @@ function SellGiftIllustration() {
   return (
     <View style={ill.giftWrap}>
       {[
-        { colors: ["#0C38C0", "#1A5AFF"] as const, rotate: "-8deg", left: 8, bottom: 6, w: 68, h: 80 },
-        { colors: ["#1A5AFF", "#3A7AE8"] as const, rotate: "4deg", right: 22, bottom: 2, w: 68, h: 86 },
-        { colors: ["#3A7AE8", "#60A8FF"] as const, rotate: "0deg", right: 8, bottom: 0, w: 70, h: 90 },
+        { colors: ["#0C38C0", "#1A5AFF"] as const, rotate: "-8deg", left: 8,   bottom: 6, w: 68, h: 80 },
+        { colors: ["#1A5AFF", "#3A7AE8"] as const, rotate: "4deg",  right: 22, bottom: 2, w: 68, h: 86 },
+        { colors: ["#3A7AE8", "#60A8FF"] as const, rotate: "0deg",  right: 8,  bottom: 0, w: 70, h: 90 },
       ].map((c, i) => (
         <LinearGradient
           key={i}
           colors={c.colors}
-          style={[ill.giftCard, { width: c.w, height: c.h, bottom: c.bottom, ...("left" in c ? { left: (c as any).left } : { right: (c as any).right }), transform: [{ rotate: c.rotate }] }]}
+          style={[ill.giftCard, {
+            width: c.w, height: c.h, bottom: c.bottom,
+            ...("left" in c ? { left: (c as any).left } : { right: (c as any).right }),
+            transform: [{ rotate: c.rotate }],
+          }]}
         >
           <View style={{ padding: 8, gap: 5 }}>
             <View style={[ill.giftLine, { width: "80%" as any }]} />
@@ -82,7 +93,11 @@ function BuyCryptoIllustration() {
       {[0, 1, 2].map((i) => (
         <LinearGradient
           key={i}
-          colors={i === 0 ? (["#1A5AFF", "#0C38C0"] as const) : i === 1 ? (["#1250E0", "#0A30A8"] as const) : (["#0E46C8", "#082890"] as const)}
+          colors={
+            i === 0 ? (["#1A5AFF", "#0C38C0"] as const)
+            : i === 1 ? (["#1250E0", "#0A30A8"] as const)
+            : (["#0E46C8", "#082890"] as const)
+          }
           style={[ill.coin, { bottom: i * 16, width: 80 - i * 4 }]}
         >
           {i === 2 && <Text style={ill.coinSymbol}>₿</Text>}
@@ -127,9 +142,9 @@ function BillsIllustration() {
   return (
     <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "flex-end", paddingBottom: 8, gap: 5 }}>
       {[
-        { label: "Airtime", color: "#1A5AFF", w: "70%" },
+        { label: "Airtime",     color: "#1A5AFF", w: "70%" },
         { label: "Electricity", color: "#3A7AE8", w: "85%" },
-        { label: "Internet", color: "#60A8FF", w: "55%" },
+        { label: "Internet",    color: "#60A8FF", w: "55%" },
       ].map((b) => (
         <View key={b.label} style={{ flexDirection: "row", alignItems: "center", gap: 6, width: "90%" as any }}>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: b.color }} />
@@ -143,23 +158,24 @@ function BillsIllustration() {
 }
 
 const ill = StyleSheet.create({
-  cryptoWrap: { flex: 1, alignItems: "center", justifyContent: "flex-end", width: "100%", marginTop: 8 },
-  coin: { position: "absolute", height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
-  coinSymbol: { color: "rgba(255,255,255,0.9)", fontSize: 15, fontWeight: "800" },
-  waveWrap: { flex: 1, width: "100%", overflow: "hidden", marginTop: 8 },
-  giftWrap: { flex: 1, position: "relative", width: "100%", overflow: "hidden" },
-  giftCard: { position: "absolute", borderRadius: 8 },
-  giftLine: { height: 4, backgroundColor: "rgba(255,255,255,0.45)", borderRadius: 2, marginBottom: 4 },
+  cryptoWrap:  { flex: 1, alignItems: "center", justifyContent: "flex-end", width: "100%", marginTop: 8 },
+  coin:        { position: "absolute", height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  coinSymbol:  { color: "rgba(255,255,255,0.9)", fontSize: 15, fontWeight: "800" },
+  waveWrap:    { flex: 1, width: "100%", overflow: "hidden", marginTop: 8 },
+  giftWrap:    { flex: 1, position: "relative", width: "100%", overflow: "hidden" },
+  giftCard:    { position: "absolute", borderRadius: 8 },
+  giftLine:    { height: 4, backgroundColor: "rgba(255,255,255,0.45)", borderRadius: 2, marginBottom: 4 },
 });
 
-// ─── Action Card ─────────────────────────────────────────────────────────────
+// ─── Action Card ──────────────────────────────────────────────────────────────
 function ActionCard({
-  title, subtitle, onPress, children, accent = false,
+  title, subtitle, onPress, children,
 }: {
-  title: string; subtitle?: string; onPress?: () => void; children: React.ReactNode; accent?: boolean;
+  title: string; subtitle?: string; onPress?: () => void; children: React.ReactNode;
 }) {
+  const cardWidth = IS_SMALL ? W - 32 : CARD_W;
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={[s.actionCard, { width: CARD_W }]}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={[s.actionCard, { width: cardWidth }]}>
       <View style={s.actionHead}>
         <View style={{ flex: 1, marginRight: 4 }}>
           <Text style={s.actionTitle} numberOfLines={2}>{title}</Text>
@@ -178,7 +194,11 @@ function TxRow({ title, amount, date, isIn }: { title: string; amount: string; d
     <View style={s.txRow}>
       <View style={[s.txIcon, { backgroundColor: isIn ? "rgba(48,209,88,0.12)" : "rgba(255,59,48,0.08)" }]}>
         <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-          <Path d={isIn ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} stroke={isIn ? "#30D158" : "#FF3B30"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          <Path
+            d={isIn ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"}
+            stroke={isIn ? "#30D158" : "#FF3B30"}
+            strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+          />
         </Svg>
       </View>
       <View style={{ flex: 1 }}>
@@ -193,20 +213,62 @@ function TxRow({ title, amount, date, isIn }: { title: string; amount: string; d
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { usdBalance, ngnBalance, transactions } = useWallet();
+  const { usdBalance, transactions } = useWallet();
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const fmt = (n: number) =>
     n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
   const recentTxs = transactions.slice(0, 3);
 
-  return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+  // ── Balance amount: scales down + fades as user scrolls up ──────────────────
+  const balanceScale = scrollY.interpolate({
+    inputRange: [0, 90],
+    outputRange: [1, 0.70],
+    extrapolate: "clamp",
+  });
+  const balanceTranslateY = scrollY.interpolate({
+    inputRange: [0, 90],
+    outputRange: [0, -22],
+    extrapolate: "clamp",
+  });
+  const balanceOpacity = scrollY.interpolate({
+    inputRange: [0, 65],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
 
-        {/* ── Header ── */}
+  // ── Mini-balance in sticky header: fades IN when balance has scrolled away ──
+  const miniBalanceOpacity = scrollY.interpolate({
+    inputRange: [55, 95],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const miniBalanceTranslateY = scrollY.interpolate({
+    inputRange: [55, 95],
+    outputRange: [8, 0],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <View style={s.root}>
+
+      {/* ── Sticky header — outside the ScrollView ── */}
+      <View style={[s.headerWrap, { paddingTop: insets.top }]}>
         <View style={s.header}>
           <Text style={s.headerTitle}>Home</Text>
+
+          {/* Mini balance — fades into center when user scrolls up */}
+          <Animated.Text
+            style={[s.miniBalance, {
+              opacity: miniBalanceOpacity,
+              transform: [{ translateY: miniBalanceTranslateY }],
+            }]}
+            numberOfLines={1}
+          >
+            {fmt(usdBalance)}
+          </Animated.Text>
+
           <TouchableOpacity
             onPress={() => { hapticLight(); router.push("/settings" as any); }}
             activeOpacity={0.8}
@@ -216,7 +278,21 @@ export default function HomeScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
+      </View>
 
+      {/* ── Scrollable content — bounces at both edges ── */}
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+        alwaysBounceVertical={true}
+        overScrollMode="always"
+        scrollEventThrottle={16}
+        contentContainerStyle={s.scroll}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+      >
         {/* ── Balance Card ── */}
         <View style={s.balanceSection}>
           <View style={s.balanceCard}>
@@ -227,7 +303,20 @@ export default function HomeScreen() {
                 <ChevronRight />
               </TouchableOpacity>
             </View>
-            <Text style={s.balanceAmount}>{fmt(usdBalance)}</Text>
+
+            {/* Balance amount animates on scroll */}
+            <Animated.Text
+              style={[s.balanceAmount, {
+                opacity: balanceOpacity,
+                transform: [
+                  { scale: balanceScale },
+                  { translateY: balanceTranslateY },
+                ],
+              }]}
+            >
+              {fmt(usdBalance)}
+            </Animated.Text>
+
             <View style={s.actionRow}>
               <TouchableOpacity
                 style={s.actionBtn}
@@ -247,12 +336,12 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Quick Actions Grid ── */}
+        {/* ── Quick Actions — responsive 2-col or 1-col ── */}
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>Quick Actions</Text>
         </View>
 
-        <View style={s.grid}>
+        <View style={[s.grid, IS_SMALL && s.gridSingle]}>
           <ActionCard
             title="Buy Gift Cards"
             subtitle="Amazon, iTunes & more"
@@ -305,7 +394,10 @@ export default function HomeScreen() {
         {/* ── Recent Activity ── */}
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>Recent Activity</Text>
-          <TouchableOpacity onPress={() => { hapticLight(); router.push("/(tabs)/transactions" as any); }} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={() => { hapticLight(); router.push("/(tabs)/transactions" as any); }}
+            activeOpacity={0.8}
+          >
             <Text style={s.seeAll}>See All</Text>
           </TouchableOpacity>
         </View>
@@ -329,7 +421,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -337,16 +429,39 @@ export default function HomeScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#F2F2F7" },
-  scroll: { paddingBottom: 32 },
+  scroll: { paddingBottom: 40 },
 
+  // Sticky header bar (outside scroll)
+  headerWrap: {
+    backgroundColor: "#F2F2F7",
+    zIndex: 10,
+  },
   header: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    paddingHorizontal: 20, paddingVertical: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 28, fontWeight: "700", color: "#1C1C1E",
     letterSpacing: -0.5, fontFamily: "Inter_700Bold",
+    minWidth: 60,
   },
+
+  // Mini balance that appears in the header when scrolled
+  miniBalance: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1C1C1E",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.3,
+  },
+
   avatar: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
@@ -389,10 +504,20 @@ const s = StyleSheet.create({
   },
   seeAll: { fontSize: 14, color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
 
+  // 2-column grid (default: large screens)
   grid: {
-    paddingHorizontal: 16, flexDirection: "row",
-    flexWrap: "wrap", gap: 10, marginBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 16,
   },
+  // Single-column override (small screens)
+  gridSingle: {
+    flexDirection: "column",
+    flexWrap: "nowrap",
+  },
+
   actionCard: {
     backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16,
     minHeight: 156, shadowColor: "#000", shadowOpacity: 0.06,
@@ -403,33 +528,25 @@ const s = StyleSheet.create({
     flexDirection: "row", justifyContent: "space-between",
     alignItems: "flex-start", marginBottom: 4,
   },
-  actionTitle: {
-    fontSize: 14, fontWeight: "600", color: "#1C1C1E",
-    fontFamily: "Inter_600SemiBold",
-  },
-  actionSub: {
-    fontSize: 11, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1,
-  },
+  actionTitle: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  actionSub:   { fontSize: 11, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
 
   recentCard: {
     marginHorizontal: 16, backgroundColor: "#FFFFFF", borderRadius: 20,
     shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12,
     shadowOffset: { width: 0, height: 2 }, elevation: 3, overflow: "hidden",
   },
-  emptyState: { padding: 28, alignItems: "center" },
-  emptyTitle: { fontSize: 15, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold", marginBottom: 4 },
-  emptySub: { fontSize: 13, color: "#8E8E93", fontFamily: "Inter_400Regular" },
+  emptyState:  { padding: 28, alignItems: "center" },
+  emptyTitle:  { fontSize: 15, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold", marginBottom: 4 },
+  emptySub:    { fontSize: 13, color: "#8E8E93", fontFamily: "Inter_400Regular" },
 
   txRow: {
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA",
   },
-  txIcon: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: "center", justifyContent: "center",
-  },
-  txTitle: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
-  txDate: { fontSize: 12, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
+  txIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  txTitle:  { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  txDate:   { fontSize: 12, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
   txAmount: { fontSize: 15, fontWeight: "700", fontFamily: "Inter_700Bold" },
 });

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Animated,
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -183,6 +184,31 @@ export default function OnboardingScreen() {
   const isLast = activeIdx === LAST;
   const slide = SLIDES[activeIdx];
 
+  // ── Cross-fade animated values for CTA button labels ──────────────────────
+  const ctaNextOpacity  = useRef(new Animated.Value(1)).current;
+  const ctaLastOpacity  = useRef(new Animated.Value(0)).current;
+  const loginLinkOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(ctaNextOpacity, {
+        toValue: isLast ? 0 : 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(ctaLastOpacity, {
+        toValue: isLast ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(loginLinkOpacity, {
+        toValue: isLast ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isLast]);
+
   // ── Snap handler — fires when scroll completely settles (no more motion) ──
   const onSnapComplete = useCallback((e: any) => {
     const offset = e.nativeEvent.contentOffset.x;
@@ -295,7 +321,7 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        {/* CTA button — "Next" on slides 0 & 1, "Get Started" only on slide 2 */}
+        {/* CTA button — cross-fades between "Next →" and "Get Started" */}
         <TouchableOpacity
           onPress={goNext}
           activeOpacity={0.85}
@@ -305,30 +331,37 @@ export default function OnboardingScreen() {
             colors={[slide.accent, slide.accent]}
             style={s.cta}
           >
-            {isLast ? (
+            {/* "Next →" label — fades out on last slide */}
+            <Animated.View
+              style={[s.ctaLabelLayer, { opacity: ctaNextOpacity }]}
+              pointerEvents={isLast ? "none" : "auto"}
+            >
+              <Text style={s.ctaText}>Next</Text>
+              <Text style={s.ctaArrow}> →</Text>
+            </Animated.View>
+
+            {/* "Get Started" label — fades in on last slide */}
+            <Animated.View
+              style={[s.ctaLabelLayer, { opacity: ctaLastOpacity }]}
+              pointerEvents={isLast ? "auto" : "none"}
+            >
               <Text style={s.ctaText}>Get Started</Text>
-            ) : (
-              <>
-                <Text style={s.ctaText}>Next</Text>
-                <Text style={s.ctaArrow}> →</Text>
-              </>
-            )}
+            </Animated.View>
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* "Log in" link — ONLY visible on slide 3 (index 2) */}
-        {isLast && (
-          <TouchableOpacity
-            onPress={skip}
-            style={s.loginLinkWrap}
-            activeOpacity={0.7}
-          >
+        {/* "Log in" link — always rendered, cross-fades in on last slide */}
+        <Animated.View
+          style={[s.loginLinkWrap, { opacity: loginLinkOpacity }]}
+          pointerEvents={isLast ? "auto" : "none"}
+        >
+          <TouchableOpacity onPress={skip} activeOpacity={0.7}>
             <Text style={s.alreadyText}>
               Already have an account?{" "}
               <Text style={[s.alreadyLink, { color: slide.accent }]}>Log in</Text>
             </Text>
           </TouchableOpacity>
-        )}
+        </Animated.View>
       </View>
     </View>
   );
@@ -431,7 +464,15 @@ const s = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
 
-  loginLinkWrap: { marginTop: 16 },
+  ctaLabelLayer: {
+    position: "absolute",
+    left: 0, right: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  loginLinkWrap: { marginTop: 16, height: 22, alignItems: "center" },
   alreadyText: {
     fontSize: 14,
     color: "rgba(255,255,255,0.6)",
