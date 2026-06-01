@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Animated,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -78,7 +77,7 @@ export function GoogleSigninButton({
         style,
       ]}
     >
-      {/* State overlay — white ripple on press, matches .gsi-material-button-state */}
+      {/* Press-state overlay */}
       <View
         style={[
           gStyles.stateOverlay,
@@ -87,9 +86,8 @@ export function GoogleSigninButton({
         pointerEvents="none"
       />
 
-      {/* Content wrapper — flex row, icon + label */}
+      {/* Icon + Label */}
       <View style={gStyles.contentWrapper}>
-        {/* Icon */}
         <View
           style={[
             gStyles.iconWrap,
@@ -99,11 +97,10 @@ export function GoogleSigninButton({
           <GoogleIcon />
         </View>
 
-        {/* Label */}
         {loading ? (
           <ActivityIndicator
             size="small"
-            color="#e3e3e3"
+            color="#3c4043"
             style={gStyles.spinner}
           />
         ) : (
@@ -124,18 +121,24 @@ export function GoogleSigninButton({
 
 const gStyles = StyleSheet.create({
   btn: {
-    backgroundColor: "#131314",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#8e918f",
-    borderRadius: 4,
-    height: 44,
+    borderColor: "#dadce0",
+    borderRadius: 10,
+    height: 48,
     overflow: "hidden",
     position: "relative",
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   btnDisabled: {
-    backgroundColor: "#13131461",
-    borderColor: "#8e918f1f",
+    backgroundColor: "#f8f8f8",
+    borderColor: "#dadce0",
+    opacity: 0.6,
   },
 
   stateOverlay: {
@@ -147,20 +150,19 @@ const gStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   stateOverlayPressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    backgroundColor: "rgba(0, 0, 0, 0.06)",
   },
 
   contentWrapper: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
 
   iconWrap: {
     width: 20,
     height: 20,
-    marginRight: 10,
+    marginRight: 12,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -171,9 +173,9 @@ const gStyles = StyleSheet.create({
 
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_500Medium",
-    color: "#e3e3e3",
+    color: "#3c4043",
     letterSpacing: 0.25,
     textAlign: "center",
   },

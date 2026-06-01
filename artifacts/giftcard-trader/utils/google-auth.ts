@@ -52,7 +52,7 @@ function StubGoogleSigninButton({ onPress, disabled, style, loading, label = "Si
       loading
         ? React.createElement(ActivityIndicator, {
             size: "small",
-            color: "#e3e3e3",
+            color: "#3c4043",
             style: stubBtnStyles.spinner,
           })
         : React.createElement(
@@ -72,18 +72,24 @@ function StubGoogleSigninButton({ onPress, disabled, style, loading, label = "Si
 
 const stubBtnStyles = StyleSheet.create({
   btn: {
-    backgroundColor: "#131314",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#8e918f",
-    borderRadius: 4,
-    height: 44,
+    borderColor: "#dadce0",
+    borderRadius: 10,
+    height: 48,
     overflow: "hidden",
     position: "relative",
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   btnDisabled: {
-    backgroundColor: "#13131461",
-    borderColor: "#8e918f1f",
+    backgroundColor: "#f8f8f8",
+    borderColor: "#dadce0",
+    opacity: 0.6,
   },
   stateOverlay: {
     position: "absolute",
@@ -94,18 +100,17 @@ const stubBtnStyles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   stateOverlayPressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    backgroundColor: "rgba(0, 0, 0, 0.06)",
   },
   contentWrapper: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   label: {
     flex: 1,
-    fontSize: 14,
-    color: "#e3e3e3",
+    fontSize: 15,
+    color: "#3c4043",
     letterSpacing: 0.25,
     textAlign: "center",
   },
