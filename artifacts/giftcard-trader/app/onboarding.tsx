@@ -8,6 +8,7 @@ import {
   ScrollView,
   Animated,
   Platform,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -17,7 +18,9 @@ import Svg, {
   Path, Circle, Rect, Defs,
   LinearGradient as SvgGrad, Stop, G, Ellipse,
 } from "react-native-svg";
-import { hapticLight, hapticSuccess } from "@/utils/haptics";
+import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/utils/haptics";
+import { GoogleSignin, GoogleSigninButton, statusCodes } from "@/utils/google-auth";
+import * as SecureStore from "@/utils/secure-store";
 
 const { width: W } = Dimensions.get("window");
 const LAST = 2; // SLIDES.length - 1
@@ -179,15 +182,26 @@ export default function OnboardingScreen() {
 
   // Single source of truth for active slide — only updates when scroll fully settles
   const [activeIdx, setActiveIdx] = useState(0);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Tracks whether we're on the last slide for button logic
   const isLast = activeIdx === LAST;
   const slide = SLIDES[activeIdx];
 
   // ── Cross-fade animated values for CTA button labels ──────────────────────
-  const ctaNextOpacity  = useRef(new Animated.Value(1)).current;
-  const ctaLastOpacity  = useRef(new Animated.Value(0)).current;
+  const ctaNextOpacity   = useRef(new Animated.Value(1)).current;
+  const ctaLastOpacity   = useRef(new Animated.Value(0)).current;
   const loginLinkOpacity = useRef(new Animated.Value(0)).current;
+  const googleBtnOpacity = useRef(new Animated.Value(0)).current;
+
+  // Configure Google Sign-In SDK once on mount
+  useEffect(() => {
+    GoogleSignin.configure({
+      scopes: ["profile", "email"],
+      // webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+      // iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    });
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -197,6 +211,11 @@ export default function OnboardingScreen() {
         useNativeDriver: true,
       }),
       Animated.timing(ctaLastOpacity, {
+        toValue: isLast ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(googleBtnOpacity, {
         toValue: isLast ? 1 : 0,
         duration: 300,
         useNativeDriver: true,
@@ -241,6 +260,50 @@ export default function OnboardingScreen() {
     hapticLight();
     router.replace("/auth");
   }, []);
+
+  // ── Continue with Google — primary entry point before login/signup choice ──
+  const handleGoogleSignIn = useCallback(async () => {
+    if (googleLoading) return;
+    hapticMedium();
+    setGoogleLoading(true);
+    try {
+      const response = await GoogleSignin.signIn();
+      if (response.type === "success") {
+        const { idToken, user } = response.data;
+
+        // Send idToken to backend for server-side verification with Google.
+        //
+        // const res = await fetch("/api/auth/google", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({ idToken }),
+        // });
+        // const { sessionToken } = await res.json();
+        //
+        // Store only the application session token — not Google credentials.
+        // await SecureStore.setItemAsync("session_token", sessionToken);
+
+        // TODO: remove placeholder once backend is wired up
+        await SecureStore.setItemAsync("google_user_id", user.id);
+
+        hapticSuccess();
+        router.replace("/(tabs)");
+      }
+      // response.type === "cancelled" — user dismissed, no action needed
+    } catch (e: any) {
+      const code = e?.code ?? "";
+      if (code !== statusCodes.SIGN_IN_CANCELLED && code !== statusCodes.IN_PROGRESS) {
+        hapticError();
+        Alert.alert(
+          "Sign in failed",
+          "Unable to continue with Google. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [googleLoading]);
 
   return (
     <View style={s.root}>
@@ -349,6 +412,20 @@ export default function OnboardingScreen() {
             </Animated.View>
           </LinearGradient>
         </TouchableOpacity>
+
+        {/* "Continue with Google" — fades in on last slide as primary social entry */}
+        <Animated.View
+          style={[s.googleBtnWrap, { opacity: googleBtnOpacity }]}
+          pointerEvents={isLast ? "auto" : "none"}
+        >
+          <GoogleSigninButton
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading}
+            loading={googleLoading}
+            label="Continue with Google"
+            style={s.googleBtn}
+          />
+        </Animated.View>
 
         {/* "Log in" link — always rendered, cross-fades in on last slide */}
         <Animated.View
@@ -472,7 +549,10 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
 
-  loginLinkWrap: { marginTop: 16, height: 22, alignItems: "center" },
+  googleBtnWrap: { width: "100%", marginTop: 12 },
+  googleBtn: { width: "100%", height: 44 },
+
+  loginLinkWrap: { marginTop: 14, height: 22, alignItems: "center" },
   alreadyText: {
     fontSize: 14,
     color: "rgba(255,255,255,0.6)",
