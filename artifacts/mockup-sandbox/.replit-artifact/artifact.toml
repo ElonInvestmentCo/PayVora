@@ -1,5 +1,5 @@
 kind = "design"
-previewPath = "/__mockup"
+# previewPath excluded — mockup sandbox does not need a preview tab
 title = "Canvas"
 version = "1.0.0"
 id = "XegfDyZt7HqfW2Bb8Ghoy"
