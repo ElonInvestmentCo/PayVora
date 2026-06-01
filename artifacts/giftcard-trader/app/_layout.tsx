@@ -46,7 +46,7 @@ function SyncDarkMode() {
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#0C38C0" } }}>
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ headerShown: false, animation: "none" }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade" }} />
       <Stack.Screen name="auth" options={{ headerShown: false, animation: "slide_from_bottom" }} />
@@ -137,7 +137,7 @@ export default function RootLayout() {
   // On native, custom fonts must be loaded before any text renders or the UI
   // will flash with system fonts, so we hold with a dark placeholder.
   if (!fontsLoaded && !fontError && Platform.OS !== "web") {
-    return <View style={{ flex: 1, backgroundColor: "#0C38C0" }} />;
+    return <View style={{ flex: 1, backgroundColor: "#0A1428" }} />;
   }
 
   return (

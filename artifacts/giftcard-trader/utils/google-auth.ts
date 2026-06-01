@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-import {
-  NativeModules,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
+import React from "react";
+import { NativeModules, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 
 const stubStatusCodes = {
   SIGN_IN_CANCELLED: "SIGN_IN_CANCELLED",
@@ -23,102 +16,37 @@ const stubGoogleSignin = {
   hasPlayServices: async () => true,
 };
 
-function StubGoogleSigninButton({ onPress, disabled, style, loading, label = "Sign in with Google" }: any) {
-  const [pressed, setPressed] = useState(false);
-
+function StubGoogleSigninButton({ disabled, style, loading }: any) {
   return React.createElement(
-    Pressable,
+    TouchableOpacity,
     {
-      onPress,
       disabled: disabled || loading,
-      onPressIn: () => setPressed(true),
-      onPressOut: () => setPressed(false),
-      style: [
-        stubBtnStyles.btn,
-        (disabled || loading) && stubBtnStyles.btnDisabled,
-        style,
-      ],
+      activeOpacity: 0.82,
+      style: [stubBtnStyles.btn, disabled && stubBtnStyles.disabled, style],
     },
-    React.createElement(View, {
-      style: [
-        stubBtnStyles.stateOverlay,
-        pressed && stubBtnStyles.stateOverlayPressed,
-      ],
-      pointerEvents: "none",
-    }),
-    React.createElement(
-      View,
-      { style: stubBtnStyles.contentWrapper },
-      loading
-        ? React.createElement(ActivityIndicator, {
-            size: "small",
-            color: "#3c4043",
-            style: stubBtnStyles.spinner,
-          })
-        : React.createElement(
-            Text,
-            {
-              style: [
-                stubBtnStyles.label,
-                (disabled || loading) && stubBtnStyles.labelDisabled,
-              ],
-              numberOfLines: 1,
-            },
-            label
-          )
-    )
+    loading
+      ? React.createElement(ActivityIndicator, { size: "small", color: "#1F1F1F" })
+      : React.createElement(Text, { style: stubBtnStyles.label }, "Sign in with Google")
   );
 }
 
 const stubBtnStyles = StyleSheet.create({
   btn: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#dadce0",
-    borderRadius: 10,
-    height: 48,
-    overflow: "hidden",
-    position: "relative",
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  btnDisabled: {
-    backgroundColor: "#f8f8f8",
-    borderColor: "#dadce0",
-    opacity: 0.6,
-  },
-  stateOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "transparent",
-  },
-  stateOverlayPressed: {
-    backgroundColor: "rgba(0, 0, 0, 0.06)",
-  },
-  contentWrapper: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#747775",
+    borderRadius: 4,
+    height: 44,
+    overflow: "hidden",
   },
+  disabled: { opacity: 0.6 },
   label: {
-    flex: 1,
-    fontSize: 15,
-    color: "#3c4043",
+    fontSize: 14,
+    color: "#1F1F1F",
     letterSpacing: 0.25,
-    textAlign: "center",
-  },
-  labelDisabled: {
-    opacity: 0.38,
-  },
-  spinner: {
-    flex: 1,
   },
 });
 
