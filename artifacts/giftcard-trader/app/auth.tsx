@@ -12,7 +12,6 @@ import {
   Pressable,
   ActivityIndicator,
   Dimensions,
-  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -635,13 +634,6 @@ export default function AuthScreen() {
             <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
               <Text style={styles.socialLabel}>🔍  Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.85} style={styles.appleBtnWrap}>
-              <Image
-                source={require("@/assets/images/sign-in-with-apple.png")}
-                style={styles.appleSignInImg}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
           </View>
 
           {/* Bottom switch */}
@@ -752,16 +744,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: "#334155",
-  },
-
-  appleBtnWrap: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  appleSignInImg: {
-    width: 44,
-    height: 44,
   },
 
   switchRow: {
