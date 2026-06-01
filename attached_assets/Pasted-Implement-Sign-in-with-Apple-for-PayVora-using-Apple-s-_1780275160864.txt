@@ -1,0 +1,89 @@
+Implement Sign in with Apple for PayVora using Apple’s official AuthenticationServices framework and Expo’s native expo-apple-authentication package.
+
+Requirements:
+
+1. Remove any custom Apple login buttons, icon-only buttons, or redesigned Apple branding.
+2. Use ONLY Apple’s native authentication UI:
+    * AppleAuthenticationButton (Expo)
+    * ASAuthorizationAppleIDButton (native iOS equivalent)
+3. Follow Apple’s Human Interface Guidelines exactly.
+4. The Apple Sign In button must appear above or before alternative login methods.
+5. Do not modify Apple’s colors, logo, typography, or button styling.
+
+Authentication Flow:
+
+* User taps native Apple Sign In button.
+* Call AppleAuthentication.signInAsync().
+* Request:
+    * FULL_NAME
+    * EMAIL
+* Handle:
+    * Successful authentication
+    * User cancellation
+    * Authentication failures
+    * Network failures
+* Retrieve:
+    * user identifier
+    * email (when provided)
+    * full name (when provided)
+    * identityToken
+    * authorizationCode
+
+Backend Flow:
+
+* Send identityToken and authorizationCode to the backend.
+* Verify credentials with Apple’s servers.
+* Automatically create a new account if one does not exist.
+* Automatically sign in existing users.
+* Use a single unified login/signup flow.
+
+Secure Storage:
+
+* Do NOT store Apple credentials locally.
+* Store only the application’s authenticated session token.
+* Use expo-secure-store for session persistence.
+
+Platform Requirements:
+
+* Render Apple Sign In only on iOS.
+* Use Platform.OS === ‘ios’.
+* Hide Apple Sign In completely on Android and Web.
+* Prevent unsupported platform imports from crashing the application.
+
+Expo Configuration:
+
+app.json
+
+{
+“expo”: {
+“ios”: {
+“usesAppleSignIn”: true
+},
+“plugins”: [
+“expo-apple-authentication”
+]
+}
+}
+
+Important Stability Fix:
+
+* Remove Metro workarounds that were added solely to resolve expo-apple-authentication imports.
+* Remove unnecessary watchFolders, custom pnpm resolver hacks, and nodeModulesPaths overrides unless required elsewhere.
+* Ensure only one React instance is loaded.
+* Verify that root layout rendering, font loading, splash screen rendering, and navigation work correctly after implementation.
+
+Blank Screen Investigation:
+
+If the application still renders a blank screen:
+
+1. Check root layout font loading logic.
+2. Verify useFonts() resolves correctly.
+3. Confirm no component returns null indefinitely.
+4. Inspect runtime errors before auth screen rendering.
+5. Verify LinearGradient and splash components render correctly.
+6. Confirm Metro is not loading duplicate React packages.
+7. Confirm platform-specific Apple authentication imports do not execute on Web or Android.
+
+Goal:
+
+Implement a fully compliant Apple Sign In experience using Apple’s native authentication system while restoring application stability and eliminating the blank-screen issue.

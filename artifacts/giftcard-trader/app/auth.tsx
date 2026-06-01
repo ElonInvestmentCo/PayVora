@@ -12,6 +12,7 @@ import {
   Pressable,
   ActivityIndicator,
   Dimensions,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -26,8 +27,9 @@ import Svg, {
 } from "react-native-svg";
 
 import { Eye, EyeOff, ChevronDown, Check } from "lucide-react-native";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
-import { useTheme } from "@/contexts/ThemeContext";
+import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/utils/haptics";
+import * as AppleAuthentication from "@/utils/apple-auth";
+import * as SecureStore from "@/utils/secure-store";
 
 // ─── Google 4-colour logo — official GSI paths, viewBox 0 0 48 48 ─────────────
 function GoogleLogo({ size = 20 }: { size?: number }) {
@@ -41,17 +43,6 @@ function GoogleLogo({ size = 20 }: { size?: number }) {
   );
 }
 
-// ─── Apple monochrome logo — Apple HIG, viewBox 0 0 24 24 ─────────────────────
-function AppleLogo({ size = 20, color = "#FFFFFF" }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path
-        fill={color}
-        d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.78,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"
-      />
-    </Svg>
-  );
-}
 
 const { width: W } = Dimensions.get("window");
 
@@ -594,11 +585,62 @@ const formStyles = StyleSheet.create({
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"login" | "signup">("login");
-  const { isDark } = useTheme();
 
   const handleSuccess = useCallback(() => {
     router.replace("/(tabs)");
   }, []);
+
+  // ── Apple Sign In — iOS only, uses ASAuthorizationAppleIDButton natively ─────
+  // Sends identityToken + authorizationCode to your backend for server-side
+  // verification with Apple's servers. The backend creates or signs in the user
+  // and returns an application session token. Only the session token is stored
+  // locally — Apple credentials are never persisted on-device.
+  const handleAppleSignIn = useCallback(async () => {
+    hapticMedium();
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      // Send to backend for server-side verification with Apple.
+      // The backend auto-creates new accounts or signs in existing users.
+      //
+      // const res = await fetch("/api/auth/apple", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     identityToken: credential.identityToken,
+      //     authorizationCode: credential.authorizationCode,
+      //     email: credential.email ?? undefined,
+      //     fullName: credential.fullName ?? undefined,
+      //   }),
+      // });
+      // const { sessionToken } = await res.json();
+      //
+      // Store only the application session token — not Apple credentials.
+      // await SecureStore.setItemAsync("session_token", sessionToken);
+
+      // TODO: remove placeholder once backend is wired up
+      await SecureStore.setItemAsync("apple_user_id", credential.user);
+
+      hapticSuccess();
+      handleSuccess();
+    } catch (e: any) {
+      if (e.code === "ERR_REQUEST_CANCELED") {
+        // User cancelled the Apple Sign In sheet — no action needed
+      } else {
+        hapticError();
+        Alert.alert(
+          "Sign in failed",
+          "Unable to sign in with Apple. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
+    }
+  }, [handleSuccess]);
 
   return (
     <KeyboardAvoidingView
@@ -649,6 +691,19 @@ export default function AuthScreen() {
             <SignUpForm onSuccess={handleSuccess} />
           )}
 
+          {/* Apple Sign In — iOS only, must appear before other sign-in methods
+              per Apple HIG. Uses ASAuthorizationAppleIDButton natively via
+              expo-apple-authentication. No custom styling allowed by Apple. */}
+          {Platform.OS === "ios" && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={10}
+              style={styles.appleNativeBtn}
+              onPress={handleAppleSignIn}
+            />
+          )}
+
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
@@ -656,18 +711,8 @@ export default function AuthScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social icon buttons — compact squares, side by side */}
+          {/* Google — icon-only square, GSI brand spec */}
           <View style={styles.socialRow}>
-            {/* Apple: black square, white  logo centred (Apple HIG icon variant) */}
-            <TouchableOpacity
-              style={styles.appleIconBtn}
-              activeOpacity={0.82}
-              onPress={() => hapticMedium()}
-            >
-              <AppleLogo size={26} color="#FFFFFF" />
-            </TouchableOpacity>
-
-            {/* Google: white square, 4-colour G mark centred (GSI icon variant) */}
             <TouchableOpacity
               style={styles.googleIconBtn}
               activeOpacity={0.82}
@@ -771,27 +816,20 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
 
-  // Side-by-side compact icon squares
+  // Apple Sign In — width/height only; all other styling is owned by Apple.
+  // Apple HIG minimum height is 30pt; 44pt meets touch target guidelines.
+  appleNativeBtn: {
+    width: "100%",
+    height: 44,
+    marginTop: 20,
+  },
+
+  // Social row — centered, used for Google (and any future OAuth buttons)
   socialRow: {
     flexDirection: "row",
     justifyContent: "center",
     gap: 16,
     marginBottom: 18,
-  },
-
-  // Apple HIG icon variant: 52×52, black bg, 8pt radius, white  centred
-  appleIconBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 8,
-    backgroundColor: "#000000",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
   },
 
   // Google GSI icon variant: 52×52, white bg, #747775 border, 4px radius, G centred

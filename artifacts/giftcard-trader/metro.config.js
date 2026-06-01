@@ -12,7 +12,6 @@ config.server = {
       changeOrigin: true,
       pathRewrite: { "^/proxy-api": "/api" },
     });
-
     return (req, res, next) => {
       if (req.url && req.url.startsWith("/proxy-api")) {
         return proxy(req, res, next);

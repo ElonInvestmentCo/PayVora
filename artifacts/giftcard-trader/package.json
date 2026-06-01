@@ -61,7 +61,9 @@
   "dependencies": {
     "@tamagui/config": "2.0.0-rc.36",
     "@tamagui/focus-scope": "2.0.0-rc.36",
+    "expo-apple-authentication": "^8.0.8",
     "expo-clipboard": "^56.0.3",
+    "expo-secure-store": "^15.0.8",
     "http-proxy-middleware": "^3.0.5",
     "tamagui": "2.0.0-rc.36"
   }

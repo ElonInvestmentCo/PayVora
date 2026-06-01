@@ -1,0 +1,70 @@
+Implement Sign in with Google for PayVora using Google’s official authentication system and Expo-compatible Google Sign-In package.
+
+Requirements:
+
+1. Remove any custom Google login buttons, icon-only buttons, or redesigned Google branding.
+2. Use ONLY Google’s official Sign In button design and branding.
+3. Follow Google’s Branding Guidelines exactly.
+4. The Google Sign In button must use Google’s approved logo, spacing, typography, colors, and sizing.
+5. Do not modify Google’s logo, colors, typography, border radius, or branding elements.
+6. Do not create custom Google icon-only authentication buttons.
+
+Authentication Flow:
+
+* User taps Google Sign In button.
+* Launch Google’s native authentication flow.
+* Request:
+    * Profile
+    * Email
+* Handle:
+    * Successful authentication
+    * User cancellation
+    * Authentication failures
+    * Network failures
+* Retrieve:
+    * Google User ID
+    * Email
+    * Full Name
+    * Profile Photo (if provided)
+    * ID Token
+    * Access Token (if required)
+
+Backend Flow:
+
+* Send the Google ID Token to the backend.
+* Verify the token with Google’s authentication services.
+* Automatically create a new account if one does not exist.
+* Automatically sign in existing users.
+* Use a single unified login/signup flow.
+
+Secure Storage:
+
+* Do NOT store Google credentials locally.
+* Do NOT store refresh tokens insecurely.
+* Store only the application’s authenticated session token.
+* Use expo-secure-store for session persistence.
+
+Platform Requirements:
+
+* Support iOS and Android.
+* Gracefully handle Web if enabled.
+* Prevent unsupported platform imports from crashing the application.
+* Use platform-specific implementations where necessary.
+
+UI Requirements:
+
+* Display the Google Sign In button using Google’s official appearance.
+* Maintain consistent spacing with other authentication methods.
+* Place Google Sign In below the Apple Sign In button on iOS.
+* On Android, Google Sign In may be the primary social authentication option.
+
+Important Stability Requirements:
+
+* Avoid custom Metro workarounds unless required.
+* Avoid duplicate React instances.
+* Verify authentication packages do not break routing, splash screen rendering, font loading, or application startup.
+* Ensure authentication imports do not cause blank-screen issues on unsupported platforms.
+
+Goal:
+
+Implement a fully compliant Google Sign In experience using Google’s official authentication flow while maintaining application stability, secure credential handling, and a seamless unified login/signup experience.
