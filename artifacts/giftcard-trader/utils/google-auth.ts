@@ -1,5 +1,12 @@
-import React from "react";
-import { NativeModules, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import React, { useState } from "react";
+import {
+  NativeModules,
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 
 const stubStatusCodes = {
   SIGN_IN_CANCELLED: "SIGN_IN_CANCELLED",
@@ -16,37 +23,97 @@ const stubGoogleSignin = {
   hasPlayServices: async () => true,
 };
 
-function StubGoogleSigninButton({ disabled, style, loading }: any) {
+function StubGoogleSigninButton({ onPress, disabled, style, loading }: any) {
+  const [pressed, setPressed] = useState(false);
+
   return React.createElement(
-    TouchableOpacity,
+    Pressable,
     {
+      onPress,
       disabled: disabled || loading,
-      activeOpacity: 0.82,
-      style: [stubBtnStyles.btn, disabled && stubBtnStyles.disabled, style],
+      onPressIn: () => setPressed(true),
+      onPressOut: () => setPressed(false),
+      style: [
+        stubBtnStyles.btn,
+        (disabled || loading) && stubBtnStyles.btnDisabled,
+        style,
+      ],
     },
-    loading
-      ? React.createElement(ActivityIndicator, { size: "small", color: "#1F1F1F" })
-      : React.createElement(Text, { style: stubBtnStyles.label }, "Sign in with Google")
+    React.createElement(View, {
+      style: [
+        stubBtnStyles.stateOverlay,
+        pressed && stubBtnStyles.stateOverlayPressed,
+      ],
+      pointerEvents: "none",
+    }),
+    React.createElement(
+      View,
+      { style: stubBtnStyles.contentWrapper },
+      loading
+        ? React.createElement(ActivityIndicator, {
+            size: "small",
+            color: "#e3e3e3",
+            style: stubBtnStyles.spinner,
+          })
+        : React.createElement(
+            Text,
+            {
+              style: [
+                stubBtnStyles.label,
+                (disabled || loading) && stubBtnStyles.labelDisabled,
+              ],
+              numberOfLines: 1,
+            },
+            "Sign in with Google"
+          )
+    )
   );
 }
 
 const stubBtnStyles = StyleSheet.create({
   btn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#131314",
     borderWidth: 1,
-    borderColor: "#747775",
+    borderColor: "#8e918f",
     borderRadius: 4,
     height: 44,
     overflow: "hidden",
+    position: "relative",
+    paddingHorizontal: 12,
   },
-  disabled: { opacity: 0.6 },
+  btnDisabled: {
+    backgroundColor: "#13131461",
+    borderColor: "#8e918f1f",
+  },
+  stateOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "transparent",
+  },
+  stateOverlayPressed: {
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+  },
+  contentWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   label: {
+    flex: 1,
     fontSize: 14,
-    color: "#1F1F1F",
+    color: "#e3e3e3",
     letterSpacing: 0.25,
+    textAlign: "center",
+  },
+  labelDisabled: {
+    opacity: 0.38,
+  },
+  spinner: {
+    flex: 1,
   },
 });
 
