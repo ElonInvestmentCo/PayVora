@@ -1,0 +1,2 @@
+- [Google Sign-In platform stubs](google-signin-stubs.md) — native .ts re-exports from package; web stub is .tsx (must be .tsx not .ts for JSX); GoogleSigninButton crashes on web if imported directly
+- [Auth screen blank-screen fix](auth-blank-screen.md) — _layout.tsx returned null during useFonts; web skips font guard (Platform.OS !== "web"), native holds with dark placeholder

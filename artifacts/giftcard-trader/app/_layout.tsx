@@ -11,7 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -132,7 +132,11 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) {
+  // On web, browsers apply fallback fonts immediately and swap to custom fonts
+  // when they arrive — no need to block the entire render tree.
+  // On native, custom fonts must be loaded before any text renders or the UI
+  // will flash with system fonts, so we hold with a dark placeholder.
+  if (!fontsLoaded && !fontError && Platform.OS !== "web") {
     return <View style={{ flex: 1, backgroundColor: "#0A1428" }} />;
   }
 

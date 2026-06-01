@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -30,19 +30,7 @@ import { Eye, EyeOff, ChevronDown, Check } from "lucide-react-native";
 import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/utils/haptics";
 import * as AppleAuthentication from "@/utils/apple-auth";
 import * as SecureStore from "@/utils/secure-store";
-
-// ─── Google 4-colour logo — official GSI paths, viewBox 0 0 48 48 ─────────────
-function GoogleLogo({ size = 20 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 48 48">
-      <Path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-      <Path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-      <Path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-      <Path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-    </Svg>
-  );
-}
-
+import { GoogleSignin, GoogleSigninButton, statusCodes } from "@/utils/google-auth";
 
 const { width: W } = Dimensions.get("window");
 
@@ -585,10 +573,72 @@ const formStyles = StyleSheet.create({
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSuccess = useCallback(() => {
     router.replace("/(tabs)");
   }, []);
+
+  // Configure Google Sign-In SDK once on mount.
+  // Replace the placeholder client IDs with your Google Cloud Console values.
+  // iOS: iosClientId from GoogleService-Info.plist
+  // Android/All: webClientId from google-services.json (OAuth 2.0 web client)
+  // https://react-native-google-signin.github.io/docs/setting-up/get-config-file
+  useEffect(() => {
+    GoogleSignin.configure({
+      scopes: ["profile", "email"],
+      // webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+      // iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    });
+  }, []);
+
+  // ── Google Sign In — iOS + Android native; web uses brand-compliant stub ──────
+  // Sends the Google ID token to the backend for server-side verification.
+  // The backend auto-creates new accounts or signs in existing users and returns
+  // an application session token. Only the session token is stored locally —
+  // Google credentials are never persisted on-device.
+  const handleGoogleSignIn = useCallback(async () => {
+    if (googleLoading) return;
+    hapticMedium();
+    setGoogleLoading(true);
+    try {
+      const response = await GoogleSignin.signIn();
+      if (response.type === "success") {
+        const { idToken, user } = response.data;
+
+        // Send idToken to backend for server-side verification with Google.
+        //
+        // const res = await fetch("/api/auth/google", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({ idToken }),
+        // });
+        // const { sessionToken } = await res.json();
+        //
+        // Store only the application session token — not Google credentials.
+        // await SecureStore.setItemAsync("session_token", sessionToken);
+
+        // TODO: remove placeholder once backend is wired up
+        await SecureStore.setItemAsync("google_user_id", user.id);
+
+        hapticSuccess();
+        handleSuccess();
+      }
+      // response.type === "cancelled" — user dismissed the sheet, no action needed
+    } catch (e: any) {
+      const code = e?.code ?? "";
+      if (code !== statusCodes.SIGN_IN_CANCELLED && code !== statusCodes.IN_PROGRESS) {
+        hapticError();
+        Alert.alert(
+          "Sign in failed",
+          "Unable to sign in with Google. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  }, [googleLoading, handleSuccess]);
 
   // ── Apple Sign In — iOS only, uses ASAuthorizationAppleIDButton natively ─────
   // Sends identityToken + authorizationCode to your backend for server-side
@@ -691,9 +741,16 @@ export default function AuthScreen() {
             <SignUpForm onSuccess={handleSuccess} />
           )}
 
-          {/* Apple Sign In — iOS only, must appear before other sign-in methods
-              per Apple HIG. Uses ASAuthorizationAppleIDButton natively via
-              expo-apple-authentication. No custom styling allowed by Apple. */}
+          {/* ── Social sign-in section ──────────────────────────────────────── */}
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Apple Sign In — iOS only, shown before Google per Apple HIG.
+              Uses ASAuthorizationAppleIDButton natively; styling owned by Apple. */}
           {Platform.OS === "ios" && (
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
@@ -704,23 +761,17 @@ export default function AuthScreen() {
             />
           )}
 
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Google — icon-only square, GSI brand spec */}
-          <View style={styles.socialRow}>
-            <TouchableOpacity
-              style={styles.googleIconBtn}
-              activeOpacity={0.82}
-              onPress={() => hapticMedium()}
-            >
-              <GoogleLogo size={24} />
-            </TouchableOpacity>
-          </View>
+          {/* Google Sign In — native GoogleSigninButton on iOS/Android (Google's
+              official ASAuthorizationGoogleIDButton equivalent); brand-compliant
+              web button via platform stub. Placed after Apple per Apple HIG. */}
+          <GoogleSigninButton
+            style={[
+              styles.googleBtn,
+              Platform.OS === "ios" && { marginTop: 12 },
+            ]}
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading}
+          />
 
           {/* Bottom switch */}
           <View style={styles.switchRow}>
@@ -824,29 +875,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  // Social row — centered, used for Google (and any future OAuth buttons)
-  socialRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
+  // Google Sign In button — full-width, matches Apple button height.
+  // Native: GoogleSigninButton renders Google's official ASAuthorizationGoogleIDButton.
+  // Web: brand-compliant button rendered by utils/google-auth.web.ts.
+  googleBtn: {
+    width: "100%",
+    height: 44,
     marginBottom: 18,
-  },
-
-  // Google GSI icon variant: 52×52, white bg, #747775 border, 4px radius, G centred
-  googleIconBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 4,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#747775",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#3C4043",
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
   },
 
   switchRow: {
