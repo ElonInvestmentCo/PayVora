@@ -25,7 +25,12 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
-function GoogleLogo({ size = 18 }: { size?: number }) {
+import { Eye, EyeOff, ChevronDown, Check } from "lucide-react-native";
+import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
+import { useTheme } from "@/contexts/ThemeContext";
+
+// ─── Google 4-colour logo — official GSI paths, viewBox 0 0 48 48 ─────────────
+function GoogleLogo({ size = 20 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48">
       <Path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -35,8 +40,18 @@ function GoogleLogo({ size = 18 }: { size?: number }) {
     </Svg>
   );
 }
-import { Eye, EyeOff, ChevronDown, Check } from "lucide-react-native";
-import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
+
+// ─── Apple monochrome logo — Apple HIG, viewBox 0 0 24 24 ─────────────────────
+function AppleLogo({ size = 20, color = "#FFFFFF" }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        fill={color}
+        d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.78,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"
+      />
+    </Svg>
+  );
+}
 
 const { width: W } = Dimensions.get("window");
 
@@ -579,6 +594,7 @@ const formStyles = StyleSheet.create({
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const { isDark } = useTheme();
 
   const handleSuccess = useCallback(() => {
     router.replace("/(tabs)");
@@ -640,11 +656,27 @@ export default function AuthScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social buttons */}
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.googleBtn} activeOpacity={0.8}>
+          {/* Social buttons — one button each, handles both sign-in & sign-up */}
+          {/* Auth card is always white, so buttons always use their light variants */}
+          <View style={styles.socialStack}>
+            {/* Apple HIG: black button, white logo + text */}
+            <TouchableOpacity
+              style={styles.appleBtn}
+              activeOpacity={0.85}
+              onPress={() => hapticMedium()}
+            >
+              <AppleLogo size={20} color="#FFFFFF" />
+              <Text style={styles.appleBtnText}>Sign in with Apple</Text>
+            </TouchableOpacity>
+
+            {/* Google gsi-material-button: white bg, #747775 border */}
+            <TouchableOpacity
+              style={styles.googleBtn}
+              activeOpacity={0.8}
+              onPress={() => hapticMedium()}
+            >
               <View style={styles.googleIconWrap}>
-                <GoogleLogo size={18} />
+                <GoogleLogo size={20} />
               </View>
               <Text style={styles.googleBtnText}>Sign in with Google</Text>
             </TouchableOpacity>
@@ -744,9 +776,30 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
 
-  socialRow: { flexDirection: "row", marginBottom: 18 },
+  socialStack: { flexDirection: "column", gap: 12, marginBottom: 18 },
+
+  // Apple HIG: black button on white bg, min 44pt, SF-weight text, 6pt radius
+  appleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000000",
+    borderRadius: 6,
+    height: 44,
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  appleBtnDark: { backgroundColor: "#FFFFFF" },
+  appleBtnText: {
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
+    letterSpacing: -0.4,
+  },
+  appleBtnTextDark: { color: "#000000" },
+
+  // Google gsi-material-button spec: white bg, #747775 border, 4px radius, 40px
   googleBtn: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -758,12 +811,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 10,
   },
-  googleIconWrap: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  googleBtnDark: { backgroundColor: "#131314", borderColor: "#8E918F" },
+  googleIconWrap: { width: 20, height: 20, alignItems: "center", justifyContent: "center" },
   googleBtnText: {
     flexGrow: 1,
     fontSize: 14,
@@ -771,6 +820,7 @@ const styles = StyleSheet.create({
     color: "#1F1F1F",
     letterSpacing: 0.25,
   },
+  googleBtnTextDark: { color: "#E3E3E3" },
 
   switchRow: {
     flexDirection: "row",
