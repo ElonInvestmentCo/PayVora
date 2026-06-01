@@ -23,7 +23,7 @@ const stubGoogleSignin = {
   hasPlayServices: async () => true,
 };
 
-function StubGoogleSigninButton({ onPress, disabled, style, loading }: any) {
+function StubGoogleSigninButton({ onPress, disabled, style, loading, label = "Sign in with Google" }: any) {
   const [pressed, setPressed] = useState(false);
 
   return React.createElement(
@@ -64,7 +64,7 @@ function StubGoogleSigninButton({ onPress, disabled, style, loading }: any) {
               ],
               numberOfLines: 1,
             },
-            "Sign in with Google"
+            label
           )
     )
   );

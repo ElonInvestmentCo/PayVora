@@ -54,6 +54,7 @@ interface GoogleSigninButtonProps {
   size?: number | string;
   color?: string;
   loading?: boolean;
+  label?: string;
 }
 
 export function GoogleSigninButton({
@@ -61,6 +62,7 @@ export function GoogleSigninButton({
   disabled,
   style,
   loading,
+  label = "Sign in with Google",
 }: GoogleSigninButtonProps) {
   const [pressed, setPressed] = useState(false);
 
@@ -112,7 +114,7 @@ export function GoogleSigninButton({
             ]}
             numberOfLines={1}
           >
-            Sign in with Google
+            {label}
           </Text>
         )}
       </View>

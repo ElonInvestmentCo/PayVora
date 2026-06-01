@@ -771,6 +771,7 @@ export default function AuthScreen() {
             ]}
             onPress={handleGoogleSignIn}
             disabled={googleLoading}
+            label={tab === "signup" ? "Sign up with Google" : "Sign in with Google"}
           />
 
           {/* Bottom switch */}
