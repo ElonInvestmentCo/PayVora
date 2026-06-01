@@ -51,7 +51,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=5000 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_REPL_ID=$REPL_ID REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_EXPO_DEV_DOMAIN pnpm --filter @workspace/giftcard-trader exec expo start --lan --port 5000 --clear"
+args = "PORT=5000 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_REPL_ID=$REPL_ID REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_EXPO_DEV_DOMAIN pnpm --filter @workspace/giftcard-trader exec expo start --web --port 5000 --clear"
 waitForPort = 5000
 
 [agent]
@@ -64,6 +64,7 @@ timeoutMs = 20000
 
 [nix]
 packages = ["nano"]
+channel = "stable-25_05"
 
 [[ports]]
 localPort = 5000
