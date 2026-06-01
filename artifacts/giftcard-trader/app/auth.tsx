@@ -656,29 +656,24 @@ export default function AuthScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          {/* Social buttons — one button each, handles both sign-in & sign-up */}
-          {/* Auth card is always white, so buttons always use their light variants */}
-          <View style={styles.socialStack}>
-            {/* Apple HIG: black button, white logo + text */}
+          {/* Social icon buttons — compact squares, side by side */}
+          <View style={styles.socialRow}>
+            {/* Apple: black square, white  logo centred (Apple HIG icon variant) */}
             <TouchableOpacity
-              style={styles.appleBtn}
-              activeOpacity={0.85}
+              style={styles.appleIconBtn}
+              activeOpacity={0.82}
               onPress={() => hapticMedium()}
             >
-              <AppleLogo size={20} color="#FFFFFF" />
-              <Text style={styles.appleBtnText}>Sign in with Apple</Text>
+              <AppleLogo size={26} color="#FFFFFF" />
             </TouchableOpacity>
 
-            {/* Google gsi-material-button: white bg, #747775 border */}
+            {/* Google: white square, 4-colour G mark centred (GSI icon variant) */}
             <TouchableOpacity
-              style={styles.googleBtn}
-              activeOpacity={0.8}
+              style={styles.googleIconBtn}
+              activeOpacity={0.82}
               onPress={() => hapticMedium()}
             >
-              <View style={styles.googleIconWrap}>
-                <GoogleLogo size={20} />
-              </View>
-              <Text style={styles.googleBtnText}>Sign in with Google</Text>
+              <GoogleLogo size={24} />
             </TouchableOpacity>
           </View>
 
@@ -776,51 +771,45 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
 
-  socialStack: { flexDirection: "column", gap: 12, marginBottom: 18 },
-
-  // Apple HIG: black button on white bg, min 44pt, SF-weight text, 6pt radius
-  appleBtn: {
+  // Side-by-side compact icon squares
+  socialRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    gap: 16,
+    marginBottom: 18,
+  },
+
+  // Apple HIG icon variant: 52×52, black bg, 8pt radius, white  centred
+  appleIconBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
     backgroundColor: "#000000",
-    borderRadius: 6,
-    height: 44,
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  appleBtnDark: { backgroundColor: "#FFFFFF" },
-  appleBtnText: {
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
-    letterSpacing: -0.4,
-  },
-  appleBtnTextDark: { color: "#000000" },
-
-  // Google gsi-material-button spec: white bg, #747775 border, 4px radius, 40px
-  googleBtn: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+
+  // Google GSI icon variant: 52×52, white bg, #747775 border, 4px radius, G centred
+  googleIconBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 4,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#747775",
-    borderRadius: 4,
-    height: 40,
-    paddingHorizontal: 12,
-    gap: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#3C4043",
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
-  googleBtnDark: { backgroundColor: "#131314", borderColor: "#8E918F" },
-  googleIconWrap: { width: 20, height: 20, alignItems: "center", justifyContent: "center" },
-  googleBtnText: {
-    flexGrow: 1,
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    color: "#1F1F1F",
-    letterSpacing: 0.25,
-  },
-  googleBtnTextDark: { color: "#E3E3E3" },
 
   switchRow: {
     flexDirection: "row",
