@@ -54,9 +54,6 @@ timeoutMs = 20000
 packages = ["nano"]
 channel = "stable-25_05"
 
-# ─────────────────────────────
-# PORT MAPPING
-# ─────────────────────────────
 [[ports]]
 localPort = 5000
 externalPort = 80
