@@ -1,19 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Platform,
-  KeyboardAvoidingView,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Platform, KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
-import { useNotifications } from "@/contexts/NotificationsContext";
+import { hapticLight } from "@/utils/haptics";
 
 interface Message {
   id: string;
@@ -44,154 +36,124 @@ const DEFAULT_RESPONSES = [
   "I understand your concern. Our team is working on this and I'll have an update for you shortly.",
   "That's a great question! Let me check our system and get back to you with the most accurate information.",
   "I've noted your issue. A specialist will review this and we'll follow up within 24 hours if needed.",
-  "Thanks for your patience! I'm pulling up your account details now to better assist you.",
 ];
 
 const INITIAL_MESSAGES: Message[] = [
-  { id: "1", text: "Hello! 👋 Welcome to GiftCard Trader support. How can I help you today?", sender: "agent", time: "10:00 AM" },
-  { id: "2", text: "I'm here 24/7 to assist with transactions, KYC, payments, cards, and more.", sender: "agent", time: "10:00 AM" },
+  { id: "1", sender: "agent", text: "Hi there! 👋 I'm Alex, your PayVora support agent. How can I help you today?", time: "10:00 AM", status: "read" },
+  { id: "2", sender: "agent", text: "You can ask me about transactions, account issues, KYC verification, or anything else. I'm here to help!", time: "10:00 AM", status: "read" },
 ];
 
-function getTimeNow(): string {
-  const d = new Date();
-  let h = d.getHours();
-  const m = d.getMinutes().toString().padStart(2, "0");
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
-}
-
-function StatusIcon({ status }: { status?: string }) {
-  if (!status) return null;
-  const color = status === "read" ? "#00E5FF" : status === "delivered" ? "#00FF88" : "#94A3B8";
-  return (
-    <View style={siStyles.row}>
-      {status === "read" || status === "delivered" ? (
-        <View style={siStyles.row}>
-          <Feather name="check" size={10} color={color} style={{ marginRight: -6 }} />
-          <Feather name="check" size={10} color={color} />
-        </View>
-      ) : (
-        <Feather name="check" size={10} color={color} />
-      )}
-    </View>
-  );
-}
-const siStyles = StyleSheet.create({ row: { flexDirection: "row", alignItems: "center" } });
+let idCount = 100;
+function genId() { return String(++idCount); }
 
 export default function SupportScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const botPad = isWeb ? 34 : insets.bottom;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const botPad = Platform.OS === "web" ? 34 : insets.bottom;
   const scrollRef = useRef<ScrollView>(null);
 
-  const { addNotification } = useNotifications();
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const nextId = useRef(3);
 
-  const scrollToEnd = useCallback(() => {
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-  }, []);
+  const getTime = () => {
+    const d = new Date();
+    return `${d.getHours()}:${d.getMinutes().toString().padStart(2, "0")} ${d.getHours() >= 12 ? "PM" : "AM"}`;
+  };
 
   const simulateReply = useCallback((userText: string) => {
     setTyping(true);
-    scrollToEnd();
-
-    const lower = userText.toLowerCase();
-    let reply = DEFAULT_RESPONSES[Math.floor(Math.random() * DEFAULT_RESPONSES.length)];
-    for (const [key, val] of Object.entries(AGENT_RESPONSES)) {
-      if (lower.includes(key)) { reply = val; break; }
-    }
-
     setTimeout(() => {
-      setMessages((prev) => prev.map((m) =>
-        m.sender === "user" && m.status === "sent" ? { ...m, status: "delivered" } : m
-      ));
-    }, 800);
-
-    setTimeout(() => {
-      setMessages((prev) => prev.map((m) =>
-        m.sender === "user" && m.status === "delivered" ? { ...m, status: "read" } : m
-      ));
-    }, 1500);
-
-    setTimeout(() => {
+      const key = Object.keys(AGENT_RESPONSES).find((k) => userText.toLowerCase().includes(k));
+      const text = key ? AGENT_RESPONSES[key] : DEFAULT_RESPONSES[Math.floor(Math.random() * DEFAULT_RESPONSES.length)];
       setTyping(false);
-      const id = String(nextId.current++);
-      setMessages((prev) => [...prev, { id, text: reply, sender: "agent", time: getTimeNow() }]);
-      addNotification({ title: "Support Reply", message: reply.slice(0, 80) + (reply.length > 80 ? "..." : ""), type: "info" });
-      scrollToEnd();
-    }, 2000 + Math.random() * 1500);
-  }, [scrollToEnd, addNotification]);
+      setMessages((prev) => [...prev, { id: genId(), sender: "agent", text, time: getTime(), status: "delivered" }]);
+    }, 1800 + Math.random() * 800);
+  }, []);
 
-  const handleSend = useCallback((text?: string) => {
-    const msg = (text || input).trim();
-    if (!msg) return;
-    const id = String(nextId.current++);
-    setMessages((prev) => [...prev, { id, text: msg, sender: "user", time: getTimeNow(), status: "sent" }]);
+  const handleSend = useCallback(() => {
+    if (!input.trim()) return;
+    hapticLight();
+    const text = input.trim();
     setInput("");
-    scrollToEnd();
-    simulateReply(msg);
-  }, [input, scrollToEnd, simulateReply]);
+    const msg: Message = { id: genId(), sender: "user", text, time: getTime(), status: "sent" };
+    setMessages((prev) => [...prev, msg]);
+    setTimeout(() => setMessages((prev) => prev.map((m) => m.id === msg.id ? { ...m, status: "delivered" } : m)), 800);
+    simulateReply(text);
+  }, [input, simulateReply]);
 
-  useEffect(() => { scrollToEnd(); }, []);
+  const handleQuickReply = useCallback((qr: string) => {
+    hapticLight();
+    const msg: Message = { id: genId(), sender: "user", text: qr, time: getTime(), status: "sent" };
+    setMessages((prev) => [...prev, msg]);
+    setTimeout(() => setMessages((prev) => prev.map((m) => m.id === msg.id ? { ...m, status: "delivered" } : m)), 800);
+    simulateReply(qr.toLowerCase());
+  }, [simulateReply]);
+
+  useEffect(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [messages, typing]);
 
   return (
-    <KeyboardAvoidingView style={[styles.root, { backgroundColor: colors.background }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={[s.root, { paddingTop: topPad }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+          <Text style={s.backArrow}>←</Text>
         </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Support Chat</Text>
-          <View style={styles.onlineRow}>
-            <View style={styles.onlineDot} />
-            <Text style={[styles.onlineText, { color: "#00FF88" }]}>Online</Text>
+        <View style={s.headerCenter}>
+          <View style={s.agentAvatar}>
+            <Text style={s.agentAvatarTxt}>A</Text>
+          </View>
+          <View>
+            <Text style={s.headerName}>Support Agent</Text>
+            <View style={s.onlineRow}>
+              <View style={s.onlineDot} />
+              <Text style={s.onlineTxt}>Online</Text>
+            </View>
           </View>
         </View>
-        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="more-vertical" size={18} color={colors.mutedForeground} />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Messages */}
       <ScrollView
         ref={scrollRef}
+        style={s.msgScroll}
+        contentContainerStyle={[s.msgContent, { paddingBottom: 12 }]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.chatContent, { paddingBottom: 10 }]}
-        keyboardShouldPersistTaps="handled"
       >
-        {/* Date separator */}
-        <View style={styles.dateSep}>
-          <View style={[styles.dateLine, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dateText, { color: colors.mutedForeground, backgroundColor: colors.background }]}>Today</Text>
-          <View style={[styles.dateLine, { backgroundColor: colors.border }]} />
+        {/* Date divider */}
+        <View style={s.dateDivider}>
+          <View style={s.dateLine} />
+          <Text style={s.dateTxt}>Today</Text>
+          <View style={s.dateLine} />
         </View>
 
         {messages.map((msg) => {
-          const isUser = msg.sender === "user";
+          const isAgent = msg.sender === "agent";
           return (
-            <View key={msg.id} style={[styles.bubbleRow, isUser ? styles.bubbleRight : styles.bubbleLeft]}>
-              {!isUser && (
-                <View style={[styles.agentAvatar, { backgroundColor: "rgba(0,229,255,0.12)" }]}>
-                  <Feather name="headphones" size={14} color={colors.primary} />
+            <View key={msg.id} style={[s.msgRow, isAgent ? s.msgRowAgent : s.msgRowUser]}>
+              {isAgent && (
+                <View style={s.agentBubbleAvatar}>
+                  <Text style={s.agentBubbleAvatarTxt}>A</Text>
                 </View>
               )}
-              <View style={[
-                styles.bubble,
-                isUser
-                  ? [styles.userBubble, { backgroundColor: "rgba(0,229,255,0.12)", borderColor: "rgba(0,229,255,0.2)" }]
-                  : [styles.agentBubble, { backgroundColor: colors.card, borderColor: colors.border }],
-              ]}>
-                <Text style={[styles.bubbleText, { color: colors.foreground }]}>{msg.text}</Text>
-                <View style={styles.bubbleMeta}>
-                  <Text style={[styles.bubbleTime, { color: colors.mutedForeground }]}>{msg.time}</Text>
-                  {isUser && <StatusIcon status={msg.status} />}
+              <View style={{ maxWidth: "75%", alignItems: isAgent ? "flex-start" : "flex-end" }}>
+                <View style={[s.bubble, isAgent ? s.bubbleAgent : s.bubbleUser]}>
+                  <Text style={[s.bubbleTxt, isAgent ? s.bubbleTxtAgent : s.bubbleTxtUser]}>{msg.text}</Text>
+                </View>
+                <View style={s.msgMeta}>
+                  <Text style={s.msgTime}>{msg.time}</Text>
+                  {!isAgent && (
+                    <Text style={[s.msgStatus, msg.status === "read" && { color: "#1A5AFF" }]}>
+                      {msg.status === "sent" ? "✓" : msg.status === "delivered" ? "✓✓" : "✓✓"}
+                    </Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -200,115 +162,96 @@ export default function SupportScreen() {
 
         {/* Typing indicator */}
         {typing && (
-          <View style={[styles.bubbleRow, styles.bubbleLeft]}>
-            <View style={[styles.agentAvatar, { backgroundColor: "rgba(0,229,255,0.12)" }]}>
-              <Feather name="headphones" size={14} color={colors.primary} />
+          <View style={[s.msgRow, s.msgRowAgent]}>
+            <View style={s.agentBubbleAvatar}>
+              <Text style={s.agentBubbleAvatarTxt}>A</Text>
             </View>
-            <View style={[styles.bubble, styles.agentBubble, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.typingDots}>
-                <View style={[styles.dot, styles.dot1, { backgroundColor: colors.primary }]} />
-                <View style={[styles.dot, styles.dot2, { backgroundColor: colors.primary }]} />
-                <View style={[styles.dot, styles.dot3, { backgroundColor: colors.primary }]} />
-              </View>
-              <Text style={[styles.typingText, { color: colors.mutedForeground }]}>Support is typing…</Text>
+            <View style={[s.bubble, s.bubbleAgent, s.typingBubble]}>
+              <Text style={s.typingDots}>• • •</Text>
             </View>
           </View>
         )}
       </ScrollView>
 
       {/* Quick Replies */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.qrRow} style={s.qrScroll}>
         {QUICK_REPLIES.map((qr) => (
-          <TouchableOpacity
-            key={qr}
-            onPress={() => handleSend(qr)}
-            activeOpacity={0.8}
-            style={[styles.quickChip, { backgroundColor: colors.card, borderColor: colors.border }]}
-          >
-            <Text style={[styles.quickText, { color: colors.primary }]}>{qr}</Text>
+          <TouchableOpacity key={qr} onPress={() => handleQuickReply(qr)} activeOpacity={0.8} style={s.qrBtn}>
+            <Text style={s.qrTxt}>{qr}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Input Area */}
-      <View style={[styles.inputBar, { backgroundColor: colors.background, borderTopColor: colors.border, paddingBottom: botPad + 8 }]}>
-        <TouchableOpacity activeOpacity={0.8} style={[styles.attachBtn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Feather name="paperclip" size={18} color={colors.mutedForeground} />
+      {/* Input Bar */}
+      <View style={[s.inputBar, { paddingBottom: botPad + 8 }]}>
+        <TouchableOpacity activeOpacity={0.8} style={s.attachBtn}>
+          <Text style={s.attachEmoji}>📎</Text>
         </TouchableOpacity>
-        <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: input ? colors.primary : colors.border }]}>
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            placeholder="Type a message..."
-            placeholderTextColor={colors.mutedForeground}
-            style={[styles.textInput, { color: colors.foreground }]}
-            onSubmitEditing={() => handleSend()}
-            returnKeyType="send"
-          />
-        </View>
+        <TextInput
+          value={input}
+          onChangeText={setInput}
+          placeholder="Type a message…"
+          placeholderTextColor="#8E8E93"
+          style={s.textInput}
+          multiline
+          maxLength={500}
+          onSubmitEditing={handleSend}
+          returnKeyType="send"
+        />
         <TouchableOpacity
-          onPress={() => handleSend()}
+          onPress={handleSend}
           activeOpacity={0.8}
-          style={[styles.sendBtn, { backgroundColor: input.trim() ? colors.primary : colors.card, borderColor: input.trim() ? colors.primary : colors.border }]}
+          disabled={!input.trim()}
+          style={[s.sendBtn, !input.trim() && { opacity: 0.4 }]}
         >
-          <Feather name="send" size={18} color={input.trim() ? "#0A1428" : colors.mutedForeground} />
+          <Text style={s.sendIcon}>↑</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
-  },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  headerCenter: { alignItems: "center", gap: 2 },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  onlineRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#00FF88" },
-  onlineText: { fontSize: 11, fontFamily: "Inter_500Medium" },
-
-  chatContent: { padding: 16, gap: 6 },
-
-  dateSep: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 10 },
-  dateLine: { flex: 1, height: 1 },
-  dateText: { fontSize: 11, fontFamily: "Inter_500Medium", paddingHorizontal: 10 },
-
-  bubbleRow: { flexDirection: "row", marginBottom: 6, maxWidth: "85%" },
-  bubbleLeft: { alignSelf: "flex-start", alignItems: "flex-end", gap: 8 },
-  bubbleRight: { alignSelf: "flex-end", justifyContent: "flex-end" },
-
-  agentAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-
-  bubble: { borderRadius: 16, padding: 12, borderWidth: 1, maxWidth: "100%" },
-  userBubble: { borderBottomRightRadius: 4 },
-  agentBubble: { borderBottomLeftRadius: 4 },
-
-  bubbleText: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
-  bubbleMeta: { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6, marginTop: 4 },
-  bubbleTime: { fontSize: 10, fontFamily: "Inter_400Regular" },
-
-  typingDots: { flexDirection: "row", gap: 4, marginBottom: 4 },
-  dot: { width: 6, height: 6, borderRadius: 3, opacity: 0.5 },
-  dot1: { opacity: 0.4 },
-  dot2: { opacity: 0.6 },
-  dot3: { opacity: 0.8 },
-  typingText: { fontSize: 12, fontFamily: "Inter_400Regular" },
-
-  quickRow: { paddingHorizontal: 16, paddingVertical: 8, gap: 8 },
-  quickChip: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 8 },
-  quickText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-
-  inputBar: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 1,
-  },
-  attachBtn: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  inputWrap: { flex: 1, borderRadius: 14, borderWidth: 1.5, height: 46, justifyContent: "center", paddingHorizontal: 14 },
-  textInput: { fontSize: 14, fontFamily: "Inter_400Regular" },
-  sendBtn: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12, backgroundColor: "#FFFFFF", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  backArrow: { fontSize: 20, color: "#1C1C1E" },
+  headerCenter: { flexDirection: "row", alignItems: "center", gap: 10 },
+  agentAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  agentAvatarTxt: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
+  headerName: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  onlineRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  onlineDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#30D158" },
+  onlineTxt: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#30D158" },
+  msgScroll: { flex: 1 },
+  msgContent: { paddingHorizontal: 16, paddingTop: 16, gap: 4 },
+  dateDivider: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
+  dateLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: "#E5E5EA" },
+  dateTxt: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#8E8E93" },
+  msgRow: { flexDirection: "row", marginBottom: 8 },
+  msgRowAgent: { justifyContent: "flex-start", gap: 8, alignItems: "flex-end" },
+  msgRowUser: { justifyContent: "flex-end" },
+  agentBubbleAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  agentBubbleAvatarTxt: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
+  bubble: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10 },
+  bubbleAgent: { backgroundColor: "#FFFFFF", borderBottomLeftRadius: 4, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
+  bubbleUser: { backgroundColor: "#1A5AFF", borderBottomRightRadius: 4 },
+  bubbleTxt: { fontSize: 14, lineHeight: 20 },
+  bubbleTxtAgent: { fontFamily: "Inter_400Regular", color: "#1C1C1E" },
+  bubbleTxtUser: { fontFamily: "Inter_400Regular", color: "#FFFFFF" },
+  msgMeta: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3, paddingHorizontal: 4 },
+  msgTime: { fontSize: 10, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  msgStatus: { fontSize: 11, color: "#8E8E93" },
+  typingBubble: { paddingVertical: 12 },
+  typingDots: { fontSize: 16, letterSpacing: 4, color: "#8E8E93" },
+  qrScroll: { backgroundColor: "#FFFFFF", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5EA" },
+  qrRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  qrBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#EEF3FF", borderWidth: 1, borderColor: "#1A5AFF20" },
+  qrTxt: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#1A5AFF" },
+  inputBar: { flexDirection: "row", alignItems: "flex-end", gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: "#FFFFFF", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5EA" },
+  attachBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  attachEmoji: { fontSize: 18 },
+  textInput: { flex: 1, maxHeight: 100, backgroundColor: "#F2F2F7", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  sendIcon: { fontSize: 20, color: "#FFFFFF", fontWeight: "700" },
 });

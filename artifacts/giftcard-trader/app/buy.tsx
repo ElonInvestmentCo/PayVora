@@ -1,30 +1,19 @@
 import React, { useState, useCallback, useMemo } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  Platform,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Alert, Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
-import { hapticSuccess, hapticError } from "@/utils/haptics";
+import { hapticSuccess, hapticError, hapticLight } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
-import { BrandLogo } from "@/components/BrandLogo";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import Svg, { Path } from "react-native-svg";
 
 type Currency = "USD" | "GBP" | "EUR" | "CAD" | "AUD";
 type PaymentMethod = "wallet" | "card" | "crypto";
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const GIFT_CARDS = [
   { id: "amazon",  name: "Amazon",      color: "#FF9900" },
@@ -49,79 +38,54 @@ const CURRENCY_RATES: Record<Currency, number> = {
 
 const PRESET_AMOUNTS = [10, 25, 50, 100, 200];
 
-const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; detail: string }[] = [
-  { id: "wallet", label: "Wallet Balance", icon: "credit-card", detail: "NGN Wallet" },
-  { id: "card",   label: "Debit / Credit Card", icon: "credit-card", detail: "Visa ending 4242" },
-  { id: "crypto", label: "Crypto",         icon: "zap",         detail: "USDT / BTC" },
+const PAYMENT_METHODS: { id: PaymentMethod; label: string; detail: string; icon: string }[] = [
+  { id: "wallet", label: "Wallet Balance", detail: "NGN Wallet", icon: "💳" },
+  { id: "card",   label: "Debit / Credit Card", detail: "Visa ending 4242", icon: "💳" },
+  { id: "crypto", label: "Crypto",         detail: "USDT / BTC", icon: "⚡" },
 ];
 
-// ─── Mini rate trend (sparkline-style bar) ────────────────────────────────────
-
-const TREND_BARS = [0.6, 0.75, 0.55, 0.8, 0.65, 0.9, 0.7, 0.85, 0.75, 1.0];
-
-function RateTrend({ color }: { color: string }) {
+function BackIcon() {
   return (
-    <View style={trendStyles.wrap}>
-      {TREND_BARS.map((h, i) => (
-        <View
-          key={i}
-          style={[
-            trendStyles.bar,
-            {
-              height: h * 28,
-              backgroundColor: color,
-              opacity: 0.3 + h * 0.7,
-            },
-          ]}
-        />
-      ))}
-    </View>
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M19 12H5M12 5l-7 7 7 7" stroke="#1C1C1E" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
-const trendStyles = StyleSheet.create({
-  wrap: { flexDirection: "row", alignItems: "flex-end", gap: 3 },
-  bar:  { width: 6, borderRadius: 3 },
-});
-
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+function ChevronDown({ open }: { open: boolean }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d={open ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} stroke="#8E8E93" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
 export default function BuyScreen() {
-  const colors  = useColors();
-  const insets  = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const { ngnBalance, updateNgnBalance, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
-  const isWeb   = Platform.OS === "web";
-  const topPad  = isWeb ? 67 : insets.top;
-  const botPad  = isWeb ? 34 : insets.bottom;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const [selectedCard,    setSelectedCard]    = useState("amazon");
+  const [selectedCard, setSelectedCard] = useState("amazon");
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
-  const [countryOpen,     setCountryOpen]     = useState(false);
-  const [amount,          setAmount]          = useState("");
-  const [quantity,        setQuantity]        = useState(1);
-  const [payment,         setPayment]         = useState<PaymentMethod>("wallet");
-  const [loading,         setLoading]         = useState(false);
-  const [showSummary,     setShowSummary]     = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [payment, setPayment] = useState<PaymentMethod>("wallet");
+  const [loading, setLoading] = useState(false);
 
-  const card     = GIFT_CARDS.find((c) => c.id === selectedCard)!;
-  const rate     = CURRENCY_RATES[selectedCountry.currency];
-  const numAmt   = parseFloat(amount) || 0;
+  const card = GIFT_CARDS.find((c) => c.id === selectedCard)!;
+  const rate = CURRENCY_RATES[selectedCountry.currency];
+  const numAmt = parseFloat(amount) || 0;
   const totalUSD = numAmt * quantity;
   const totalNGN = totalUSD * rate;
-
   const isValid = numAmt > 0;
 
-  const handlePreset = useCallback((v: number) => {
-    setAmount(String(v));
-    setShowSummary(false);
-  }, []);
+  const handlePreset = useCallback((v: number) => { setAmount(String(v)); }, []);
 
   const handleBuy = useCallback(async () => {
-    if (!isValid) {
-      Alert.alert("Invalid Amount", "Please enter a valid gift card amount.");
-      return;
-    }
+    if (!isValid) { Alert.alert("Invalid Amount", "Please enter a valid gift card amount."); return; }
     if (payment === "wallet" && totalNGN > ngnBalance) {
       hapticError();
       Alert.alert("Insufficient Balance", "You don't have enough NGN in your wallet.");
@@ -131,526 +95,279 @@ export default function BuyScreen() {
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
     if (payment === "wallet") updateNgnBalance(-totalNGN);
-    addTransaction({
-      type: "gift_card",
-      category: "Gift Cards",
-      title: `${card.name} Gift Card Bought`,
-      amount: totalNGN,
-      currency: "NGN",
-      status: "success",
-      date: "Just now",
-      direction: "out",
-    });
-    addNotification({
-      title: "Gift Card Purchased",
-      message: `${card.name} gift card (${selectedCountry.currency} ${totalUSD}) purchased for ₦${totalNGN.toLocaleString()}.`,
-      type: "success",
-      time: "Just now",
-    });
+    addTransaction({ type: "gift_card", category: "Gift Cards", title: `${card.name} Gift Card Bought`, amount: totalNGN, currency: "NGN", status: "success", date: "Just now", direction: "out" });
+    addNotification({ title: "Gift Card Purchased", message: `${card.name} gift card (${selectedCountry.currency} ${totalUSD}) purchased for ₦${totalNGN.toLocaleString()}.`, type: "success", time: "Just now" });
     hapticSuccess();
-    Alert.alert(
-      "Order Placed!",
-      `Your ${card.name} gift card (${selectedCountry.currency} ${totalUSD}) has been purchased successfully. Check your email for delivery.`,
-      [{ text: "Done", onPress: () => router.back() }]
-    );
+    Alert.alert("Order Placed!", `Your ${card.name} gift card (${selectedCountry.currency} ${totalUSD}) has been purchased. Check your email for delivery.`, [{ text: "Done", onPress: () => router.back() }]);
   }, [isValid, card, selectedCountry, totalUSD, totalNGN, ngnBalance, payment, updateNgnBalance, addTransaction, addNotification]);
 
   const summaryRows = useMemo(() => [
-    { label: "Gift Card",      value: card.name },
-    { label: "Region",         value: `${selectedCountry.flag} ${selectedCountry.name}` },
-    { label: "Card Value",     value: `${selectedCountry.currency} ${numAmt > 0 ? numAmt : "-"}` },
-    { label: "Quantity",       value: `×${quantity}` },
-    { label: "Exchange Rate",  value: `₦${rate}/${selectedCountry.currency}`, cyan: true },
-    { label: "Total (local)",  value: totalUSD > 0 ? `${selectedCountry.currency} ${totalUSD.toFixed(2)}` : "-" },
-    { label: "You Pay (NGN)",  value: totalUSD > 0 ? `₦${totalNGN.toLocaleString()}` : "-", highlight: true },
-    { label: "Processing Fee", value: "Free" },
-    { label: "Delivery",       value: "Instant · Email" },
+    { label: "Gift Card",     value: card.name },
+    { label: "Region",        value: `${selectedCountry.flag} ${selectedCountry.name}` },
+    { label: "Card Value",    value: numAmt > 0 ? `${selectedCountry.currency} ${numAmt}` : "—" },
+    { label: "Quantity",      value: `×${quantity}` },
+    { label: "Exchange Rate", value: `₦${rate}/${selectedCountry.currency}`, highlight: true },
+    { label: "You Pay (NGN)", value: totalUSD > 0 ? `₦${totalNGN.toLocaleString()}` : "—", large: true },
+    { label: "Processing Fee",value: "Free" },
+    { label: "Delivery",      value: "Instant · Email" },
   ], [card, selectedCountry, numAmt, quantity, rate, totalUSD, totalNGN]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* ── Header ── */}
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + 12,
-            backgroundColor: colors.background,
-            borderBottomColor: colors.border,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-          activeOpacity={0.8}
-          testID="back-button"
-        >
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+    <View style={[s.root, { paddingTop: topPad }]}>
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+          <BackIcon />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Buy Gift Card</Text>
-        <TouchableOpacity
-          style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-          activeOpacity={0.8}
-        >
-          <Feather name="bell" size={18} color={colors.mutedForeground} />
-        </TouchableOpacity>
+        <Text style={s.headerTitle}>Buy Gift Card</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* ── Wallet balance pill ── */}
-        <View style={[styles.balancePill, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.balanceDot, { backgroundColor: colors.success }]} />
-          <Text style={[styles.balanceLabel, { color: colors.mutedForeground }]}>Wallet Balance</Text>
-          <Text style={[styles.balanceAmount, { color: colors.foreground }]}>₦{ngnBalance.toLocaleString()}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: botPad + 80 }]} keyboardShouldPersistTaps="handled">
+
+        {/* Balance pill */}
+        <View style={s.section}>
+          <View style={s.balancePill}>
+            <View style={s.balanceDot} />
+            <Text style={s.balanceLbl}>Wallet Balance</Text>
+            <Text style={s.balanceAmt}>₦{ngnBalance.toLocaleString()}</Text>
+          </View>
         </View>
 
-        {/* ── Rate trend widget ── */}
-        <View style={[styles.rateWidget, { backgroundColor: "rgba(0,229,255,0.06)", borderColor: "rgba(0,229,255,0.18)" }]}>
-          <View style={styles.rateLeft}>
-            <Text style={[styles.rateLabel, { color: colors.mutedForeground }]}>Live Rate</Text>
-            <Text style={[styles.rateValue, { color: colors.primary }]}>
-              {selectedCountry.currency}1 = ₦{rate}
-            </Text>
-            <View style={styles.rateBadge}>
-              <Feather name="trending-up" size={11} color="#00FF88" />
-              <Text style={[styles.rateBadgeText, { color: "#00FF88" }]}>+2.3% today</Text>
+        {/* Rate widget */}
+        <View style={s.section}>
+          <View style={s.rateCard}>
+            <View>
+              <Text style={s.rateLbl}>Live Rate</Text>
+              <Text style={s.rateVal}>{selectedCountry.currency} 1 = ₦{rate}</Text>
+              <View style={s.rateBadge}>
+                <Text style={s.rateBadgeTxt}>↑ +2.3% today</Text>
+              </View>
+            </View>
+            <View style={s.rateBars}>
+              {[0.6, 0.75, 0.55, 0.8, 0.65, 0.9, 0.7, 0.85, 0.75, 1.0].map((h, i) => (
+                <View key={i} style={[s.rateBar, { height: h * 28, opacity: 0.3 + h * 0.7 }]} />
+              ))}
             </View>
           </View>
-          <RateTrend color={colors.primary} />
         </View>
 
-        {/* ── Gift card selector ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Select Gift Card</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardRow}>
+        {/* Card Selector */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Select Gift Card</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.cardRow}>
             {GIFT_CARDS.map((gc) => {
               const active = gc.id === selectedCard;
               return (
                 <TouchableOpacity
                   key={gc.id}
-                  testID={`card-${gc.id}`}
-                  onPress={() => { setSelectedCard(gc.id); setShowSummary(false); }}
+                  onPress={() => { hapticLight(); setSelectedCard(gc.id); }}
                   activeOpacity={0.8}
-                  style={[
-                    styles.cardChip,
-                    {
-                      backgroundColor: active ? "rgba(0,229,255,0.1)" : colors.card,
-                      borderColor: active ? colors.primary : colors.border,
-                    },
-                  ]}
+                  style={[s.cardChip, active && { borderColor: gc.color, backgroundColor: gc.color + "10" }]}
                 >
-                  <BrandLogo
-                    id={gc.id}
-                    name={gc.name}
-                    color={gc.color}
-                    size={36}
-                    borderRadius={10}
-                  />
-                  <Text style={[styles.cardName, { color: active ? colors.primary : colors.foreground }]}>
-                    {gc.name}
-                  </Text>
-                  {active && <Feather name="check-circle" size={14} color={colors.primary} />}
+                  <BrandLogo id={gc.id} name={gc.name} color={gc.color} size={36} borderRadius={10} />
+                  <Text style={[s.cardName, active && { color: gc.color }]}>{gc.name}</Text>
+                  {active && <Text style={[s.cardCheck, { color: gc.color }]}>✓</Text>}
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
         </View>
 
-        {/* ── Country / Region selector ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Country / Region</Text>
+        {/* Country Selector */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Country / Region</Text>
           <TouchableOpacity
-            testID="country-selector"
             onPress={() => setCountryOpen(!countryOpen)}
             activeOpacity={0.8}
-            style={[styles.selectRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={s.selectRow}
           >
-            <Text style={styles.flag}>{selectedCountry.flag}</Text>
-            <Text style={[styles.selectText, { color: colors.foreground }]}>{selectedCountry.name}</Text>
-            <Text style={[styles.currencyTag, { color: colors.mutedForeground }]}>{selectedCountry.currency}</Text>
-            <Feather name={countryOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.mutedForeground} />
+            <Text style={s.flag}>{selectedCountry.flag}</Text>
+            <Text style={s.selectTxt}>{selectedCountry.name}</Text>
+            <Text style={s.currencyTag}>{selectedCountry.currency}</Text>
+            <ChevronDown open={countryOpen} />
           </TouchableOpacity>
           {countryOpen && (
-            <View style={[styles.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={s.dropdown}>
               {COUNTRIES.map((c) => (
                 <TouchableOpacity
                   key={c.code}
-                  onPress={() => { setSelectedCountry(c); setCountryOpen(false); setShowSummary(false); }}
-                  style={[
-                    styles.dropdownItem,
-                    c.code === selectedCountry.code && { backgroundColor: "rgba(0,229,255,0.08)" },
-                  ]}
+                  onPress={() => { setSelectedCountry(c); setCountryOpen(false); }}
+                  activeOpacity={0.8}
+                  style={[s.dropItem, c.code === selectedCountry.code && { backgroundColor: "#EEF3FF" }]}
                 >
-                  <Text style={styles.flag}>{c.flag}</Text>
-                  <Text style={[styles.dropdownText, { color: c.code === selectedCountry.code ? colors.primary : colors.foreground }]}>
-                    {c.name}
-                  </Text>
-                  <Text style={[styles.currencyTag, { color: colors.mutedForeground }]}>{c.currency}</Text>
-                  {c.code === selectedCountry.code && <Feather name="check" size={14} color={colors.primary} />}
+                  <Text style={s.flag}>{c.flag}</Text>
+                  <Text style={[s.dropItemTxt, c.code === selectedCountry.code && { color: "#1A5AFF" }]}>{c.name}</Text>
+                  <Text style={s.currencyTag}>{c.currency}</Text>
+                  {c.code === selectedCountry.code && <Text style={{ color: "#1A5AFF", fontSize: 12 }}>✓</Text>}
                 </TouchableOpacity>
               ))}
             </View>
           )}
         </View>
 
-        {/* ── Amount ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Amount ({selectedCountry.currency})</Text>
-          <View style={[styles.amountRow, { backgroundColor: colors.card, borderColor: isValid ? colors.primary : colors.border }]}>
-            <Text style={[styles.currencySymbol, { color: colors.primary }]}>{selectedCountry.currency}</Text>
-            <TextInput
-              testID="amount-input"
-              value={amount}
-              onChangeText={(v) => { setAmount(v); setShowSummary(false); }}
-              placeholder="0.00"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="numeric"
-              style={[styles.amountInput, { color: colors.foreground }]}
-            />
+        {/* Amount */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Card Amount ({selectedCountry.currency})</Text>
+          <View style={s.amountCard}>
+            <View style={s.amtInputRow}>
+              <Text style={s.amtPrefix}>{selectedCountry.currency}</Text>
+              <TextInput
+                value={amount}
+                onChangeText={setAmount}
+                placeholder="0.00"
+                placeholderTextColor="#8E8E93"
+                keyboardType="decimal-pad"
+                style={s.amtInput}
+              />
+            </View>
+            <View style={s.presetsRow}>
+              {PRESET_AMOUNTS.map((v) => (
+                <TouchableOpacity
+                  key={v}
+                  onPress={() => handlePreset(v)}
+                  activeOpacity={0.8}
+                  style={[s.presetBtn, numAmt === v && s.presetBtnActive]}
+                >
+                  <Text style={[s.presetTxt, numAmt === v && s.presetTxtActive]}>{v}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {/* Quantity */}
+            <View style={s.qtyRow}>
+              <Text style={s.qtyLabel}>Quantity</Text>
+              <View style={s.qtyStepper}>
+                <TouchableOpacity onPress={() => setQuantity((q) => Math.max(1, q - 1))} activeOpacity={0.8} style={s.qtyBtn}>
+                  <Text style={s.qtyBtnTxt}>−</Text>
+                </TouchableOpacity>
+                <Text style={s.qtyVal}>{quantity}</Text>
+                <TouchableOpacity onPress={() => setQuantity((q) => Math.min(10, q + 1))} activeOpacity={0.8} style={s.qtyBtn}>
+                  <Text style={s.qtyBtnTxt}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          {/* Preset amounts */}
-          <View style={styles.presets}>
-            {PRESET_AMOUNTS.map((v) => (
+        </View>
+
+        {/* Payment Method */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Payment Method</Text>
+          <View style={s.card}>
+            {PAYMENT_METHODS.map((pm, i) => (
               <TouchableOpacity
-                key={v}
-                testID={`preset-${v}`}
-                onPress={() => handlePreset(v)}
+                key={pm.id}
+                onPress={() => { hapticLight(); setPayment(pm.id); }}
                 activeOpacity={0.8}
-                style={[
-                  styles.presetBtn,
-                  {
-                    backgroundColor: numAmt === v ? "rgba(0,229,255,0.12)" : colors.card,
-                    borderColor: numAmt === v ? colors.primary : colors.border,
-                  },
-                ]}
+                style={[s.payRow, i < PAYMENT_METHODS.length - 1 && s.payRowBorder]}
               >
-                <Text style={[styles.presetText, { color: numAmt === v ? colors.primary : colors.mutedForeground }]}>
-                  ${v}
-                </Text>
+                <View style={s.payIconWrap}><Text style={s.payIcon}>{pm.icon}</Text></View>
+                <View style={s.payInfo}>
+                  <Text style={s.payLabel}>{pm.label}</Text>
+                  <Text style={s.payDetail}>{pm.detail}</Text>
+                </View>
+                <View style={[s.radio, payment === pm.id && s.radioActive]}>
+                  {payment === pm.id && <View style={s.radioDot} />}
+                </View>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* ── Quantity ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Quantity</Text>
-          <View style={[styles.quantityRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <TouchableOpacity
-              testID="qty-minus"
-              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-              activeOpacity={0.8}
-              style={[styles.qtyBtn, { backgroundColor: quantity === 1 ? colors.border : "rgba(0,229,255,0.12)" }]}
-            >
-              <Feather name="minus" size={18} color={quantity === 1 ? colors.mutedForeground : colors.primary} />
-            </TouchableOpacity>
-            <Text style={[styles.qtyValue, { color: colors.foreground }]}>{quantity}</Text>
-            <TouchableOpacity
-              testID="qty-plus"
-              onPress={() => setQuantity((q) => Math.min(10, q + 1))}
-              activeOpacity={0.8}
-              style={[styles.qtyBtn, { backgroundColor: "rgba(0,229,255,0.12)" }]}
-            >
-              <Feather name="plus" size={18} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ── Live price calculation ── */}
-        {isValid && (
-          <View style={[styles.priceCard, { backgroundColor: "rgba(0,255,136,0.06)", borderColor: "#00FF8830" }]}>
-            <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>You Pay</Text>
-              <View style={styles.priceConversion}>
-                <Text style={[styles.priceFrom, { color: colors.foreground }]}>
-                  {selectedCountry.currency} {totalUSD.toFixed(2)}
-                </Text>
-                <Feather name="arrow-right" size={14} color={colors.mutedForeground} />
-                <Text style={[styles.priceTo, { color: "#00FF88" }]}>₦{totalNGN.toLocaleString()}</Text>
-              </View>
-            </View>
-            {quantity > 1 && (
-              <View style={styles.priceRow}>
-                <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>Per Card</Text>
-                <Text style={[styles.priceDetail, { color: colors.primary }]}>
-                  {selectedCountry.currency} {numAmt} × {quantity} cards
-                </Text>
-              </View>
-            )}
-            <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: colors.mutedForeground }]}>Rate</Text>
-              <Text style={[styles.priceDetail, { color: colors.primary }]}>
-                {selectedCountry.currency}1 = ₦{rate}
-              </Text>
+        {/* Order Summary */}
+        {numAmt > 0 && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Order Summary</Text>
+            <View style={s.card}>
+              {summaryRows.map((row, i, arr) => (
+                <View key={row.label} style={[s.sumRow, i < arr.length - 1 && s.sumRowBorder]}>
+                  <Text style={s.sumLabel}>{row.label}</Text>
+                  <Text style={[
+                    s.sumVal,
+                    (row as any).highlight && { color: "#1A5AFF" },
+                    (row as any).large && { fontSize: 17, fontFamily: "Inter_700Bold", color: "#30D158" },
+                  ]}>{row.value}</Text>
+                </View>
+              ))}
             </View>
           </View>
         )}
 
-        {/* ── Payment method ── */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Payment Method</Text>
-          {PAYMENT_METHODS.map((pm) => {
-            const active = pm.id === payment;
-            return (
-              <TouchableOpacity
-                key={pm.id}
-                testID={`payment-${pm.id}`}
-                onPress={() => setPayment(pm.id)}
-                activeOpacity={0.8}
-                style={[
-                  styles.paymentItem,
-                  {
-                    backgroundColor: active ? "rgba(0,229,255,0.07)" : colors.card,
-                    borderColor: active ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <View style={[styles.paymentIcon, { backgroundColor: active ? "rgba(0,229,255,0.15)" : `${colors.border}80` }]}>
-                  <Feather name={pm.icon as any} size={18} color={active ? colors.primary : colors.mutedForeground} />
-                </View>
-                <View style={styles.paymentInfo}>
-                  <Text style={[styles.paymentLabel, { color: active ? colors.primary : colors.foreground }]}>{pm.label}</Text>
-                  <Text style={[styles.paymentDetail, { color: colors.mutedForeground }]}>{pm.detail}</Text>
-                </View>
-                <View
-                  style={[
-                    styles.radioOuter,
-                    { borderColor: active ? colors.primary : colors.border },
-                  ]}
-                >
-                  {active && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+        {/* Buy Button */}
+        <View style={s.section}>
+          <GlowButton title={loading ? "Processing..." : "Buy Gift Card"} onPress={handleBuy} disabled={loading || !isValid} />
         </View>
 
-        {/* ── Order Summary ── */}
-        {isValid && (
-          <>
-            <TouchableOpacity
-              onPress={() => setShowSummary((s) => !s)}
-              activeOpacity={0.8}
-              style={styles.summaryToggle}
-            >
-              <Text style={[styles.summaryToggleText, { color: colors.primary }]}>
-                {showSummary ? "Hide" : "View"} Order Summary
-              </Text>
-              <Feather name={showSummary ? "chevron-up" : "chevron-down"} size={16} color={colors.primary} />
-            </TouchableOpacity>
-
-            {showSummary && (
-              <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.summaryTitle, { color: colors.foreground }]}>Order Summary</Text>
-                {summaryRows.map((row) => (
-                  <View key={row.label} style={[styles.summaryRow, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
-                    <Text
-                      style={[
-                        styles.summaryValue,
-                        {
-                          color: row.highlight
-                            ? "#00FF88"
-                            : row.cyan
-                            ? colors.primary
-                            : colors.foreground,
-                        },
-                      ]}
-                    >
-                      {row.value}
-                    </Text>
-                  </View>
-                ))}
-
-                {/* Status badges */}
-                <View style={styles.badgeRow}>
-                  <View style={[styles.badge, { backgroundColor: "rgba(0,255,136,0.12)", borderColor: "#00FF8830" }]}>
-                    <View style={[styles.badgeDot, { backgroundColor: "#00FF88" }]} />
-                    <Text style={[styles.badgeText, { color: "#00FF88" }]}>Completed</Text>
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: "rgba(245,158,11,0.12)", borderColor: "#F59E0B30" }]}>
-                    <View style={[styles.badgeDot, { backgroundColor: "#F59E0B" }]} />
-                    <Text style={[styles.badgeText, { color: "#F59E0B" }]}>Pending</Text>
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: "rgba(239,68,68,0.12)", borderColor: "#EF444430" }]}>
-                    <View style={[styles.badgeDot, { backgroundColor: "#EF4444" }]} />
-                    <Text style={[styles.badgeText, { color: "#EF4444" }]}>Failed</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          </>
-        )}
-
-        {/* ── Buy Now CTA ── */}
-        <GlowButton
-          testID="buy-now-button"
-          title={`Buy Now · ₦${isValid ? totalNGN.toLocaleString() : "0"}`}
-          onPress={handleBuy}
-          loading={loading}
-          disabled={!isValid}
-        />
-
-        <Text style={[styles.disclaimer, { color: colors.mutedForeground }]}>
-          By continuing you agree to our Terms of Service. Gift cards are delivered instantly to your registered email.
-        </Text>
       </ScrollView>
     </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  scroll: {},
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
 
-const styles = StyleSheet.create({
-  root:    { flex: 1 },
+  section: { paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
 
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-  },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    alignItems: "center", justifyContent: "center", borderWidth: 1,
-  },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
+  balancePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#30D158" },
+  balanceLbl: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93", flex: 1 },
+  balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
 
-  content: { padding: 20, gap: 4 },
+  rateCard: { backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  rateLbl: { fontSize: 11, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 },
+  rateVal: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1A5AFF", marginBottom: 4 },
+  rateBadge: { backgroundColor: "#F0FDF4", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start" },
+  rateBadgeTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#30D158" },
+  rateBars: { flexDirection: "row", alignItems: "flex-end", gap: 3 },
+  rateBar: { width: 6, backgroundColor: "#1A5AFF", borderRadius: 3 },
 
-  // Balance pill
-  balancePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    marginBottom: 14,
-  },
-  balanceDot:    { width: 8, height: 8, borderRadius: 4 },
-  balanceLabel:  { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1 },
-  balanceAmount: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  cardRow: { gap: 10, paddingBottom: 4 },
+  cardChip: { alignItems: "center", gap: 6, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: "transparent", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  cardName: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  cardCheck: { fontSize: 12, fontFamily: "Inter_700Bold" },
 
-  // Rate widget
-  rateWidget: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-  rateLeft:       { gap: 4 },
-  rateLabel:      { fontSize: 11, fontFamily: "Inter_400Regular", textTransform: "uppercase", letterSpacing: 0.8 },
-  rateValue:      { fontSize: 20, fontFamily: "Inter_700Bold" },
-  rateBadge:      { flexDirection: "row", alignItems: "center", gap: 4 },
-  rateBadgeText:  { fontSize: 12, fontFamily: "Inter_500Medium" },
+  selectRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  flag: { fontSize: 20 },
+  selectTxt: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
+  currencyTag: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93", backgroundColor: "#F2F2F7", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  dropdown: { backgroundColor: "#FFFFFF", borderRadius: 16, marginTop: 4, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  dropItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  dropItemTxt: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
 
-  // Sections
-  section:      { marginBottom: 20 },
-  sectionLabel: {
-    fontSize: 12, fontFamily: "Inter_500Medium",
-    textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10,
-  },
+  amountCard: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  amtInputRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, gap: 8 },
+  amtPrefix: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#8E8E93" },
+  amtInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 8 },
+  presetsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 14 },
+  presetBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
+  presetBtnActive: { backgroundColor: "#1A5AFF" },
+  presetTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  presetTxtActive: { color: "#FFFFFF" },
+  qtyRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
+  qtyLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  qtyStepper: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: "#F2F2F7", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  qtyBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
+  qtyBtnTxt: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  qtyVal: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E", minWidth: 24, textAlign: "center" },
 
-  // Gift card chips
-  cardRow: { gap: 10, paddingRight: 4 },
-  cardChip: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1,
-  },
-  cardIconWrap: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  cardName:     { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  payRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  payRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  payIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  payIcon: { fontSize: 18 },
+  payInfo: { flex: 1 },
+  payLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
+  payDetail: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: "#C7C7CC", alignItems: "center", justifyContent: "center" },
+  radioActive: { borderColor: "#1A5AFF" },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#1A5AFF" },
 
-  // Country selector
-  selectRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, height: 52,
-  },
-  flag:       { fontSize: 20 },
-  selectText: { flex: 1, fontSize: 15, fontFamily: "Inter_500Medium" },
-  currencyTag:{ fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  dropdown: {
-    marginTop: 4, borderRadius: 12, borderWidth: 1, overflow: "hidden",
-  },
-  dropdownItem: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    paddingHorizontal: 16, paddingVertical: 14,
-  },
-  dropdownText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
-
-  // Amount
-  amountRow: {
-    flexDirection: "row", alignItems: "center",
-    borderRadius: 14, borderWidth: 1.5, paddingHorizontal: 16, height: 60,
-  },
-  currencySymbol: { fontSize: 18, fontFamily: "Inter_700Bold", marginRight: 6 },
-  amountInput:    { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold" },
-
-  // Presets
-  presets:   { flexDirection: "row", gap: 8, marginTop: 10 },
-  presetBtn: { flex: 1, borderRadius: 10, borderWidth: 1, paddingVertical: 8, alignItems: "center" },
-  presetText:{ fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  // Quantity
-  quantityRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, height: 56,
-  },
-  qtyBtn:   { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  qtyValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
-
-  // Price calculation card
-  priceCard: { borderRadius: 14, padding: 16, borderWidth: 1, gap: 12, marginBottom: 20 },
-  priceRow:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  priceLabel:{ fontSize: 13, fontFamily: "Inter_400Regular" },
-  priceConversion: { flexDirection: "row", alignItems: "center", gap: 6 },
-  priceFrom: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  priceTo:   { fontSize: 16, fontFamily: "Inter_700Bold" },
-  priceDetail:{ fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  // Payment methods
-  paymentItem: {
-    flexDirection: "row", alignItems: "center", gap: 14,
-    borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10,
-  },
-  paymentIcon: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  paymentInfo: { flex: 1, gap: 2 },
-  paymentLabel:{ fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  paymentDetail:{ fontSize: 12, fontFamily: "Inter_400Regular" },
-  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  radioInner: { width: 10, height: 10, borderRadius: 5 },
-
-  // Summary toggle
-  summaryToggle: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    justifyContent: "center", paddingVertical: 10, marginBottom: 8,
-  },
-  summaryToggleText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  // Summary card
-  summaryCard: { borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 20 },
-  summaryTitle:{ fontSize: 15, fontFamily: "Inter_700Bold", marginBottom: 14 },
-  summaryRow:  { flexDirection: "row", justifyContent: "space-between", paddingVertical: 11, borderBottomWidth: 1 },
-  summaryLabel:{ fontSize: 13, fontFamily: "Inter_400Regular" },
-  summaryValue:{ fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  // Status badges
-  badgeRow: { flexDirection: "row", gap: 8, marginTop: 14, flexWrap: "wrap" },
-  badge:    { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 20, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 5 },
-  badgeDot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText:{ fontSize: 11, fontFamily: "Inter_600SemiBold" },
-
-  disclaimer: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 16, marginTop: 6 },
+  sumRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12 },
+  sumRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  sumLabel: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  sumVal: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 });

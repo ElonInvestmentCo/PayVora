@@ -1,316 +1,372 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Image,
-  ActivityIndicator,
-  Animated,
-  Dimensions,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Alert, ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { hapticLight, hapticMedium } from "@/utils/haptics";
-import { useWallet } from "@/contexts/WalletContext";
-import { useNotifications } from "@/contexts/NotificationsContext";
+import Svg, { Path, Circle } from "react-native-svg";
+import { hapticLight, hapticSuccess, hapticError } from "@/utils/haptics";
+import { useKyc } from "@/contexts/KycContext";
 
-const { width: W } = Dimensions.get("window");
-const TILE_W = (W - 52) / 2;
+const STEPS = ["Personal Info", "ID Document", "Selfie"];
 
-const TILES = [
-  { label: "Buy\nGift Cards",    sub: "500+ brands",       icon: "gift",          route: "/buy",          g: ["#4158D0", "#C850C0"] as const },
-  { label: "Sell\nGift Cards",   sub: "Best rates",        icon: "tag",           route: "/sell",         g: ["#0093E9", "#80D0C7"] as const },
-  { label: "Buy\nCrypto",        sub: "Market & limit",    icon: "trending-up",   route: "/buy-crypto",   g: ["#1A5AFF", "#7C3AED"] as const },
-  { label: "Sell\nCrypto",       sub: "Instant payout",    icon: "trending-down", route: "/sell-crypto",  g: ["#00C48C", "#0093A7"] as const },
-  { label: "Virtual\nCard",      sub: "Visa powered",      icon: "credit-card",   route: "/virtual-card", g: ["#FF6B6B", "#FF8E53"] as const },
-  { label: "Bills &\neSIMs",     sub: "Pay anywhere",      icon: "zap",           route: "/bills",        g: ["#A855F7", "#6366F1"] as const },
+const PERKS = [
+  { icon: "trending-up", label: "Higher Trade Limits",    sub: "Up to $50,000/day" },
+  { icon: "shield",      label: "Full Account Access",    sub: "All features unlocked" },
+  { icon: "zap",         label: "Priority Support",        sub: "Dedicated agent 24/7" },
+  { icon: "award",       label: "Verified Badge",          sub: "Trusted trader status" },
 ];
 
-const COIN_ASSETS = [
-  { id: "bitcoin",      symbol: "BTC", name: "Bitcoin",  price: 45200,   change: 2.4  },
-  { id: "ethereum",     symbol: "ETH", name: "Ethereum", price: 2860,    change: -1.2 },
-  { id: "tether",       symbol: "USDT", name: "Tether",  price: 1.00,    change: 0.01 },
-  { id: "solana",       symbol: "SOL", name: "Solana",   price: 142,     change: 5.8  },
-  { id: "ripple",       symbol: "XRP", name: "Ripple",   price: 0.62,    change: -0.5 },
-  { id: "binancecoin",  symbol: "BNB", name: "BNB",      price: 312,     change: 1.1  },
-];
+const ICON_PATHS: Record<string, string> = {
+  "trending-up": "M23 6l-9.5 9.5-5-5L1 18",
+  shield:        "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  zap:           "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+  award:         "M12 15a7 7 0 100-14 7 7 0 000 14zM8.21 13.89L7 23l5-3 5 3-1.21-9.12",
+  "arrow-left":  "M19 12H5M12 5l-7 7 7 7",
+  check:         "M20 6L9 17l-5-5",
+  upload:        "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  camera:        "M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z M12 13a3 3 0 100-6 3 3 0 000 6z",
+  user:          "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z",
+};
 
-function CryptoIcon({ symbol, size = 36 }: { symbol: string; size?: number }) {
-  const [err, setErr] = useState(false);
-  const COLORS: Record<string, string> = {
-    BTC: "#F7931A", ETH: "#627EEA", USDT: "#26A17B",
-    SOL: "#9945FF", XRP: "#23292F", BNB: "#F3BA2F",
-  };
-  const c = COLORS[symbol] ?? "#888";
-  if (err) {
-    return (
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: `${c}33`, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: c, fontFamily: "Inter_700Bold", fontSize: size * 0.42 }}>{symbol[0]}</Text>
-      </View>
-    );
-  }
+function Icon({ name, color = "#8E8E93", size = 18 }: { name: string; color?: string; size?: number }) {
+  const d = ICON_PATHS[name] || "";
   return (
-    <Image
-      source={{ uri: `https://cryptoicons.org/api/icon/${symbol.toLowerCase()}/200` }}
-      style={{ width: size, height: size, borderRadius: size / 2 }}
-      onError={() => setErr(true)}
-    />
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d={d} stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
-interface LivePrice { price: number; change: number; }
-
-export default function TradingHubScreen() {
+export default function KycScreen() {
   const insets = useSafeAreaInsets();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 60 : insets.top;
-  const { usdBalance } = useWallet();
-  const { unreadCount } = useNotifications();
+  const { kycStatus, runFullVerification } = useKyc() as any;
 
-  const [liveData, setLiveData] = useState<Record<string, LivePrice>>({});
-  const [pricesReady, setPricesReady] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [step, setStep] = useState(0);
+  const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
-  }, []);
+  // Step 1 fields
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dob, setDob] = useState("");
+  const [address, setAddress] = useState("");
 
-  useEffect(() => {
-    const ids = COIN_ASSETS.map((c) => c.id).join(",");
-    fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`)
-      .then((r) => r.json())
-      .then((data) => {
-        const mapped: Record<string, LivePrice> = {};
-        COIN_ASSETS.forEach((c) => {
-          if (data[c.id]) mapped[c.symbol] = { price: data[c.id].usd, change: data[c.id].usd_24h_change };
-        });
-        setLiveData(mapped);
-        setPricesReady(true);
-      })
-      .catch(() => setPricesReady(true));
-  }, []);
+  const handleNext = useCallback(() => {
+    if (step === 0) {
+      if (!firstName.trim() || !lastName.trim() || !dob.trim() || !address.trim()) {
+        hapticError();
+        Alert.alert("Incomplete", "Please fill in all personal information fields.");
+        return;
+      }
+    }
+    hapticLight();
+    setStep((s) => s + 1);
+  }, [step, firstName, lastName, dob, address]);
 
-  const getPrice = useCallback((symbol: string, fallback: number) => {
-    return liveData[symbol]?.price ?? fallback;
-  }, [liveData]);
+  const handleSubmit = useCallback(async () => {
+    hapticLight();
+    setProcessing(true);
+    await new Promise((r) => setTimeout(r, 2500));
+    setProcessing(false);
+    if (typeof runFullVerification === "function") {
+      runFullVerification();
+    }
+    hapticSuccess();
+  }, [runFullVerification]);
 
-  const getChange = useCallback((symbol: string, fallback: number) => {
-    return liveData[symbol]?.change ?? fallback;
-  }, [liveData]);
-
-  const formatPrice = (p: number) => {
-    if (p >= 1000) return `$${p.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-    if (p >= 1) return `$${p.toFixed(2)}`;
-    return `$${p.toFixed(4)}`;
-  };
-
-  return (
-    <View style={styles.root}>
-      <LinearGradient colors={["#07070F", "#0C0C1E", "#070714"]} style={StyleSheet.absoluteFill} />
-
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        <View style={[styles.header, { paddingTop: topPad + 8 }]}>
-          <TouchableOpacity
-            onPress={() => { hapticLight(); router.back(); }}
-            style={styles.iconBtn}
-            activeOpacity={0.8}
-          >
-            <Feather name="arrow-left" size={20} color="#FFFFFF" />
+  if (kycStatus === "verified") {
+    return (
+      <View style={[s.root, { paddingTop: insets.top }]}>
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+            <Icon name="arrow-left" color="#1C1C1E" size={18} />
           </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>PayVora</Text>
-            <View style={styles.liveDot} />
-          </View>
-          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.8} onPress={() => hapticLight()}>
-            <Feather name="bell" size={20} color={unreadCount > 0 ? "#1A5AFF" : "#FFFFFF"} />
-            {unreadCount > 0 && <View style={styles.badge}><Text style={styles.badgeTxt}>{unreadCount}</Text></View>}
-          </TouchableOpacity>
+          <Text style={s.headerTitle}>Verification</Text>
+          <View style={{ width: 40 }} />
         </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: 40 }]}>
-
-          <LinearGradient
-            colors={["rgba(26,90,255,0.2)", "rgba(124,58,237,0.12)"]}
-            style={styles.balanceCard}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.balanceBorder}>
-              <Text style={styles.balanceLbl}>USD Wallet</Text>
-              <Text style={styles.balanceAmt}>${usdBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
-              <View style={styles.balanceRow}>
-                <View style={styles.balanceStat}>
-                  <Feather name="trending-up" size={12} color="#00C48C" />
-                  <Text style={styles.balanceStatTxt}>+2.4% today</Text>
-                </View>
-                <View style={[styles.verifiedBadge]}>
-                  <Feather name="shield" size={11} color="#1A5AFF" />
-                  <Text style={styles.verifiedTxt}>Secure</Text>
-                </View>
-              </View>
-            </View>
+        <ScrollView contentContainerStyle={s.verifiedScroll}>
+          <LinearGradient colors={["#30D158", "#20A845"]} style={s.verifiedBadge}>
+            <Icon name="check" color="#FFFFFF" size={36} />
           </LinearGradient>
-
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-          <View style={styles.tileGrid}>
-            {TILES.map((tile) => (
-              <TouchableOpacity
-                key={tile.route}
-                onPress={() => { hapticMedium(); router.push(tile.route as any); }}
-                activeOpacity={0.82}
-                style={styles.tileWrap}
-              >
-                <LinearGradient
-                  colors={tile.g}
-                  style={styles.tile}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.tileIconWrap}>
-                    <Feather name={tile.icon as any} size={22} color="rgba(255,255,255,0.95)" />
-                  </View>
-                  <Text style={styles.tileLbl}>{tile.label}</Text>
-                  <Text style={styles.tileSub}>{tile.sub}</Text>
-                  <View style={styles.tileArrow}>
-                    <Feather name="arrow-right" size={12} color="rgba(255,255,255,0.6)" />
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+          <Text style={s.verifiedTitle}>Fully Verified</Text>
+          <Text style={s.verifiedSub}>Your identity has been confirmed. Enjoy full access to all features.</Text>
+          <View style={s.perksCard}>
+            {PERKS.map((p, i) => (
+              <View key={p.label} style={[s.perkRow, i < PERKS.length - 1 && s.perkRowBorder]}>
+                <View style={[s.perkIcon, { backgroundColor: "#30D15818" }]}>
+                  <Icon name={p.icon} color="#30D158" size={16} />
+                </View>
+                <View style={s.perkInfo}>
+                  <Text style={s.perkLabel}>{p.label}</Text>
+                  <Text style={s.perkSub}>{p.sub}</Text>
+                </View>
+                <Icon name="check" color="#30D158" size={14} />
+              </View>
             ))}
           </View>
-
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Live Markets</Text>
-            {!pricesReady && <ActivityIndicator size="small" color="rgba(255,255,255,0.4)" />}
-          </View>
-
-          <View style={styles.marketCard}>
-            {COIN_ASSETS.map((asset, idx) => {
-              const price = getPrice(asset.symbol, asset.price);
-              const change = getChange(asset.symbol, asset.change);
-              const positive = change >= 0;
-              const isLast = idx === COIN_ASSETS.length - 1;
-              return (
-                <TouchableOpacity
-                  key={asset.symbol}
-                  onPress={() => { hapticLight(); router.push("/buy-crypto" as any); }}
-                  activeOpacity={0.75}
-                  style={[styles.coinRow, !isLast && styles.coinRowBorder]}
-                >
-                  <CryptoIcon symbol={asset.symbol} size={40} />
-                  <View style={styles.coinInfo}>
-                    <Text style={styles.coinName}>{asset.name}</Text>
-                    <Text style={styles.coinSymbol}>{asset.symbol}</Text>
-                  </View>
-                  <View style={styles.coinPrices}>
-                    <Text style={styles.coinPrice}>{formatPrice(price)}</Text>
-                    <View style={[styles.changePill, { backgroundColor: positive ? "rgba(0,196,140,0.15)" : "rgba(255,59,48,0.15)" }]}>
-                      <Feather name={positive ? "trending-up" : "trending-down"} size={10} color={positive ? "#00C48C" : "#FF3B30"} />
-                      <Text style={[styles.changeTxt, { color: positive ? "#00C48C" : "#FF3B30" }]}>
-                        {positive ? "+" : ""}{change.toFixed(2)}%
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            onPress={() => { hapticLight(); router.push("/(tabs)/markets" as any); }}
-            activeOpacity={0.8}
-            style={styles.seeAllBtn}
-          >
-            <Text style={styles.seeAllTxt}>View All Markets</Text>
-            <Feather name="arrow-right" size={14} color="rgba(255,255,255,0.6)" />
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.doneBtn}>
+            <Text style={s.doneBtnTxt}>Done</Text>
           </TouchableOpacity>
-
         </ScrollView>
-      </Animated.View>
+      </View>
+    );
+  }
+
+  if (kycStatus === "pending") {
+    return (
+      <View style={[s.root, { paddingTop: insets.top }]}>
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+            <Icon name="arrow-left" color="#1C1C1E" size={18} />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>Verification</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={s.pendingContainer}>
+          <View style={s.pendingIcon}>
+            <Icon name="shield" color="#FF9F0A" size={40} />
+          </View>
+          <Text style={s.pendingTitle}>Under Review</Text>
+          <Text style={s.pendingSub}>Your identity verification is being reviewed. This usually takes 1–2 business days.</Text>
+          <View style={s.pendingBadge}>
+            <View style={s.pendingDot} />
+            <Text style={s.pendingBadgeTxt}>Pending Review</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.cancelBtn}>
+            <Text style={s.cancelBtnTxt}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[s.root, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity
+          onPress={() => step > 0 ? setStep(s => s - 1) : router.back()}
+          activeOpacity={0.8}
+          style={s.backBtn}
+        >
+          <Icon name="arrow-left" color="#1C1C1E" size={18} />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Verification</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      {/* Progress */}
+      <View style={s.progressRow}>
+        {STEPS.map((label, i) => (
+          <React.Fragment key={label}>
+            <View style={s.stepItem}>
+              <View style={[s.stepCircle, i <= step ? s.stepCircleActive : {}]}>
+                {i < step
+                  ? <Icon name="check" color="#fff" size={12} />
+                  : <Text style={[s.stepNum, i === step && s.stepNumActive]}>{i + 1}</Text>
+                }
+              </View>
+              <Text style={[s.stepLabel, i === step && s.stepLabelActive]}>{label}</Text>
+            </View>
+            {i < STEPS.length - 1 && (
+              <View style={[s.stepLine, i < step && s.stepLineActive]} />
+            )}
+          </React.Fragment>
+        ))}
+      </View>
+
+      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* Step 0: Personal Info */}
+        {step === 0 && (
+          <View style={s.section}>
+            <Text style={s.stepTitle}>Personal Information</Text>
+            <Text style={s.stepSub}>Enter your legal name and address as shown on your ID.</Text>
+            <View style={s.card}>
+              {[
+                { label: "First Name",    value: firstName,  onChange: setFirstName,  placeholder: "John" },
+                { label: "Last Name",     value: lastName,   onChange: setLastName,   placeholder: "Doe" },
+                { label: "Date of Birth", value: dob,        onChange: setDob,        placeholder: "MM/DD/YYYY" },
+                { label: "Home Address",  value: address,    onChange: setAddress,    placeholder: "123 Main St, City, Country" },
+              ].map((f, i, arr) => (
+                <View key={f.label} style={[s.fieldGroup, i < arr.length - 1 && s.fieldGroupBorder]}>
+                  <Text style={s.fieldLabel}>{f.label}</Text>
+                  <TextInput
+                    value={f.value}
+                    onChangeText={f.onChange}
+                    placeholder={f.placeholder}
+                    placeholderTextColor="#8E8E93"
+                    style={s.fieldInput}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Step 1: ID Document */}
+        {step === 1 && (
+          <View style={s.section}>
+            <Text style={s.stepTitle}>ID Document</Text>
+            <Text style={s.stepSub}>Upload a clear photo of your government-issued ID (passport, driver's license, or national ID).</Text>
+            <TouchableOpacity activeOpacity={0.8} style={s.uploadArea}>
+              <View style={s.uploadIcon}>
+                <Icon name="upload" color="#1A5AFF" size={28} />
+              </View>
+              <Text style={s.uploadTitle}>Upload Document</Text>
+              <Text style={s.uploadSub}>JPG, PNG or PDF · Max 5MB</Text>
+            </TouchableOpacity>
+            <View style={s.infoBox}>
+              <Icon name="shield" color="#1A5AFF" size={15} />
+              <Text style={s.infoBoxTxt}>Your documents are encrypted and processed securely. We comply with global data protection standards.</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Step 2: Selfie */}
+        {step === 2 && (
+          <View style={s.section}>
+            <Text style={s.stepTitle}>Take a Selfie</Text>
+            <Text style={s.stepSub}>Take a clear selfie holding your ID next to your face. Make sure both are clearly visible.</Text>
+            <TouchableOpacity activeOpacity={0.8} style={s.uploadArea}>
+              <View style={s.uploadIcon}>
+                <Icon name="camera" color="#1A5AFF" size={28} />
+              </View>
+              <Text style={s.uploadTitle}>Open Camera</Text>
+              <Text style={s.uploadSub}>Take a live selfie with your ID</Text>
+            </TouchableOpacity>
+            <View style={[s.infoBox, { marginTop: 12 }]}>
+              <Text style={s.infoBoxHeader}>Tips for a good photo:</Text>
+              {["Face fully visible, no sunglasses", "Good lighting, no shadows", "ID text clearly readable"].map((t) => (
+                <View key={t} style={s.tipRow}>
+                  <View style={s.tipDot} />
+                  <Text style={s.tipTxt}>{t}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* CTA */}
+        <View style={s.ctaSection}>
+          {step < STEPS.length - 1 ? (
+            <TouchableOpacity onPress={handleNext} activeOpacity={0.85} style={s.nextBtn}>
+              <Text style={s.nextBtnTxt}>Continue</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleSubmit}
+              activeOpacity={0.85}
+              disabled={processing}
+              style={[s.nextBtn, { opacity: processing ? 0.65 : 1 }]}
+            >
+              {processing
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={s.nextBtnTxt}>Submit for Review</Text>
+              }
+            </TouchableOpacity>
+          )}
+          <Text style={s.disclaimer}>
+            By submitting, you agree to our{" "}
+            <Text style={{ color: "#1A5AFF" }}>Privacy Policy</Text>
+            {" "}and{" "}
+            <Text style={{ color: "#1A5AFF" }}>Terms of Service</Text>.
+          </Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#07070F" },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+
   header: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 16,
+    paddingHorizontal: 20, paddingVertical: 14,
   },
-  iconBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.08)",
+  headerTitle: { fontSize: 17, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF",
     alignItems: "center", justifyContent: "center",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-  headerCenter: { flexDirection: "row", alignItems: "center", gap: 8 },
-  headerTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#00C48C" },
-  badge: {
-    position: "absolute", top: -4, right: -4, width: 16, height: 16,
-    borderRadius: 8, backgroundColor: "#FF3B30", alignItems: "center", justifyContent: "center",
-  },
-  badgeTxt: { fontSize: 9, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-  content: { paddingHorizontal: 20, gap: 20 },
-  balanceCard: {
-    borderRadius: 20, padding: 1,
-  },
-  balanceBorder: {
-    borderRadius: 19, backgroundColor: "rgba(10,10,20,0.6)",
-    padding: 22, gap: 6,
-  },
-  balanceLbl: { fontSize: 12, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 0.8 },
-  balanceAmt: { fontSize: 36, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-  balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 },
-  balanceStat: { flexDirection: "row", alignItems: "center", gap: 6 },
-  balanceStatTxt: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#00C48C" },
-  verifiedBadge: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(26,90,255,0.15)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  verifiedTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#1A5AFF" },
-  sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-  tileGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  tileWrap: { width: TILE_W },
-  tile: { borderRadius: 20, padding: 18, height: 130, justifyContent: "flex-end", overflow: "hidden" },
-  tileIconWrap: {
-    position: "absolute", top: 16, left: 16,
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
+
+  progressRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
+  stepItem: { alignItems: "center", gap: 4 },
+  stepCircle: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: "#F2F2F7",
     alignItems: "center", justifyContent: "center",
+    borderWidth: 2, borderColor: "#E5E5EA",
   },
-  tileLbl: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#FFFFFF", lineHeight: 18 },
-  tileSub: { fontSize: 11, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)", marginTop: 2 },
-  tileArrow: {
-    position: "absolute", top: 16, right: 14,
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center", justifyContent: "center",
+  stepCircleActive: { backgroundColor: "#1A5AFF", borderColor: "#1A5AFF" },
+  stepNum: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  stepNumActive: { color: "#FFFFFF" },
+  stepLabel: { fontSize: 10, fontFamily: "Inter_500Medium", color: "#8E8E93" },
+  stepLabelActive: { color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
+  stepLine: { flex: 1, height: 2, backgroundColor: "#E5E5EA", marginBottom: 14, marginHorizontal: 4 },
+  stepLineActive: { backgroundColor: "#1A5AFF" },
+
+  scroll: { paddingBottom: 40 },
+  section: { paddingHorizontal: 16 },
+  stepTitle: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 6, letterSpacing: -0.3 },
+  stepSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#8E8E93", marginBottom: 20, lineHeight: 20 },
+
+  card: {
+    backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  marketCard: {
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
+  fieldGroup: { paddingHorizontal: 16, paddingVertical: 14 },
+  fieldGroupBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  fieldLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 6 },
+  fieldInput: { fontSize: 16, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
+
+  uploadArea: {
+    backgroundColor: "#FFFFFF", borderRadius: 20, padding: 32, alignItems: "center",
+    borderWidth: 2, borderColor: "#1A5AFF18", borderStyle: "dashed",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  coinRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 18, paddingVertical: 14 },
-  coinRowBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)" },
-  coinInfo: { flex: 1, gap: 2 },
-  coinName: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
-  coinSymbol: { fontSize: 11, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.45)" },
-  coinPrices: { alignItems: "flex-end", gap: 4 },
-  coinPrice: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-  changePill: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  changeTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
-  seeAllBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    borderRadius: 14, paddingVertical: 14,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1, borderColor: "rgba(255,255,255,0.1)",
-  },
-  seeAllTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)" },
+  uploadIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#EEF3FF", alignItems: "center", justifyContent: "center", marginBottom: 14 },
+  uploadTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 4 },
+  uploadSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+
+  infoBox: { backgroundColor: "#EEF3FF", borderRadius: 14, padding: 14, marginTop: 16, flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  infoBoxTxt: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", color: "#1A5AFF", lineHeight: 18 },
+  infoBoxHeader: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 8 },
+  tipRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+  tipDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#1A5AFF" },
+  tipTxt: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
+
+  ctaSection: { paddingHorizontal: 16, paddingTop: 24 },
+  nextBtn: { backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 16, alignItems: "center", marginBottom: 12 },
+  nextBtnTxt: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
+  disclaimer: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 18 },
+
+  // Verified state
+  verifiedScroll: { alignItems: "center", padding: 24, paddingBottom: 48 },
+  verifiedBadge: { width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center", marginBottom: 20, shadowColor: "#30D158", shadowOpacity: 0.3, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
+  verifiedTitle: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 8, letterSpacing: -0.3 },
+  verifiedSub: { fontSize: 15, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 22, marginBottom: 24, paddingHorizontal: 10 },
+  perksCard: { width: "100%", backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3, marginBottom: 24 },
+  perkRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
+  perkRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  perkIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  perkInfo: { flex: 1 },
+  perkLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
+  perkSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  doneBtn: { width: "100%", backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
+  doneBtnTxt: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
+
+  // Pending state
+  pendingContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
+  pendingIcon: { width: 88, height: 88, borderRadius: 44, backgroundColor: "#FFF9EC", alignItems: "center", justifyContent: "center", marginBottom: 20 },
+  pendingTitle: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 8, letterSpacing: -0.3 },
+  pendingSub: { fontSize: 15, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 22, marginBottom: 20 },
+  pendingBadge: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFF9EC", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginBottom: 32 },
+  pendingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF9F0A" },
+  pendingBadgeTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#FF9F0A" },
+  cancelBtn: { backgroundColor: "#F2F2F7", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, alignItems: "center" },
+  cancelBtnTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 });

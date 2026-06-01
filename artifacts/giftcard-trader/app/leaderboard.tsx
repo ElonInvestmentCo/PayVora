@@ -1,17 +1,12 @@
 import React, { useState, useMemo } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Platform,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Platform,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
+import { hapticLight } from "@/utils/haptics";
 
 type TimeTab = "daily" | "weekly" | "monthly" | "alltime";
 type AssetFilter = "all" | "crypto" | "giftcards" | "bills";
@@ -37,323 +32,260 @@ const TIME_TABS: { id: TimeTab; label: string }[] = [
 ];
 
 const ASSET_FILTERS: { id: AssetFilter; label: string }[] = [
-  { id: "all",        label: "All" },
-  { id: "crypto",     label: "Crypto" },
-  { id: "giftcards",  label: "Gift Cards" },
-  { id: "bills",      label: "Bills" },
+  { id: "all",       label: "All" },
+  { id: "crypto",    label: "Crypto" },
+  { id: "giftcards", label: "Gift Cards" },
+  { id: "bills",     label: "Bills" },
 ];
 
 const TRADERS: Trader[] = [
-  { id: "1",  username: "CryptoKing_",    initials: "CK", avatarColor: "#F7931A", profit: 24850,  pctChange: 142.5, totalVolume: "$1.2M", badge: "Top Trader",  badgeColor: "#00E5FF" },
-  { id: "2",  username: "TradeQueen",     initials: "TQ", avatarColor: "#8B5CF6", profit: 18320,  pctChange: 98.3,  totalVolume: "$890K", badge: "Rising Star", badgeColor: "#F59E0B" },
-  { id: "3",  username: "BlockMaster",    initials: "BM", avatarColor: "#00FF88", profit: 15680,  pctChange: 87.1,  totalVolume: "$720K" },
-  { id: "4",  username: "SatoshiFan",     initials: "SF", avatarColor: "#14B8A6", profit: 12450,  pctChange: 72.8,  totalVolume: "$580K" },
-  { id: "5",  username: "Alex_Johnson",   initials: "AJ", avatarColor: "#00E5FF", profit: 9870,   pctChange: 56.4,  totalVolume: "$420K", isCurrentUser: true },
-  { id: "6",  username: "DeFiWhale",      initials: "DW", avatarColor: "#627EEA", profit: 8920,   pctChange: 48.2,  totalVolume: "$380K" },
-  { id: "7",  username: "CardFlip_Pro",   initials: "CF", avatarColor: "#FF9900", profit: 7650,   pctChange: 41.5,  totalVolume: "$310K" },
-  { id: "8",  username: "MoonShot",       initials: "MS", avatarColor: "#9945FF", profit: 6340,   pctChange: 35.7,  totalVolume: "$265K" },
-  { id: "9",  username: "BullRunner",     initials: "BR", avatarColor: "#10B981", profit: 5120,   pctChange: 28.9,  totalVolume: "$210K" },
-  { id: "10", username: "TokenMaster",    initials: "TM", avatarColor: "#EF4444", profit: 4280,   pctChange: 22.1,  totalVolume: "$175K" },
-  { id: "11", username: "CoinHunter",     initials: "CH", avatarColor: "#F59E0B", profit: 3150,   pctChange: 15.6,  totalVolume: "$130K" },
-  { id: "12", username: "GiftGuru",       initials: "GG", avatarColor: "#14B8A6", profit: -1240,  pctChange: -8.3,  totalVolume: "$95K" },
-  { id: "13", username: "SwapNinja",      initials: "SN", avatarColor: "#8B5CF6", profit: -2850,  pctChange: -14.7, totalVolume: "$72K" },
-  { id: "14", username: "NoviceTrader",   initials: "NT", avatarColor: "#94A3B8", profit: -4100,  pctChange: -21.2, totalVolume: "$45K" },
+  { id: "1",  username: "CryptoKing_",   initials: "CK", avatarColor: "#F7931A", profit: 24850, pctChange: 142.5, totalVolume: "$1.2M",  badge: "Top Trader",  badgeColor: "#1A5AFF" },
+  { id: "2",  username: "TradeQueen",    initials: "TQ", avatarColor: "#8B5CF6", profit: 18320, pctChange: 98.3,  totalVolume: "$890K",  badge: "Rising Star", badgeColor: "#FF9F0A" },
+  { id: "3",  username: "BlockMaster",   initials: "BM", avatarColor: "#30D158", profit: 15680, pctChange: 87.1,  totalVolume: "$720K" },
+  { id: "4",  username: "SatoshiFan",    initials: "SF", avatarColor: "#14B8A6", profit: 12450, pctChange: 72.8,  totalVolume: "$580K" },
+  { id: "5",  username: "DiamondHands",  initials: "DH", avatarColor: "#627EEA", profit: 9820,  pctChange: 58.4,  totalVolume: "$445K" },
+  { id: "6",  username: "You",           initials: "ME", avatarColor: "#1A5AFF", profit: 7340,  pctChange: 43.2,  totalVolume: "$330K",  isCurrentUser: true },
+  { id: "7",  username: "MoonShot99",    initials: "MS", avatarColor: "#FF3B30", profit: 6120,  pctChange: 35.7,  totalVolume: "$278K" },
+  { id: "8",  username: "AltcoinPro",    initials: "AP", avatarColor: "#FF9F0A", profit: 5290,  pctChange: 29.1,  totalVolume: "$241K" },
+  { id: "9",  username: "HodlMaster",    initials: "HM", avatarColor: "#34C759", profit: 4430,  pctChange: 24.6,  totalVolume: "$201K" },
+  { id: "10", username: "StealthMode",   initials: "SM", avatarColor: "#5AC8FA", profit: 3780,  pctChange: 18.9,  totalVolume: "$172K" },
+  { id: "11", username: "GainStation",   initials: "GS", avatarColor: "#BF5AF2", profit: 3120,  pctChange: 15.2,  totalVolume: "$142K" },
+  { id: "12", username: "WhaleAlert",    initials: "WA", avatarColor: "#FF6B6B", profit: 2560,  pctChange: 12.4,  totalVolume: "$116K" },
+  { id: "13", username: "TokenHero",     initials: "TH", avatarColor: "#4ECDC4", profit: 1890,  pctChange: 9.1,   totalVolume: "$86K"  },
+  { id: "14", username: "GridTrader",    initials: "GT", avatarColor: "#45B7D1", profit: 1230,  pctChange: 5.8,   totalVolume: "$56K"  },
 ];
 
-const PERF_BARS = [20, 35, 28, 42, 38, 55, 48, 60, 52, 68, 58, 75, 70, 82, 78, 90, 85, 92, 88, 95];
+const PERF_BARS = [0.3, 0.5, 0.4, 0.7, 0.55, 0.9, 0.65, 0.8, 0.7, 0.95, 0.75, 1.0];
 
-function PerfChart() {
-  const max = Math.max(...PERF_BARS);
-  const min = Math.min(...PERF_BARS);
-  const range = max - min || 1;
-  return (
-    <View style={chartStyles.wrap}>
-      {PERF_BARS.map((v, i) => {
-        const pct = (v - min) / range;
-        const t = i / (PERF_BARS.length - 1);
-        return (
-          <View key={i} style={chartStyles.col}>
-            <View style={{
-              height: 4 + pct * 32,
-              borderRadius: 2,
-              backgroundColor: `rgba(${Math.round(0 + t * 139)},${Math.round(229 - t * 137)},${Math.round(255 - t * 9)},${0.3 + pct * 0.7})`,
-            }} />
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-const chartStyles = StyleSheet.create({
-  wrap: { flexDirection: "row", alignItems: "flex-end", gap: 2, height: 40 },
-  col: { flex: 1, justifyContent: "flex-end" },
-});
-
-const PODIUM_CFG = [
-  { rank: 2, size: 64, glow: false, crownColor: "#94A3B8" },
-  { rank: 1, size: 76, glow: true,  crownColor: "#F59E0B" },
-  { rank: 3, size: 64, glow: false, crownColor: "#CD7F32" },
+const PODIUM_ORDER = [
+  { rank: 2, height: 80,  gradient: ["#C0C0C0", "#A8A8A8"] as const },
+  { rank: 1, height: 110, gradient: ["#FFD700", "#F5A623"] as const },
+  { rank: 3, height: 60,  gradient: ["#CD7F32", "#B8692A"] as const },
 ];
 
 export default function LeaderboardScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const botPad = isWeb ? 34 : insets.bottom;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const botPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const [timeTab, setTimeTab] = useState<TimeTab>("monthly");
+  const [timeTab, setTimeTab] = useState<TimeTab>("weekly");
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all");
   const [search, setSearch] = useState("");
 
-  const filtered = useMemo(() => {
-    const multipliers: Record<TimeTab, number> = { daily: 0.08, weekly: 0.35, monthly: 1, alltime: 2.5 };
-    const m = multipliers[timeTab];
-    let list = TRADERS.map((t) => ({
-      ...t,
-      profit: Math.round(t.profit * m),
-      pctChange: parseFloat((t.pctChange * m).toFixed(1)),
-      totalVolume: `$${((parseFloat(t.totalVolume.replace(/[^0-9.]/g, "")) * m)).toFixed(0)}${t.totalVolume.includes("M") ? "M" : "K"}`,
-    })).sort((a, b) => b.profit - a.profit);
-    if (assetFilter !== "all") {
-      list = list.filter((_, i) => {
-        if (assetFilter === "crypto") return i % 3 !== 2;
-        if (assetFilter === "giftcards") return i % 4 !== 3;
-        return i % 5 !== 4;
-      });
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((t) => t.username.toLowerCase().includes(q));
-    }
-    return list;
-  }, [search, timeTab, assetFilter]);
-
-  const top3 = filtered.slice(0, 3);
-  const rest = filtered.slice(3);
+  const filtered = useMemo(() => TRADERS.filter((t) =>
+    t.username.toLowerCase().includes(search.toLowerCase())
+  ), [search]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+    <View style={[s.root, { paddingTop: topPad }]}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+          <Text style={s.backArrow}>←</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Leaderboard</Text>
-        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="award" size={18} color={colors.primary} />
-        </TouchableOpacity>
+        <Text style={s.headerTitle}>Leaderboard</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: botPad + 60 }]}>
 
-        {/* Performance chart */}
-        <View style={[styles.perfCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.perfHeader}>
-            <Text style={[styles.perfTitle, { color: colors.foreground }]}>Community Performance</Text>
-            <View style={[styles.trendPill, { backgroundColor: "rgba(0,255,136,0.12)" }]}>
-              <Feather name="trending-up" size={10} color="#00FF88" />
-              <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#00FF88" }}>+34.2%</Text>
+        {/* Time Tabs */}
+        <View style={s.tabSection}>
+          {TIME_TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              onPress={() => { hapticLight(); setTimeTab(tab.id); }}
+              activeOpacity={0.8}
+              style={[s.tab, timeTab === tab.id && s.tabActive]}
+            >
+              <Text style={[s.tabTxt, timeTab === tab.id && s.tabTxtActive]}>{tab.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Performance Chart Card */}
+        <View style={s.section}>
+          <View style={s.card}>
+            <View style={s.chartHeader}>
+              <View>
+                <Text style={s.chartTitle}>Top Performance</Text>
+                <Text style={s.chartSub}>Portfolio gains this period</Text>
+              </View>
+              <View style={s.gainBadge}>
+                <Text style={s.gainBadgeTxt}>↑ +18.2%</Text>
+              </View>
+            </View>
+            <View style={s.chartArea}>
+              {PERF_BARS.map((h, i) => {
+                const isLast = i === PERF_BARS.length - 1;
+                return (
+                  <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
+                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1A5AFF" : `rgba(26,90,255,${0.2 + h * 0.6})`, borderRadius: 3 }} />
+                  </View>
+                );
+              })}
             </View>
           </View>
-          <PerfChart />
         </View>
 
-        {/* Time tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
-          {TIME_TABS.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              onPress={() => setTimeTab(t.id)}
-              activeOpacity={0.8}
-              style={[styles.tabChip, { backgroundColor: timeTab === t.id ? "rgba(0,229,255,0.15)" : colors.card, borderColor: timeTab === t.id ? colors.primary : colors.border }]}
-            >
-              <Text style={[styles.tabText, { color: timeTab === t.id ? colors.primary : colors.mutedForeground }]}>{t.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Asset filters */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScroll}>
-          {ASSET_FILTERS.map((f) => (
-            <TouchableOpacity
-              key={f.id}
-              onPress={() => setAssetFilter(f.id)}
-              activeOpacity={0.8}
-              style={[styles.assetChip, { backgroundColor: assetFilter === f.id ? "rgba(20,184,166,0.12)" : "transparent", borderColor: assetFilter === f.id ? "#14B8A6" : "transparent" }]}
-            >
-              <Text style={[styles.assetText, { color: assetFilter === f.id ? "#14B8A6" : colors.mutedForeground }]}>{f.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Asset Filters */}
+        <View style={s.filterSection}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
+            {ASSET_FILTERS.map((f) => (
+              <TouchableOpacity
+                key={f.id}
+                onPress={() => { hapticLight(); setAssetFilter(f.id); }}
+                activeOpacity={0.8}
+                style={[s.filterBtn, assetFilter === f.id && s.filterBtnActive]}
+              >
+                <Text style={[s.filterTxt, assetFilter === f.id && s.filterTxtActive]}>{f.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* Search */}
-        <View style={[styles.searchRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Feather name="search" size={16} color={colors.mutedForeground} />
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search traders..."
-            placeholderTextColor={colors.mutedForeground}
-            style={[styles.searchInput, { color: colors.foreground }]}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.8}>
-              <Feather name="x" size={16} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          )}
+        <View style={s.section}>
+          <View style={s.searchRow}>
+            <Text style={s.searchEmoji}>🔍</Text>
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search traders…"
+              placeholderTextColor="#8E8E93"
+              style={s.searchInput}
+            />
+          </View>
         </View>
 
-        {/* Top 3 Podium */}
-        {top3.length >= 3 && (
-          <View style={styles.podiumRow}>
-            {PODIUM_CFG.map((cfg) => {
-              const trader = top3[cfg.rank - 1];
-              const isProfit = trader.pctChange >= 0;
-              return (
-                <View key={cfg.rank} style={[styles.podiumItem, cfg.rank === 1 && { marginTop: -16 }]}>
-                  <Text style={[styles.crownIcon, { color: cfg.crownColor }]}>
-                    {cfg.rank === 1 ? "👑" : cfg.rank === 2 ? "🥈" : "🥉"}
-                  </Text>
-                  <View style={[
-                    styles.podiumAvatar,
-                    {
-                      width: cfg.size, height: cfg.size, borderRadius: cfg.size / 2,
-                      backgroundColor: `${trader.avatarColor}20`,
-                      borderColor: cfg.glow ? colors.primary : trader.avatarColor + "50",
-                      borderWidth: cfg.glow ? 2.5 : 1.5,
-                    },
-                  ]}>
-                    <Text style={[styles.podiumInitials, { color: trader.avatarColor, fontSize: cfg.rank === 1 ? 22 : 18 }]}>{trader.initials}</Text>
-                  </View>
-                  <Text style={[styles.podiumName, { color: colors.foreground }]} numberOfLines={1}>{trader.username}</Text>
-                  <Text style={[styles.podiumProfit, { color: isProfit ? "#00FF88" : "#EF4444" }]}>
-                    {isProfit ? "+" : ""}{trader.pctChange}%
-                  </Text>
-                  <Text style={[styles.podiumVolume, { color: colors.mutedForeground }]}>{trader.totalVolume}</Text>
-                  {trader.badge && (
-                    <View style={[styles.badge, { backgroundColor: `${trader.badgeColor}15`, borderColor: `${trader.badgeColor}30` }]}>
-                      <Text style={[styles.badgeText, { color: trader.badgeColor }]}>{trader.badge}</Text>
+        {/* Podium */}
+        {!search && (
+          <View style={s.section}>
+            <View style={s.podiumWrap}>
+              {PODIUM_ORDER.map((p) => {
+                const trader = TRADERS[p.rank - 1];
+                return (
+                  <View key={p.rank} style={s.podiumSlot}>
+                    <View style={[s.podiumAvatar, { backgroundColor: trader.avatarColor + "22" }]}>
+                      <Text style={[s.podiumInitials, { color: trader.avatarColor }]}>{trader.initials}</Text>
+                      <Text style={s.podiumMedal}>{p.rank === 1 ? "🥇" : p.rank === 2 ? "🥈" : "🥉"}</Text>
                     </View>
-                  )}
-                </View>
-              );
-            })}
+                    <Text style={s.podiumName} numberOfLines={1}>{trader.username}</Text>
+                    <Text style={s.podiumProfit}>${trader.profit.toLocaleString()}</Text>
+                    <LinearGradient colors={p.gradient} style={[s.podiumPillar, { height: p.height }]}>
+                      <Text style={s.podiumRankTxt}>#{p.rank}</Text>
+                    </LinearGradient>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         )}
 
-        {/* Ranked list */}
-        <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: colors.foreground }]}>Rankings</Text>
-          <Text style={[styles.listCount, { color: colors.mutedForeground }]}>{filtered.length} traders</Text>
-        </View>
-
-        {rest.map((trader, i) => {
-          const rank = i + 4;
-          const isProfit = trader.pctChange >= 0;
-          const isMe = trader.isCurrentUser;
-          return (
-            <View
-              key={trader.id}
-              style={[
-                styles.rankRow,
-                {
-                  backgroundColor: isMe ? "rgba(0,229,255,0.06)" : colors.card,
-                  borderColor: isMe ? colors.primary + "40" : colors.border,
-                },
-              ]}
-            >
-              <Text style={[styles.rankNum, { color: colors.mutedForeground }]}>#{rank}</Text>
-              <View style={[styles.rankAvatar, { backgroundColor: `${trader.avatarColor}20` }]}>
-                <Text style={[styles.rankInitials, { color: trader.avatarColor }]}>{trader.initials}</Text>
-              </View>
-              <View style={styles.rankInfo}>
-                <View style={styles.rankNameRow}>
-                  <Text style={[styles.rankName, { color: colors.foreground }]}>{trader.username}</Text>
-                  {isMe && (
-                    <View style={[styles.youBadge, { backgroundColor: "rgba(0,229,255,0.15)", borderColor: colors.primary + "30" }]}>
-                      <Text style={{ fontSize: 9, fontFamily: "Inter_700Bold", color: colors.primary }}>YOU</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[styles.rankVolume, { color: colors.mutedForeground }]}>{trader.totalVolume} volume</Text>
-              </View>
-              <View style={styles.rankRight}>
-                <Text style={[styles.rankProfit, { color: isProfit ? "#00FF88" : "#EF4444" }]}>
-                  {isProfit ? "+" : ""}${Math.abs(trader.profit).toLocaleString()}
-                </Text>
-                <View style={[styles.rankPctPill, { backgroundColor: isProfit ? "rgba(0,255,136,0.12)" : "rgba(239,68,68,0.12)" }]}>
-                  <Feather name={isProfit ? "trending-up" : "trending-down"} size={10} color={isProfit ? "#00FF88" : "#EF4444"} />
-                  <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: isProfit ? "#00FF88" : "#EF4444" }}>
-                    {isProfit ? "+" : ""}{trader.pctChange}%
+        {/* Trader List */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Rankings</Text>
+          <View style={s.card}>
+            {filtered.map((trader, i) => (
+              <View
+                key={trader.id}
+                style={[s.traderRow, trader.isCurrentUser && s.traderRowMe, i < filtered.length - 1 && s.traderRowBorder]}
+              >
+                {/* Rank */}
+                <View style={[s.rankBadge, i === 0 && { backgroundColor: "#FFD70018" }, i === 1 && { backgroundColor: "#C0C0C018" }, i === 2 && { backgroundColor: "#CD7F3218" }]}>
+                  <Text style={[s.rankTxt, i < 3 && { color: ["#F5A623", "#A8A8A8", "#B8692A"][i] }]}>
+                    {i + 1}
                   </Text>
                 </View>
+
+                {/* Avatar */}
+                <View style={[s.avatar, { backgroundColor: trader.avatarColor + "20" }]}>
+                  <Text style={[s.avatarTxt, { color: trader.avatarColor }]}>{trader.initials}</Text>
+                </View>
+
+                {/* Info */}
+                <View style={{ flex: 1 }}>
+                  <View style={s.nameRow}>
+                    <Text style={[s.traderName, trader.isCurrentUser && { color: "#1A5AFF" }]}>{trader.username}</Text>
+                    {trader.badge && (
+                      <View style={[s.badgePill, { backgroundColor: (trader.badgeColor ?? "#8E8E93") + "18" }]}>
+                        <Text style={[s.badgeTxt, { color: trader.badgeColor ?? "#8E8E93" }]}>{trader.badge}</Text>
+                      </View>
+                    )}
+                    {trader.isCurrentUser && (
+                      <View style={s.youPill}><Text style={s.youTxt}>YOU</Text></View>
+                    )}
+                  </View>
+                  <Text style={s.traderVol}>{trader.totalVolume} volume</Text>
+                </View>
+
+                {/* Stats */}
+                <View style={{ alignItems: "flex-end" }}>
+                  <Text style={s.profit}>${trader.profit.toLocaleString()}</Text>
+                  <Text style={s.change}>↑ +{trader.pctChange}%</Text>
+                </View>
               </View>
-            </View>
-          );
-        })}
+            ))}
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
-  },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-
-  content: { padding: 20, gap: 14 },
-
-  perfCard: { borderRadius: 14, padding: 16, borderWidth: 1, gap: 12 },
-  perfHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  perfTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  trendPill: { flexDirection: "row", alignItems: "center", gap: 3, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4 },
-
-  tabScroll: { gap: 8 },
-  tabChip: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 8 },
-  tabText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  assetChip: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
-  assetText: { fontSize: 12, fontFamily: "Inter_500Medium" },
-
-  searchRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, height: 44,
-  },
-  searchInput: { flex: 1, fontSize: 14, fontFamily: "Inter_400Regular" },
-
-  podiumRow: { flexDirection: "row", justifyContent: "center", alignItems: "flex-end", gap: 12, paddingVertical: 10 },
-  podiumItem: { alignItems: "center", width: 100, gap: 4 },
-  crownIcon: { fontSize: 20 },
-  podiumAvatar: { alignItems: "center", justifyContent: "center" },
-  podiumInitials: { fontFamily: "Inter_700Bold" },
-  podiumName: { fontSize: 12, fontFamily: "Inter_600SemiBold", textAlign: "center" },
-  podiumProfit: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  podiumVolume: { fontSize: 10, fontFamily: "Inter_400Regular" },
-  badge: { borderRadius: 20, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, marginTop: 2 },
-  badgeText: { fontSize: 9, fontFamily: "Inter_700Bold" },
-
-  listHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  listTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  listCount: { fontSize: 12, fontFamily: "Inter_400Regular" },
-
-  rankRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 14, borderWidth: 1, padding: 12,
-  },
-  rankNum: { fontSize: 13, fontFamily: "Inter_700Bold", width: 28, textAlign: "center" },
-  rankAvatar: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
-  rankInitials: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  rankInfo: { flex: 1, gap: 2 },
-  rankNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  rankName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  youBadge: { borderRadius: 6, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2 },
-  rankVolume: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  rankRight: { alignItems: "flex-end", gap: 4 },
-  rankProfit: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  rankPctPill: { flexDirection: "row", alignItems: "center", gap: 3, borderRadius: 20, paddingHorizontal: 6, paddingVertical: 3 },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  scroll: {},
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  backArrow: { fontSize: 20, color: "#1C1C1E" },
+  section: { paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  tabSection: { flexDirection: "row", paddingHorizontal: 16, gap: 6, marginBottom: 16 },
+  tab: { flex: 1, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  tabActive: { backgroundColor: "#1A5AFF" },
+  tabTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  tabTxtActive: { color: "#FFFFFF" },
+  chartHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", padding: 16, paddingBottom: 10 },
+  chartTitle: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 2 },
+  chartSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  gainBadge: { backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  gainBadgeTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#30D158" },
+  chartArea: { flexDirection: "row", alignItems: "flex-end", gap: 4, height: 60, paddingHorizontal: 16, paddingBottom: 16 },
+  filterSection: { marginBottom: 14 },
+  filterRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 4 },
+  filterBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  filterBtnActive: { backgroundColor: "#1A5AFF" },
+  filterTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  filterTxtActive: { color: "#FFFFFF" },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFFFFF", borderRadius: 14, paddingHorizontal: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  searchEmoji: { fontSize: 16 },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: "Inter_400Regular", color: "#1C1C1E", paddingVertical: 13 },
+  podiumWrap: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center", gap: 16, paddingBottom: 8 },
+  podiumSlot: { alignItems: "center", flex: 1 },
+  podiumAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", marginBottom: 6, position: "relative" },
+  podiumInitials: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  podiumMedal: { position: "absolute", top: -8, right: -8, fontSize: 18 },
+  podiumName: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 3, textAlign: "center" },
+  podiumProfit: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#30D158", marginBottom: 5, textAlign: "center" },
+  podiumPillar: { width: "100%", borderTopLeftRadius: 8, borderTopRightRadius: 8, alignItems: "center", justifyContent: "flex-end", paddingBottom: 8 },
+  podiumRankTxt: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
+  traderRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 13 },
+  traderRowMe: { backgroundColor: "#F5F8FF" },
+  traderRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  rankBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  rankTxt: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#8E8E93" },
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  avatarTxt: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  nameRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 5, marginBottom: 2 },
+  traderName: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  badgePill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
+  badgeTxt: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+  youPill: { backgroundColor: "#EEF3FF", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
+  youTxt: { fontSize: 10, fontFamily: "Inter_700Bold", color: "#1A5AFF" },
+  traderVol: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  profit: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 2 },
+  change: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#30D158" },
 });

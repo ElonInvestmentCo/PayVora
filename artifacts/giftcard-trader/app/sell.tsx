@@ -1,51 +1,50 @@
 import React, { useState, useCallback, useMemo } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  Platform,
-  Image,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Alert, Platform, Image,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useColors } from "@/hooks/useColors";
 import { hapticLight, hapticSuccess, hapticError, hapticSelection } from "@/utils/haptics";
 import { CardTypeSelector, CARD_TYPES } from "@/components/CardTypeSelector";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import Svg, { Path } from "react-native-svg";
 
 type SellMode = "gift_card" | "crypto";
-
 type Currency = "USD" | "GBP" | "EUR" | "CAD" | "AUD";
 
 const CURRENCIES: Currency[] = ["USD", "GBP", "EUR", "CAD", "AUD"];
 
+function ArrowLeft() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M19 12H5M12 5l-7 7 7 7" stroke="#1C1C1E" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export default function SellScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { assets, updateNgnBalance, updateUsdBalance, updateAsset, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
   const { prices } = useLivePrices();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const bottomPad = isWeb ? 34 : insets.bottom;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   const [mode, setMode] = useState<SellMode>("gift_card");
 
+  // Gift card state
   const [selectedCard, setSelectedCard] = useState("amazon");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<Currency>("USD");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Crypto state
   const [selectedCrypto, setSelectedCrypto] = useState<string>("btc");
   const [cryptoAmount, setCryptoAmount] = useState("");
 
@@ -70,56 +69,24 @@ export default function SellScreen() {
       allowsEditing: true,
       quality: 0.8,
     });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-    }
+    if (!result.canceled && result.assets[0]) setImageUri(result.assets[0].uri);
   }, []);
 
   const handleSellGiftCard = useCallback(async () => {
-    if (!amount || numAmount <= 0) {
-      hapticError();
-      Alert.alert("Error", "Please enter a valid card amount.");
-      return;
-    }
-    if (!imageUri) {
-      hapticError();
-      Alert.alert("Error", "Please upload your gift card image.");
-      return;
-    }
+    if (!amount || numAmount <= 0) { hapticError(); Alert.alert("Error", "Please enter a valid card amount."); return; }
+    if (!imageUri) { hapticError(); Alert.alert("Error", "Please upload your gift card image."); return; }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 2000));
     setLoading(false);
     updateNgnBalance(payout);
-    addTransaction({
-      type: "gift_card",
-      category: "Gift Cards",
-      title: `${cardInfo?.name} Gift Card Sold`,
-      amount: payout,
-      currency: "NGN",
-      status: "success",
-      date: "Just now",
-      direction: "in",
-    });
-    addNotification({
-      title: "Trade Completed",
-      message: `Your ${cardInfo?.name} card trade for ${currency}${numAmount} completed. ₦${payout.toLocaleString()} credited.`,
-      type: "success",
-      time: "Just now",
-    });
+    addTransaction({ type: "gift_card", category: "Gift Cards", title: `${cardInfo?.name} Gift Card Sold`, amount: payout, currency: "NGN", status: "success", date: "Just now", direction: "in" });
+    addNotification({ title: "Trade Completed", message: `Your ${cardInfo?.name} card trade for ${currency}${numAmount} completed. ₦${payout.toLocaleString()} credited.`, type: "success", time: "Just now" });
     hapticSuccess();
-    Alert.alert(
-      "Trade Submitted!",
-      `Your ${cardInfo?.name} card trade for ${currency}${numAmount} (₦${payout.toLocaleString()}) has been submitted and is being reviewed.`,
-      [{ text: "OK", onPress: () => router.back() }]
-    );
+    Alert.alert("Trade Submitted!", `Your ${cardInfo?.name} card trade for ${currency}${numAmount} (₦${payout.toLocaleString()}) has been submitted.`, [{ text: "OK", onPress: () => router.back() }]);
   }, [amount, imageUri, numAmount, payout, cardInfo, currency, updateNgnBalance, addTransaction, addNotification]);
 
   const handleSellCrypto = useCallback(async () => {
-    if (numCryptoAmount <= 0) {
-      hapticError();
-      Alert.alert("Error", "Please enter a valid amount.");
-      return;
-    }
+    if (numCryptoAmount <= 0) { hapticError(); Alert.alert("Error", "Please enter a valid amount."); return; }
     if (selectedCryptoAsset && numCryptoAmount > selectedCryptoAsset.balance) {
       hapticError();
       Alert.alert("Insufficient Balance", `You only have ${selectedCryptoAsset.balance} ${selectedCryptoAsset.symbol} available.`);
@@ -135,250 +102,210 @@ export default function SellScreen() {
         value: Math.max(0, selectedCryptoAsset.value - cryptoPayout),
       });
     }
-    addTransaction({
-      type: "crypto",
-      category: "Crypto",
-      title: `Sold ${selectedCryptoAsset?.symbol}`,
-      amount: cryptoNet,
-      currency: "USD",
-      status: "success",
-      date: "Just now",
-      direction: "in",
-    });
-    addNotification({
-      title: "Instant Sell Complete",
-      message: `Sold ${numCryptoAmount} ${selectedCryptoAsset?.symbol} for $${cryptoNet.toFixed(2)}.`,
-      type: "success",
-      time: "Just now",
-    });
+    addTransaction({ type: "crypto", category: "Crypto", title: `Sold ${selectedCryptoAsset?.symbol}`, amount: cryptoNet, currency: "USD", status: "success", date: "Just now", direction: "in" });
+    addNotification({ title: "Instant Sell Complete", message: `Sold ${numCryptoAmount} ${selectedCryptoAsset?.symbol} for $${cryptoNet.toFixed(2)}.`, type: "success", time: "Just now" });
     hapticSuccess();
-    Alert.alert(
-      "Sold Instantly!",
-      `${numCryptoAmount} ${selectedCryptoAsset?.symbol} sold for $${cryptoNet.toFixed(2)} (credited to USD wallet).`,
-      [{ text: "Done", onPress: () => router.back() }]
-    );
+    Alert.alert("Sold!", `${numCryptoAmount} ${selectedCryptoAsset?.symbol} sold for $${cryptoNet.toFixed(2)}`, [{ text: "Done", onPress: () => router.back() }]);
   }, [numCryptoAmount, selectedCryptoAsset, cryptoNet, cryptoPayout, updateUsdBalance, updateAsset, addTransaction, addNotification]);
 
-  const quickPercentages = [25, 50, 75, 100];
-
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.content, { paddingTop: topPad + 12, paddingBottom: bottomPad + 40 }]}
-      >
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={20} color={colors.foreground} />
+    <View style={[s.root, { paddingTop: topPad }]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: bottomPad + 60 }]} keyboardShouldPersistTaps="handled">
+
+        {/* Header */}
+        <View style={s.header}>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+            <ArrowLeft />
           </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.foreground }]}>Quick Sell</Text>
+          <Text style={s.headerTitle}>Quick Sell</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        <View style={[styles.modeToggle, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {([
-            { key: "gift_card" as SellMode, label: "Gift Cards", icon: "gift" },
-            { key: "crypto" as SellMode, label: "Crypto", icon: "trending-down" },
-          ]).map((m) => (
-            <TouchableOpacity
-              key={m.key}
-              activeOpacity={0.8}
-              onPress={() => { hapticSelection(); setMode(m.key); }}
-              style={[
-                styles.modeBtn,
-                mode === m.key && { backgroundColor: "rgba(0,229,255,0.15)" },
-              ]}
-            >
-              <Feather name={m.icon as any} size={16} color={mode === m.key ? colors.primary : colors.mutedForeground} />
-              <Text style={[styles.modeBtnText, { color: mode === m.key ? colors.primary : colors.mutedForeground }]}>
-                {m.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Mode Toggle */}
+        <View style={s.section}>
+          <View style={s.modeToggle}>
+            {([
+              { key: "gift_card" as SellMode, label: "Gift Cards" },
+              { key: "crypto" as SellMode, label: "Crypto" },
+            ]).map((m) => (
+              <TouchableOpacity
+                key={m.key}
+                activeOpacity={0.8}
+                onPress={() => { hapticSelection(); setMode(m.key); }}
+                style={[s.modeBtn, mode === m.key && s.modeBtnActive]}
+              >
+                <Text style={[s.modeBtnTxt, mode === m.key && s.modeBtnTxtActive]}>{m.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
+        {/* ── Gift Card Mode ── */}
         {mode === "gift_card" && (
           <>
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Select Card Type</Text>
-            <CardTypeSelector selected={selectedCard} onSelect={setSelectedCard} />
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Select Card Type</Text>
+              <CardTypeSelector selected={selectedCard} onSelect={setSelectedCard} />
+            </View>
 
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Currency</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.currRow}>
-              {CURRENCIES.map((cur) => (
-                <TouchableOpacity
-                  key={cur}
-                  onPress={() => setCurrency(cur)}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.currBtn,
-                    {
-                      backgroundColor: currency === cur ? colors.primary : colors.card,
-                      borderColor: currency === cur ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.currBtnText, { color: currency === cur ? colors.primaryForeground : colors.mutedForeground }]}>
-                    {cur}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Currency</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.currRow}>
+                {CURRENCIES.map((cur) => (
+                  <TouchableOpacity
+                    key={cur}
+                    onPress={() => setCurrency(cur)}
+                    activeOpacity={0.8}
+                    style={[s.currBtn, currency === cur && s.currBtnActive]}
+                  >
+                    <Text style={[s.currBtnTxt, currency === cur && s.currBtnTxtActive]}>{cur}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
 
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Card Amount ({currency})</Text>
-            <TextInput
-              style={[styles.input, { color: colors.foreground, backgroundColor: colors.card, borderColor: colors.border }]}
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="e.g. 100"
-              placeholderTextColor={colors.mutedForeground}
-              keyboardType="decimal-pad"
-            />
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Card Amount ({currency})</Text>
+              <View style={s.card}>
+                <View style={s.inputRow}>
+                  <Text style={s.inputPrefix}>{currency === "USD" ? "$" : currency === "GBP" ? "£" : currency === "EUR" ? "€" : currency === "CAD" ? "CA$" : "A$"}</Text>
+                  <TextInput
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="0.00"
+                    placeholderTextColor="#8E8E93"
+                    keyboardType="decimal-pad"
+                    style={s.input}
+                  />
+                </View>
+              </View>
+            </View>
 
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Upload Card Image</Text>
-            <TouchableOpacity
-              onPress={handleImagePick}
-              activeOpacity={0.8}
-              style={[styles.uploadBox, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.uploadImage} />
-              ) : (
-                <>
-                  <Feather name="camera" size={28} color={colors.mutedForeground} />
-                  <Text style={[styles.uploadText, { color: colors.mutedForeground }]}>Tap to upload</Text>
-                </>
-              )}
-            </TouchableOpacity>
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Upload Card Image</Text>
+              <TouchableOpacity onPress={handleImagePick} activeOpacity={0.8} style={s.uploadBox}>
+                {imageUri ? (
+                  <Image source={{ uri: imageUri }} style={s.uploadPreview} />
+                ) : (
+                  <>
+                    <Text style={s.uploadEmoji}>📷</Text>
+                    <Text style={s.uploadTxt}>Tap to upload card image</Text>
+                    <Text style={s.uploadSub}>JPG or PNG · Max 5MB</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
 
             {numAmount > 0 && (
-              <View style={[styles.summaryBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Card</Text>
-                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>{cardInfo?.name}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Amount</Text>
-                  <Text style={[styles.summaryValue, { color: colors.foreground }]}>{currency} {numAmount}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Rate</Text>
-                  <Text style={[styles.summaryValue, { color: colors.primary }]}>₦{rate.toLocaleString()}/{currency}</Text>
-                </View>
-                <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLabel, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>You Receive</Text>
-                  <Text style={[styles.summaryValue, { color: "#00FF88", fontFamily: "Inter_700Bold", fontSize: 18 }]}>₦{payout.toLocaleString()}</Text>
+              <View style={s.section}>
+                <View style={s.card}>
+                  {[
+                    { label: "Card", value: cardInfo?.name },
+                    { label: "Amount", value: `${currency} ${numAmount}` },
+                    { label: "Rate", value: `₦${rate.toLocaleString()}/${currency}` },
+                  ].map((row, i, arr) => (
+                    <View key={row.label} style={[s.summaryRow, i < arr.length - 1 && s.summaryRowBorder]}>
+                      <Text style={s.summaryLabel}>{row.label}</Text>
+                      <Text style={s.summaryValue}>{row.value}</Text>
+                    </View>
+                  ))}
+                  <View style={[s.summaryRow, { backgroundColor: "#F0FDF4", borderRadius: 12, margin: 4, marginTop: 0 }]}>
+                    <Text style={[s.summaryLabel, { fontFamily: "Inter_600SemiBold", color: "#1C1C1E" }]}>You Receive</Text>
+                    <Text style={[s.summaryValue, { color: "#30D158", fontSize: 18, fontFamily: "Inter_700Bold" }]}>₦{payout.toLocaleString()}</Text>
+                  </View>
                 </View>
               </View>
             )}
 
-            <GlowButton title={loading ? "Processing..." : "Sell Gift Card"} onPress={handleSellGiftCard} disabled={loading} />
+            <View style={s.section}>
+              <GlowButton title={loading ? "Processing..." : "Sell Gift Card"} onPress={handleSellGiftCard} disabled={loading} />
+            </View>
           </>
         )}
 
+        {/* ── Crypto Mode ── */}
         {mode === "crypto" && (
           <>
-            <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Select Asset to Sell</Text>
-            <View style={styles.cryptoGrid}>
-              {cryptoAssets.map((asset) => (
-                <TouchableOpacity
-                  key={asset.id}
-                  activeOpacity={0.8}
-                  onPress={() => { hapticLight(); setSelectedCrypto(asset.id); setCryptoAmount(""); }}
-                  style={[
-                    styles.cryptoCard,
-                    {
-                      backgroundColor: selectedCrypto === asset.id ? `${asset.color}15` : colors.card,
-                      borderColor: selectedCrypto === asset.id ? asset.color : colors.border,
-                    },
-                  ]}
-                >
-                  <View style={[styles.cryptoIcon, { backgroundColor: `${asset.color}22` }]}>
-                    <Text style={{ fontSize: 16, fontFamily: "Inter_700Bold", color: asset.color }}>{asset.icon}</Text>
-                  </View>
-                  <Text style={[styles.cryptoName, { color: colors.foreground }]}>{asset.symbol}</Text>
-                  <Text style={[styles.cryptoBal, { color: colors.mutedForeground }]}>{asset.balance}</Text>
-                  <Text style={[styles.cryptoVal, { color: colors.primary }]}>${asset.value.toFixed(2)}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Select Asset to Sell</Text>
+              <View style={s.cryptoGrid}>
+                {cryptoAssets.map((asset) => {
+                  const isSelected = selectedCrypto === asset.id;
+                  return (
+                    <TouchableOpacity
+                      key={asset.id}
+                      activeOpacity={0.8}
+                      onPress={() => { hapticLight(); setSelectedCrypto(asset.id); setCryptoAmount(""); }}
+                      style={[s.cryptoCard, isSelected && { borderColor: asset.color, backgroundColor: asset.color + "10" }]}
+                    >
+                      <View style={[s.cryptoIconCircle, { backgroundColor: asset.color + "20" }]}>
+                        <Text style={{ fontSize: 14, fontFamily: "Inter_700Bold", color: asset.color }}>{asset.symbol[0]}</Text>
+                      </View>
+                      <Text style={[s.cryptoSym, isSelected && { color: asset.color }]}>{asset.symbol}</Text>
+                      <Text style={s.cryptoBal}>{asset.balance.toFixed(4)}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {selectedCryptoAsset && (
-              <>
-                <View style={[styles.priceBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <Text style={[styles.priceBarLabel, { color: colors.mutedForeground }]}>Current Price</Text>
-                  <Text style={[styles.priceBarValue, { color: colors.foreground }]}>
-                    1 {selectedCryptoAsset.symbol} = ${cryptoPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </Text>
-                </View>
-
-                <Text style={[styles.sectionLabel, { color: colors.foreground }]}>Amount ({selectedCryptoAsset.symbol})</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.foreground, backgroundColor: colors.card, borderColor: colors.border }]}
-                  value={cryptoAmount}
-                  onChangeText={setCryptoAmount}
-                  placeholder="0.00"
-                  placeholderTextColor={colors.mutedForeground}
-                  keyboardType="decimal-pad"
-                />
-
-                <View style={styles.quickPercentRow}>
-                  {quickPercentages.map((pct) => (
-                    <TouchableOpacity
-                      key={pct}
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        hapticLight();
-                        const qty = (selectedCryptoAsset.balance * pct) / 100;
-                        setCryptoAmount(qty.toFixed(6));
-                      }}
-                      style={[styles.quickPctBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-                    >
-                      <Text style={[styles.quickPctText, { color: colors.primary }]}>{pct}%</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {numCryptoAmount > 0 && (
-                  <View style={[styles.summaryBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Selling</Text>
-                      <Text style={[styles.summaryValue, { color: colors.foreground }]}>{numCryptoAmount} {selectedCryptoAsset.symbol}</Text>
-                    </View>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Price</Text>
-                      <Text style={[styles.summaryValue, { color: colors.foreground }]}>${cryptoPrice.toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Subtotal</Text>
-                      <Text style={[styles.summaryValue, { color: colors.foreground }]}>${cryptoPayout.toFixed(2)}</Text>
-                    </View>
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Fee (0.1%)</Text>
-                      <Text style={[styles.summaryValue, { color: colors.mutedForeground }]}>-${cryptoFee.toFixed(2)}</Text>
-                    </View>
-                    <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
-                    <View style={styles.summaryRow}>
-                      <Text style={[styles.summaryLabel, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>You Receive</Text>
-                      <Text style={[styles.summaryValue, { color: "#00FF88", fontFamily: "Inter_700Bold", fontSize: 18 }]}>${cryptoNet.toFixed(2)}</Text>
-                    </View>
+              <View style={s.section}>
+                <View style={s.card}>
+                  <View style={s.pricePill}>
+                    <Text style={s.pricePillLbl}>{selectedCryptoAsset.symbol} Price</Text>
+                    <Text style={s.pricePillVal}>${cryptoPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
                   </View>
-                )}
 
-                <GlowButton
-                  title={loading ? "Processing..." : `Sell ${selectedCryptoAsset.symbol} Instantly`}
-                  onPress={handleSellCrypto}
-                  disabled={loading}
-                />
+                  <View style={[s.inputRow, { margin: 16, marginTop: 8, backgroundColor: "#F2F2F7", borderRadius: 14 }]}>
+                    <TextInput
+                      value={cryptoAmount}
+                      onChangeText={setCryptoAmount}
+                      placeholder="0.000000"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="decimal-pad"
+                      style={[s.input, { paddingLeft: 0 }]}
+                    />
+                    <Text style={s.inputSuffix}>{selectedCryptoAsset.symbol}</Text>
+                  </View>
 
-                <View style={[styles.instantNote, { backgroundColor: "rgba(0,255,136,0.08)", borderColor: "#00FF8830" }]}>
-                  <Feather name="zap" size={14} color="#00FF88" />
-                  <Text style={[styles.instantNoteText, { color: "#00FF88" }]}>
-                    Instant sell — funds credited to your USD wallet immediately.
-                  </Text>
+                  {/* Quick % buttons */}
+                  <View style={s.pctRow}>
+                    {[25, 50, 75, 100].map((pct) => (
+                      <TouchableOpacity
+                        key={pct}
+                        onPress={() => {
+                          const v = (selectedCryptoAsset.balance * pct / 100).toFixed(6);
+                          setCryptoAmount(v);
+                        }}
+                        activeOpacity={0.8}
+                        style={s.pctBtn}
+                      >
+                        <Text style={s.pctBtnTxt}>{pct === 100 ? "Max" : `${pct}%`}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Fee Breakdown */}
+                  <View style={s.feeSection}>
+                    {[
+                      { label: "Gross Payout", value: `$${cryptoPayout.toFixed(2)}` },
+                      { label: "Fee (0.1%)", value: `-$${cryptoFee.toFixed(2)}` },
+                      { label: "Net Payout", value: `$${cryptoNet.toFixed(2)}`, highlight: true },
+                    ].map((row, i, arr) => (
+                      <View key={row.label} style={[s.feeRow, i < arr.length - 1 && s.feeRowBorder]}>
+                        <Text style={s.feeLbl}>{row.label}</Text>
+                        <Text style={[s.feeVal, (row as any).highlight && { color: "#30D158", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </>
+              </View>
             )}
+
+            <View style={s.section}>
+              <GlowButton title={loading ? "Processing..." : "Instant Sell"} onPress={handleSellCrypto} disabled={loading} />
+            </View>
           </>
         )}
       </ScrollView>
@@ -386,63 +313,63 @@ export default function SellScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { paddingHorizontal: 20 },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-  backBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  title: { fontSize: 20, fontFamily: "Inter_700Bold" },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  scroll: {},
 
-  modeToggle: { flexDirection: "row", borderRadius: 12, borderWidth: 1, padding: 4, gap: 4, marginBottom: 20 },
-  modeBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 10, paddingVertical: 12 },
-  modeBtnText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
 
-  sectionLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", marginBottom: 10, marginTop: 6 },
+  section: { paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
 
-  currRow: { gap: 8, marginBottom: 8 },
-  currBtn: { borderRadius: 10, paddingHorizontal: 18, paddingVertical: 9, borderWidth: 1 },
-  currBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  modeToggle: { flexDirection: "row", backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  modeBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
+  modeBtnActive: { backgroundColor: "#1A5AFF" },
+  modeBtnTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  modeBtnTxtActive: { color: "#FFFFFF" },
 
-  input: {
-    borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 18, fontFamily: "Inter_600SemiBold", marginBottom: 14,
-  },
+  currRow: { gap: 8, paddingBottom: 4 },
+  currBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  currBtnActive: { backgroundColor: "#1A5AFF" },
+  currBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  currBtnTxtActive: { color: "#FFFFFF" },
 
-  uploadBox: {
-    borderRadius: 14, borderWidth: 1, borderStyle: "dashed",
-    height: 120, alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 14, overflow: "hidden",
-  },
-  uploadText: { fontSize: 13, fontFamily: "Inter_500Medium" },
-  uploadImage: { width: "100%", height: "100%", resizeMode: "cover" },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  inputRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12 },
+  inputPrefix: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 8 },
+  inputSuffix: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#8E8E93", marginLeft: 8, paddingRight: 8 },
+  input: { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 10 },
 
-  summaryBox: { borderRadius: 14, borderWidth: 1, padding: 16, gap: 10, marginBottom: 16 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  summaryLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  summaryValue: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  summaryDivider: { borderTopWidth: 1, marginVertical: 4 },
+  uploadBox: { backgroundColor: "#FFFFFF", borderRadius: 20, padding: 32, alignItems: "center", borderWidth: 2, borderColor: "#E5E5EA", borderStyle: "dashed", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  uploadPreview: { width: "100%", height: 160, borderRadius: 12, resizeMode: "cover" },
+  uploadEmoji: { fontSize: 32, marginBottom: 8 },
+  uploadTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 4 },
+  uploadSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
 
-  cryptoGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
-  cryptoCard: {
-    width: "47%", borderRadius: 14, borderWidth: 1, padding: 14, alignItems: "center", gap: 6,
-  },
-  cryptoIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  cryptoName: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  cryptoBal: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  cryptoVal: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 13 },
+  summaryRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  summaryLabel: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  summaryValue: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 
-  priceBar: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 14,
-  },
-  priceBarLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  priceBarValue: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  cryptoGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  cryptoCard: { width: "30%", backgroundColor: "#FFFFFF", borderRadius: 16, padding: 12, alignItems: "center", gap: 4, borderWidth: 1.5, borderColor: "transparent", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  cryptoIconCircle: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  cryptoSym: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  cryptoBal: { fontSize: 10, fontFamily: "Inter_400Regular", color: "#8E8E93" },
 
-  quickPercentRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
-  quickPctBtn: { flex: 1, borderRadius: 8, borderWidth: 1, paddingVertical: 10, alignItems: "center" },
-  quickPctText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  pricePill: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 14, paddingBottom: 8 },
+  pricePillLbl: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
+  pricePillVal: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
 
-  instantNote: {
-    flexDirection: "row", gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, marginTop: 12,
-  },
-  instantNoteText: { flex: 1, fontSize: 12, fontFamily: "Inter_500Medium", lineHeight: 18 },
+  pctRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16 },
+  pctBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
+  pctBtnTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+
+  feeSection: { marginHorizontal: 16, backgroundColor: "#F2F2F7", borderRadius: 12, marginBottom: 16 },
+  feeRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 11 },
+  feeRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  feeLbl: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  feeVal: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 });

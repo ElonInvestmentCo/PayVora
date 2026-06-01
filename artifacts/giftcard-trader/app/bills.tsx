@@ -1,21 +1,12 @@
 import React, { useState, useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  Platform,
-  Pressable,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Alert, Platform, ActivityIndicator,
 } from "react-native";
 import { FocusedModal } from "@/components/FocusedModal";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
-import { hapticSuccess, hapticError } from "@/utils/haptics";
+import { hapticSuccess, hapticError, hapticLight } from "@/utils/haptics";
 import { GlowButton } from "@/components/GlowButton";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
@@ -33,200 +24,145 @@ interface ESimPlan {
   color: string;
 }
 
-interface BillTx {
-  id: string;
-  service: string;
-  amount: string;
-  date: string;
-  status: "success" | "pending" | "error";
-  icon: string;
-}
-
-const SERVICES: { id: ServiceId; label: string; icon: string; color: string }[] = [
-  { id: "airtime",     label: "Airtime",     icon: "phone",    color: "#00E5FF" },
-  { id: "data",        label: "Data",        icon: "wifi",     color: "#14B8A6" },
-  { id: "electricity", label: "Electricity", icon: "zap",      color: "#F59E0B" },
-  { id: "tv",          label: "TV Sub",      icon: "tv",       color: "#8B5CF6" },
-  { id: "internet",    label: "Internet",    icon: "globe",    color: "#00FF88" },
+const SERVICES: { id: ServiceId; label: string; emoji: string; color: string }[] = [
+  { id: "airtime",     label: "Airtime",     emoji: "📞", color: "#1A5AFF" },
+  { id: "data",        label: "Data",        emoji: "📡", color: "#30D158" },
+  { id: "electricity", label: "Electricity", emoji: "⚡", color: "#FF9F0A" },
+  { id: "tv",          label: "TV Sub",      emoji: "📺", color: "#BF5AF2" },
+  { id: "internet",    label: "Internet",    emoji: "🌐", color: "#32ADE6" },
 ];
 
 const PROVIDERS: Record<ServiceId, string[]> = {
   airtime:     ["MTN", "Airtel", "Glo", "9mobile"],
-  data:        ["MTN", "Airtel", "Glo", "9mobile"],
-  electricity: ["IKEDC", "EKEDC", "AEDC", "PHEDC"],
-  tv:          ["DSTV", "GOtv", "StarTimes", "ShowMax"],
-  internet:    ["Spectranet", "Smile", "Swift", "ipNX"],
+  data:        ["MTN Data", "Airtel Data", "Glo Data", "9mobile Data"],
+  electricity: ["IKEDC", "AEDC", "EKEDC", "PHCN"],
+  tv:          ["DSTV", "GOtv", "Startimes", "ShowMax"],
+  internet:    ["Spectranet", "Smile", "Ipnx", "Swift"],
 };
 
-const QUICK_AMOUNTS = [5, 10, 20, 50, 100];
+const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
 
 const ESIM_PLANS: ESimPlan[] = [
-  { id: "1", region: "United States", flag: "🇺🇸", data: "5 GB",  validity: "7 days",  price: 8.99,  color: "#00E5FF" },
-  { id: "2", region: "Europe",        flag: "🇪🇺", data: "10 GB", validity: "30 days", price: 15.99, color: "#14B8A6" },
-  { id: "3", region: "United Kingdom",flag: "🇬🇧", data: "3 GB",  validity: "7 days",  price: 6.99,  color: "#8B5CF6" },
-  { id: "4", region: "Global",        flag: "🌍", data: "1 GB",  validity: "15 days", price: 4.99,  color: "#F59E0B" },
-  { id: "5", region: "Japan",         flag: "🇯🇵", data: "10 GB", validity: "30 days", price: 12.99, color: "#00FF88" },
-  { id: "6", region: "Canada",        flag: "🇨🇦", data: "5 GB",  validity: "15 days", price: 9.99,  color: "#FF4444" },
+  { id: "1", region: "Nigeria",       flag: "🇳🇬", data: "5GB",  validity: "30 days",  price: 15,  color: "#30D158" },
+  { id: "2", region: "United States", flag: "🇺🇸", data: "10GB", validity: "30 days",  price: 25,  color: "#1A5AFF" },
+  { id: "3", region: "Europe",        flag: "🇪🇺", data: "8GB",  validity: "14 days",  price: 20,  color: "#32ADE6" },
+  { id: "4", region: "Asia Pacific",  flag: "🌏", data: "15GB", validity: "30 days",  price: 30,  color: "#BF5AF2" },
+  { id: "5", region: "Global",        flag: "🌍", data: "20GB", validity: "60 days",  price: 50,  color: "#FF9F0A" },
+  { id: "6", region: "UK",            flag: "🇬🇧", data: "12GB", validity: "28 days",  price: 28,  color: "#FF3B30" },
 ];
 
-const BILL_TRANSACTIONS: BillTx[] = [
-  { id: "1", service: "MTN Airtime",    amount: "$10.00",  date: "Today, 2:15 PM",       status: "success", icon: "phone" },
-  { id: "2", service: "DSTV Premium",   amount: "$35.00",  date: "Yesterday, 10:30 AM",  status: "success", icon: "tv" },
-  { id: "3", service: "IKEDC Electric", amount: "$20.00",  date: "Apr 1, 6:45 PM",       status: "pending", icon: "zap" },
-  { id: "4", service: "eSIM — Europe",  amount: "$15.99",  date: "Mar 30, 3:20 PM",      status: "success", icon: "globe" },
-  { id: "5", service: "Airtel Data",    amount: "$5.00",   date: "Mar 29, 1:00 PM",      status: "error",   icon: "wifi" },
+const BILL_TRANSACTIONS = [
+  { id: "1", service: "MTN Airtime",    amount: "₦500",  date: "Jun 1, 2026",   status: "success" as const, emoji: "📞" },
+  { id: "2", service: "DSTV Premium",   amount: "₦24,500", date: "May 30, 2026", status: "success" as const, emoji: "📺" },
+  { id: "3", service: "IKEDC Prepaid",  amount: "₦3,000", date: "May 28, 2026", status: "pending" as const, emoji: "⚡" },
+  { id: "4", service: "Spectranet",     amount: "₦6,000", date: "May 25, 2026", status: "success" as const, emoji: "🌐" },
 ];
-
-const STATUS_CFG: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  success: { bg: "rgba(0,255,136,0.12)", border: "#00FF8830", text: "#00FF88", label: "Successful" },
-  pending: { bg: "rgba(245,158,11,0.12)", border: "#F59E0B30", text: "#F59E0B", label: "Pending" },
-  error:   { bg: "rgba(239,68,68,0.12)", border: "#EF444430", text: "#EF4444", label: "Failed" },
-};
 
 export default function BillsScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
   const { usdBalance, updateUsdBalance, addTransaction } = useWallet();
   const { addNotification } = useNotifications();
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const botPad = isWeb ? 34 : insets.bottom;
 
-  const [tab, setTab] = useState<ActiveTab>("bills");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("bills");
   const [selectedService, setSelectedService] = useState<ServiceId>("airtime");
   const [phone, setPhone] = useState("");
-  const [provider, setProvider] = useState("");
-  const [providerOpen, setProviderOpen] = useState(false);
+  const [provider, setProvider] = useState(PROVIDERS.airtime[0]);
   const [amount, setAmount] = useState("");
-  const [payLoading, setPayLoading] = useState(false);
-
-  const [selectedPlan, setSelectedPlan] = useState<ESimPlan | null>(null);
-  const [planModal, setPlanModal] = useState(false);
-  const [buyLoading, setBuyLoading] = useState(false);
+  const [planModal, setPlanModal] = useState<ESimPlan | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const numAmount = parseFloat(amount) || 0;
-  const isValidBill = phone.length >= 5 && provider && numAmount > 0;
+  const service = SERVICES.find((s) => s.id === selectedService)!;
 
   const handlePay = useCallback(async () => {
-    if (!isValidBill) {
-      hapticError();
-      Alert.alert("Error", "Please fill in all fields with valid values.");
-      return;
-    }
-    if (numAmount > usdBalance) {
-      hapticError();
-      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
-      return;
-    }
-    setPayLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setPayLoading(false);
-    updateUsdBalance(-numAmount);
-    addTransaction({
-      type: "bills",
-      category: "Bills",
-      title: `${provider} ${SERVICES.find(s => s.id === selectedService)?.label}`,
-      amount: numAmount,
-      currency: "USD",
-      status: "success",
-      date: "Just now",
-      direction: "out",
-    });
-    addNotification({
-      title: "Bill Paid",
-      message: `$${numAmount.toFixed(2)} ${selectedService} payment to ${provider} completed.`,
-      type: "success",
-      time: "Just now",
-    });
+    if (!phone.trim()) { hapticError(); Alert.alert("Error", "Please enter a phone/account number."); return; }
+    if (numAmount <= 0)  { hapticError(); Alert.alert("Error", "Please enter a valid amount."); return; }
+    if (numAmount > usdBalance * 800) { hapticError(); Alert.alert("Insufficient Balance", "You don't have enough funds."); return; }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 2000));
+    setLoading(false);
+    updateUsdBalance(-numAmount / 800);
+    addTransaction({ type: "bills", category: "Bills", title: `${provider} ${service.label}`, amount: numAmount, currency: "NGN", status: "success", date: "Just now", direction: "out" });
+    addNotification({ title: "Bill Paid", message: `${provider} ${service.label} – ₦${numAmount.toLocaleString()} paid successfully.`, type: "success", time: "Just now" });
     hapticSuccess();
-    Alert.alert("Payment Successful", `$${numAmount.toFixed(2)} ${selectedService} payment to ${provider} completed.`);
-    setPhone(""); setAmount(""); setProvider("");
-  }, [isValidBill, numAmount, selectedService, provider, usdBalance, updateUsdBalance, addTransaction, addNotification]);
+    Alert.alert("Payment Successful!", `Your ${provider} ${service.label} payment of ₦${numAmount.toLocaleString()} was successful.`, [{ text: "Done" }]);
+    setPhone("");
+    setAmount("");
+  }, [phone, numAmount, provider, service, usdBalance, updateUsdBalance, addTransaction, addNotification]);
 
-  const handleBuyEsim = useCallback(async () => {
-    if (!selectedPlan) return;
-    if (selectedPlan.price > usdBalance) {
-      hapticError();
-      Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet.");
-      return;
-    }
-    setBuyLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setBuyLoading(false);
-    setPlanModal(false);
-    updateUsdBalance(-selectedPlan.price);
-    addTransaction({
-      type: "bills",
-      category: "Bills",
-      title: `eSIM — ${selectedPlan.region}`,
-      amount: selectedPlan.price,
-      currency: "USD",
-      status: "success",
-      date: "Just now",
-      direction: "out",
-    });
-    addNotification({
-      title: "eSIM Purchased",
-      message: `${selectedPlan.region} ${selectedPlan.data} plan activated. Check your email for the QR code.`,
-      type: "success",
-      time: "Just now",
-    });
+  const handleBuyEsim = useCallback(async (plan: ESimPlan) => {
+    if (plan.price > usdBalance) { hapticError(); Alert.alert("Insufficient Balance", "You don't have enough USD."); return; }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1800));
+    setLoading(false);
+    setPlanModal(null);
+    updateUsdBalance(-plan.price);
+    addTransaction({ type: "bills", category: "Bills", title: `eSIM – ${plan.region} ${plan.data}`, amount: plan.price, currency: "USD", status: "success", date: "Just now", direction: "out" });
+    addNotification({ title: "eSIM Purchased", message: `Your ${plan.data} ${plan.region} eSIM plan is active.`, type: "success", time: "Just now" });
     hapticSuccess();
-    Alert.alert("eSIM Purchased!", `${selectedPlan.region} ${selectedPlan.data} plan activated. Check your email for the QR code.`);
-  }, [selectedPlan, usdBalance, updateUsdBalance, addTransaction, addNotification]);
+    Alert.alert("eSIM Activated!", `Your ${plan.data} ${plan.region} plan for ${plan.validity} is now active. Check your email for the QR code.`, [{ text: "Great!" }]);
+  }, [usdBalance, updateUsdBalance, addTransaction, addNotification]);
+
+  const providers = PROVIDERS[selectedService];
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8} testID="back-button">
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+    <View style={[s.root, { paddingTop: topPad }]}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+          <Text style={s.backArrow}>←</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Bills & eSIMs</Text>
-        <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="clock" size={18} color={colors.mutedForeground} />
-        </TouchableOpacity>
+        <Text style={s.headerTitle}>Bills & eSIMs</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* Tab switcher */}
-      <View style={[styles.tabRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {(["bills", "esims"] as ActiveTab[]).map((t) => (
+      {/* Main Tab Toggle */}
+      <View style={s.tabToggle}>
+        {(["bills", "esims"] as ActiveTab[]).map((tab) => (
           <TouchableOpacity
-            key={t}
-            testID={`tab-${t}`}
-            onPress={() => setTab(t)}
+            key={tab}
+            onPress={() => { hapticLight(); setActiveTab(tab); }}
             activeOpacity={0.8}
-            style={[styles.tabBtn, { backgroundColor: tab === t ? "rgba(0,229,255,0.15)" : "transparent", borderColor: tab === t ? colors.primary : "transparent" }]}
+            style={[s.toggleBtn, activeTab === tab && s.toggleBtnActive]}
           >
-            <Text style={[styles.tabText, { color: tab === t ? colors.primary : colors.mutedForeground }]}>
-              {t === "bills" ? "Bills" : "eSIMs"}
+            <Text style={[s.toggleBtnTxt, activeTab === tab && s.toggleBtnTxtActive]}>
+              {tab === "bills" ? "🧾 Bill Payments" : "📱 eSIM Plans"}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: botPad + 80 }]} keyboardShouldPersistTaps="handled">
 
-        {tab === "bills" ? (
+        {/* ── Bills Tab ── */}
+        {activeTab === "bills" && (
           <>
-            {/* Service categories */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Select Service</Text>
-              <View style={styles.serviceGrid}>
+            {/* Balance */}
+            <View style={s.section}>
+              <View style={s.balancePill}>
+                <View style={s.balanceDot} />
+                <Text style={s.balanceLbl}>USD Wallet</Text>
+                <Text style={s.balanceAmt}>${usdBalance.toFixed(2)}</Text>
+              </View>
+            </View>
+
+            {/* Service Selector */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Service</Text>
+              <View style={s.serviceGrid}>
                 {SERVICES.map((svc) => {
                   const active = svc.id === selectedService;
                   return (
                     <TouchableOpacity
                       key={svc.id}
-                      testID={`svc-${svc.id}`}
-                      onPress={() => { setSelectedService(svc.id); setProvider(""); }}
+                      onPress={() => { hapticLight(); setSelectedService(svc.id); setProvider(PROVIDERS[svc.id][0]); setAmount(""); }}
                       activeOpacity={0.8}
-                      style={[styles.serviceCard, { backgroundColor: active ? "rgba(0,229,255,0.1)" : colors.card, borderColor: active ? colors.primary : colors.border }]}
+                      style={[s.serviceCard, active && { borderColor: svc.color, backgroundColor: svc.color + "10" }]}
                     >
-                      <View style={[styles.serviceIcon, { backgroundColor: `${svc.color}20` }]}>
-                        <Feather name={svc.icon as any} size={20} color={svc.color} />
-                      </View>
-                      <Text style={[styles.serviceLabel, { color: active ? colors.primary : colors.foreground }]}>{svc.label}</Text>
+                      <Text style={s.serviceEmoji}>{svc.emoji}</Text>
+                      <Text style={[s.serviceLabel, active && { color: svc.color }]}>{svc.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -234,298 +170,245 @@ export default function BillsScreen() {
             </View>
 
             {/* Provider */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Provider</Text>
-              <TouchableOpacity testID="provider-selector" onPress={() => setProviderOpen(!providerOpen)} activeOpacity={0.8} style={[styles.selectRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.selectText, { color: provider ? colors.foreground : colors.mutedForeground }]}>{provider || "Select provider"}</Text>
-                <Feather name={providerOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.mutedForeground} />
-              </TouchableOpacity>
-              {providerOpen && (
-                <View style={[styles.dropdown, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  {PROVIDERS[selectedService].map((p) => (
-                    <TouchableOpacity key={p} onPress={() => { setProvider(p); setProviderOpen(false); }} style={[styles.dropdownItem, p === provider && { backgroundColor: "rgba(0,229,255,0.08)" }]}>
-                      <Text style={[styles.dropdownText, { color: p === provider ? colors.primary : colors.foreground }]}>{p}</Text>
-                      {p === provider && <Feather name="check" size={14} color={colors.primary} />}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Provider</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.providerRow}>
+                {providers.map((p) => (
+                  <TouchableOpacity
+                    key={p}
+                    onPress={() => { hapticLight(); setProvider(p); }}
+                    activeOpacity={0.8}
+                    style={[s.providerBtn, provider === p && s.providerBtnActive]}
+                  >
+                    <Text style={[s.providerTxt, provider === p && s.providerTxtActive]}>{p}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
-            {/* Phone / Meter number */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
-                {selectedService === "electricity" ? "Meter Number" : "Phone Number"}
-              </Text>
-              <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Feather name={selectedService === "electricity" ? "hash" : "phone"} size={16} color={colors.mutedForeground} />
+            {/* Phone / Account */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Phone / Account Number</Text>
+              <View style={s.card}>
                 <TextInput
-                  testID="phone-input"
                   value={phone}
                   onChangeText={setPhone}
-                  placeholder={selectedService === "electricity" ? "Enter meter number" : "Enter phone number"}
-                  placeholderTextColor={colors.mutedForeground}
+                  placeholder={selectedService === "electricity" ? "Meter number" : "Phone number"}
+                  placeholderTextColor="#8E8E93"
                   keyboardType="phone-pad"
-                  style={[styles.textInput, { color: colors.foreground }]}
+                  style={s.phoneInput}
                 />
               </View>
             </View>
 
             {/* Amount */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Amount (USD)</Text>
-              <View style={[styles.inputRow, { backgroundColor: colors.card, borderColor: numAmount > 0 ? colors.primary : colors.border }]}>
-                <Text style={[styles.prefix, { color: colors.primary }]}>$</Text>
-                <TextInput
-                  testID="amount-input"
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="0.00"
-                  placeholderTextColor={colors.mutedForeground}
-                  keyboardType="numeric"
-                  style={[styles.textInput, styles.amountInput, { color: colors.foreground }]}
-                />
-              </View>
-              <View style={styles.quickRow}>
-                {QUICK_AMOUNTS.map((v) => (
-                  <TouchableOpacity key={v} testID={`quick-${v}`} onPress={() => setAmount(String(v))} activeOpacity={0.8} style={[styles.quickBtn, { backgroundColor: numAmount === v ? "rgba(0,229,255,0.12)" : colors.card, borderColor: numAmount === v ? colors.primary : colors.border }]}>
-                    <Text style={[styles.quickText, { color: numAmount === v ? colors.primary : colors.mutedForeground }]}>${v}</Text>
-                  </TouchableOpacity>
-                ))}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Amount (₦)</Text>
+              <View style={s.card}>
+                <View style={s.amtRow}>
+                  <Text style={s.amtPrefix}>₦</Text>
+                  <TextInput
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="0"
+                    placeholderTextColor="#8E8E93"
+                    keyboardType="numeric"
+                    style={s.amtInput}
+                  />
+                </View>
+                <View style={s.quickAmtRow}>
+                  {QUICK_AMOUNTS.map((v) => (
+                    <TouchableOpacity
+                      key={v}
+                      onPress={() => setAmount(String(v))}
+                      activeOpacity={0.8}
+                      style={[s.qaBtn, numAmount === v && s.qaBtnActive]}
+                    >
+                      <Text style={[s.qaTxt, numAmount === v && s.qaTxtActive]}>₦{v >= 1000 ? `${v / 1000}K` : v}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
 
-            {/* Summary */}
-            {isValidBill && (
-              <View style={[styles.summaryCard, { backgroundColor: "rgba(0,255,136,0.06)", borderColor: "#00FF8830" }]}>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLbl, { color: colors.mutedForeground }]}>Service</Text>
-                  <Text style={[styles.summaryVal, { color: colors.foreground }]}>{SERVICES.find(s => s.id === selectedService)?.label}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLbl, { color: colors.mutedForeground }]}>Provider</Text>
-                  <Text style={[styles.summaryVal, { color: colors.foreground }]}>{provider}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={[styles.summaryLbl, { color: colors.mutedForeground }]}>Amount</Text>
-                  <Text style={[styles.summaryVal, { color: "#00FF88" }]}>${numAmount.toFixed(2)}</Text>
-                </View>
-              </View>
-            )}
+            {/* Pay Button */}
+            <View style={s.section}>
+              <GlowButton title={loading ? "Processing…" : `Pay ₦${numAmount > 0 ? numAmount.toLocaleString() : "0"}`} onPress={handlePay} disabled={loading || numAmount <= 0 || !phone.trim()} />
+            </View>
 
-            <GlowButton testID="pay-now" title={`Pay Now · $${numAmount > 0 ? numAmount.toFixed(2) : "0.00"}`} onPress={handlePay} loading={payLoading} disabled={!isValidBill} />
-          </>
-        ) : (
-          <>
-            {/* eSIM plans */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Available eSIM Plans</Text>
-              {ESIM_PLANS.map((plan) => (
-                <TouchableOpacity
-                  key={plan.id}
-                  testID={`esim-${plan.id}`}
-                  onPress={() => { setSelectedPlan(plan); setPlanModal(true); }}
-                  activeOpacity={0.8}
-                  style={[styles.esimCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-                >
-                  <View style={styles.esimLeft}>
-                    <Text style={styles.esimFlag}>{plan.flag}</Text>
-                    <View style={styles.esimInfo}>
-                      <Text style={[styles.esimRegion, { color: colors.foreground }]}>{plan.region}</Text>
-                      <Text style={[styles.esimMeta, { color: colors.mutedForeground }]}>{plan.data} · {plan.validity}</Text>
+            {/* Recent Transactions */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Recent Payments</Text>
+              <View style={s.card}>
+                {BILL_TRANSACTIONS.map((tx, i) => (
+                  <View key={tx.id} style={[s.txRow, i < BILL_TRANSACTIONS.length - 1 && s.txRowBorder]}>
+                    <View style={s.txIconWrap}><Text style={s.txEmoji}>{tx.emoji}</Text></View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.txService}>{tx.service}</Text>
+                      <Text style={s.txDate}>{tx.date}</Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={s.txAmount}>{tx.amount}</Text>
+                      <View style={[s.txStatus, { backgroundColor: tx.status === "success" ? "#F0FDF4" : "#FFF9EC" }]}>
+                        <Text style={[s.txStatusTxt, { color: tx.status === "success" ? "#30D158" : "#FF9F0A" }]}>{tx.status}</Text>
+                      </View>
                     </View>
                   </View>
-                  <View style={styles.esimRight}>
-                    <Text style={[styles.esimPrice, { color: colors.primary }]}>${plan.price.toFixed(2)}</Text>
-                    <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-                  </View>
-                </TouchableOpacity>
-              ))}
+                ))}
+              </View>
             </View>
           </>
         )}
 
-        {/* Transaction History */}
-        <View style={styles.txHeaderRow}>
-          <Text style={[styles.txTitle, { color: colors.foreground }]}>Recent Transactions</Text>
-          <TouchableOpacity activeOpacity={0.8}>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>See all</Text>
-          </TouchableOpacity>
-        </View>
-        {BILL_TRANSACTIONS.map((tx) => {
-          const st = STATUS_CFG[tx.status];
-          return (
-            <View key={tx.id} style={[styles.txRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.txIcon, { backgroundColor: `${st.text}15` }]}>
-                <Feather name={tx.icon as any} size={16} color={st.text} />
-              </View>
-              <View style={styles.txInfo}>
-                <Text style={[styles.txService, { color: colors.foreground }]}>{tx.service}</Text>
-                <Text style={[styles.txDate, { color: colors.mutedForeground }]}>{tx.date}</Text>
-              </View>
-              <View style={styles.txRightCol}>
-                <Text style={[styles.txAmount, { color: colors.foreground }]}>{tx.amount}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: st.bg, borderColor: st.border }]}>
-                  <View style={[styles.statusDot, { backgroundColor: st.text }]} />
-                  <Text style={[styles.statusText, { color: st.text }]}>{st.label}</Text>
-                </View>
+        {/* ── eSIMs Tab ── */}
+        {activeTab === "esims" && (
+          <>
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Available Plans</Text>
+              <View style={s.esimGrid}>
+                {ESIM_PLANS.map((plan) => (
+                  <TouchableOpacity
+                    key={plan.id}
+                    onPress={() => { hapticLight(); setPlanModal(plan); }}
+                    activeOpacity={0.8}
+                    style={[s.esimCard, { borderTopColor: plan.color, borderTopWidth: 3 }]}
+                  >
+                    <Text style={s.esimFlag}>{plan.flag}</Text>
+                    <Text style={s.esimRegion}>{plan.region}</Text>
+                    <Text style={[s.esimData, { color: plan.color }]}>{plan.data}</Text>
+                    <Text style={s.esimValidity}>{plan.validity}</Text>
+                    <View style={[s.esimPrice, { backgroundColor: plan.color }]}>
+                      <Text style={s.esimPriceTxt}>${plan.price}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          );
-        })}
+          </>
+        )}
       </ScrollView>
 
       {/* eSIM Plan Modal */}
-      <FocusedModal transparent visible={planModal} animationType="fade" onRequestClose={() => setPlanModal(false)}>
-        <Pressable style={styles.overlay} onPress={() => setPlanModal(false)}>
-          <Pressable style={[styles.modal, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
-            {selectedPlan && (
+      <FocusedModal visible={!!planModal} onRequestClose={() => setPlanModal(null)} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            {planModal && (
               <>
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: colors.foreground }]}>eSIM Plan Details</Text>
-                  <TouchableOpacity onPress={() => setPlanModal(false)} activeOpacity={0.8}>
-                    <Feather name="x" size={22} color={colors.mutedForeground} />
+                <Text style={s.modalTitle}>eSIM Plan</Text>
+                <View style={s.modalPlanCard}>
+                  <Text style={s.modalFlag}>{planModal.flag}</Text>
+                  <Text style={s.modalRegion}>{planModal.region}</Text>
+                  <Text style={[s.modalData, { color: planModal.color }]}>{planModal.data}</Text>
+                </View>
+                <View style={s.modalDetailsCard}>
+                  {[
+                    { label: "Data",     value: planModal.data },
+                    { label: "Validity", value: planModal.validity },
+                    { label: "Price",    value: `$${planModal.price}`, accent: true },
+                    { label: "Delivery", value: "QR Code via Email" },
+                  ].map((row, i, arr) => (
+                    <View key={row.label} style={[s.modalRow, i < arr.length - 1 && s.modalRowBorder]}>
+                      <Text style={s.modalRowLabel}>{row.label}</Text>
+                      <Text style={[s.modalRowValue, (row as any).accent && { color: "#1A5AFF", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={s.modalQrPlaceholder}>
+                  <Text style={s.modalQrTxt}>📱 QR code will appear here after purchase</Text>
+                </View>
+                <View style={s.modalActions}>
+                  <TouchableOpacity onPress={() => setPlanModal(null)} activeOpacity={0.8} style={s.modalCancelBtn}>
+                    <Text style={s.modalCancelTxt}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleBuyEsim(planModal)}
+                    activeOpacity={0.85}
+                    disabled={loading}
+                    style={[s.modalBuyBtn, loading && { opacity: 0.65 }]}
+                  >
+                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.modalBuyTxt}>Buy ${planModal.price}</Text>}
                   </TouchableOpacity>
                 </View>
-
-                <View style={[styles.planHighlight, { backgroundColor: `${selectedPlan.color}12`, borderColor: `${selectedPlan.color}30` }]}>
-                  <Text style={styles.planFlag}>{selectedPlan.flag}</Text>
-                  <View>
-                    <Text style={[styles.planRegion, { color: colors.foreground }]}>{selectedPlan.region}</Text>
-                    <Text style={[styles.planMeta, { color: colors.mutedForeground }]}>Mobile Data eSIM</Text>
-                  </View>
-                </View>
-
-                {[
-                  { label: "Data",     value: selectedPlan.data },
-                  { label: "Validity", value: selectedPlan.validity },
-                  { label: "Coverage", value: selectedPlan.region },
-                  { label: "Price",    value: `$${selectedPlan.price.toFixed(2)}`, highlight: true },
-                ].map((row) => (
-                  <View key={row.label} style={[styles.modalRow, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.modalLbl, { color: colors.mutedForeground }]}>{row.label}</Text>
-                    <Text style={[styles.modalVal, { color: row.highlight ? "#00FF88" : colors.foreground }]}>{row.value}</Text>
-                  </View>
-                ))}
-
-                <View style={[styles.qrPlaceholder, { backgroundColor: "rgba(0,229,255,0.06)", borderColor: "rgba(0,229,255,0.15)" }]}>
-                  <Feather name="smartphone" size={24} color={colors.primary} />
-                  <Text style={[styles.qrText, { color: colors.mutedForeground }]}>QR code will be displayed after purchase</Text>
-                </View>
-
-                <GlowButton testID="buy-esim" title={`Buy eSIM · $${selectedPlan.price.toFixed(2)}`} onPress={handleBuyEsim} loading={buyLoading} />
               </>
             )}
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </FocusedModal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
-  },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-
-  tabRow: { flexDirection: "row", marginHorizontal: 20, marginTop: 16, borderRadius: 12, borderWidth: 1, padding: 4, gap: 4 },
-  tabBtn: { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: "center", borderWidth: 1 },
-  tabText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  content: { padding: 20, gap: 4 },
-
-  section: { marginBottom: 20 },
-  sectionLabel: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 },
-
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  scroll: {},
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  backArrow: { fontSize: 20, color: "#1C1C1E" },
+  tabToggle: { flexDirection: "row", marginHorizontal: 16, marginBottom: 16, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  toggleBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
+  toggleBtnActive: { backgroundColor: "#1A5AFF" },
+  toggleBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  toggleBtnTxtActive: { color: "#FFFFFF" },
+  section: { paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  balancePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#30D158" },
+  balanceLbl: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
+  balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   serviceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  serviceCard: {
-    width: "30.5%", borderRadius: 14, borderWidth: 1,
-    paddingVertical: 16, alignItems: "center", gap: 8,
-  },
-  serviceIcon: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  serviceLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-
-  selectRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderRadius: 14, borderWidth: 1, paddingHorizontal: 16, height: 52,
-  },
-  selectText: { fontSize: 15, fontFamily: "Inter_500Medium" },
-  dropdown: { marginTop: 4, borderRadius: 12, borderWidth: 1, overflow: "hidden" },
-  dropdownItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 },
-  dropdownText: { fontSize: 14, fontFamily: "Inter_500Medium" },
-
-  inputRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    borderRadius: 14, borderWidth: 1.5, paddingHorizontal: 16, height: 56,
-  },
-  prefix: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  textInput: { flex: 1, fontSize: 16, fontFamily: "Inter_500Medium" },
-  amountInput: { fontSize: 24, fontFamily: "Inter_700Bold" },
-
-  quickRow: { flexDirection: "row", gap: 8, marginTop: 10 },
-  quickBtn: { flex: 1, borderRadius: 10, borderWidth: 1, paddingVertical: 8, alignItems: "center" },
-  quickText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  summaryCard: { borderRadius: 14, padding: 16, borderWidth: 1, gap: 10, marginBottom: 20 },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  summaryLbl: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  summaryVal: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  esimCard: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10,
-  },
-  esimLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  esimFlag: { fontSize: 28 },
-  esimInfo: { gap: 2 },
-  esimRegion: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  esimMeta: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  esimRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  esimPrice: { fontSize: 16, fontFamily: "Inter_700Bold" },
-
-  txHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14, marginTop: 8 },
-  txTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
-  seeAll: { fontSize: 13, fontFamily: "Inter_500Medium" },
-  txRow: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10,
-  },
-  txIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  txInfo: { flex: 1, gap: 2 },
-  txService: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  txDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  txRightCol: { alignItems: "flex-end", gap: 4 },
-  txAmount: { fontSize: 14, fontFamily: "Inter_700Bold" },
-
-  statusBadge: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    borderRadius: 20, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3,
-  },
-  statusDot: { width: 5, height: 5, borderRadius: 3 },
-  statusText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
-
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end", padding: 16 },
-  modal: { borderRadius: 20, padding: 20, borderWidth: 1, maxHeight: "85%" },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  planHighlight: {
-    flexDirection: "row", alignItems: "center", gap: 14,
-    borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 16,
-  },
-  planFlag: { fontSize: 36 },
-  planRegion: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  planMeta: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  modalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1 },
-  modalLbl: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  modalVal: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  qrPlaceholder: {
-    borderRadius: 14, padding: 20, borderWidth: 1,
-    alignItems: "center", gap: 8, marginVertical: 16,
-  },
-  qrText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
+  serviceCard: { width: "18%", minWidth: 60, flex: 1, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 12, alignItems: "center", gap: 5, borderWidth: 1.5, borderColor: "transparent", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  serviceEmoji: { fontSize: 24 },
+  serviceLabel: { fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", textAlign: "center" },
+  providerRow: { gap: 8, paddingBottom: 4 },
+  providerBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  providerBtnActive: { backgroundColor: "#1A5AFF" },
+  providerTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  providerTxtActive: { color: "#FFFFFF" },
+  phoneInput: { fontSize: 16, fontFamily: "Inter_400Regular", color: "#1C1C1E", paddingHorizontal: 16, paddingVertical: 15 },
+  amtRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingTop: 14 },
+  amtPrefix: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 6 },
+  amtInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 10 },
+  quickAmtRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 },
+  qaBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#F2F2F7" },
+  qaBtnActive: { backgroundColor: "#1A5AFF" },
+  qaTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  qaTxtActive: { color: "#FFFFFF" },
+  txRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  txRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  txIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  txEmoji: { fontSize: 18 },
+  txService: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
+  txDate: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  txAmount: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 3 },
+  txStatus: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  txStatusTxt: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
+  esimGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  esimCard: { width: "47%", backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, alignItems: "center", gap: 6, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 2 }, elevation: 3, borderWidth: 1, borderColor: "transparent" },
+  esimFlag: { fontSize: 30 },
+  esimRegion: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center" },
+  esimData: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  esimValidity: { fontSize: 11, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  esimPrice: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginTop: 4 },
+  esimPriceTxt: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 20, letterSpacing: -0.3 },
+  modalPlanCard: { backgroundColor: "#F2F2F7", borderRadius: 16, padding: 20, alignItems: "center", gap: 6, marginBottom: 16 },
+  modalFlag: { fontSize: 40 },
+  modalRegion: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  modalData: { fontSize: 28, fontFamily: "Inter_700Bold" },
+  modalDetailsCard: { backgroundColor: "#F2F2F7", borderRadius: 16, overflow: "hidden", marginBottom: 16 },
+  modalRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 12 },
+  modalRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  modalRowLabel: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  modalRowValue: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  modalQrPlaceholder: { backgroundColor: "#F2F2F7", borderRadius: 14, padding: 20, alignItems: "center", marginBottom: 20, borderWidth: 2, borderColor: "#E5E5EA", borderStyle: "dashed" },
+  modalQrTxt: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center" },
+  modalActions: { flexDirection: "row", gap: 12 },
+  modalCancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center" },
+  modalCancelTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  modalBuyBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center" },
+  modalBuyTxt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });

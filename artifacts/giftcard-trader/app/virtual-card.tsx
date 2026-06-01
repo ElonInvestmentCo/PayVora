@@ -1,828 +1,443 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Platform,
-  Switch,
-  Animated,
+  View, Text, StyleSheet, ScrollView, TextInput,
+  TouchableOpacity, Alert, Platform, ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { FocusedModal } from "@/components/FocusedModal";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
-import { useColors } from "@/hooks/useColors";
 import { hapticLight, hapticSuccess, hapticWarning } from "@/utils/haptics";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
-import { DarkFlipCard } from "@/components/DarkFlipCard";
 
-/* ─── Types ─────────────────────────────────────────── */
 type CardTier = "regular" | "platinum";
+type Modal = "fund" | "withdraw" | "freeze" | null;
 
-interface CardConfig {
-  tier: CardTier;
-  label: string;
-  cardTitle: string;
-  gradientFront: readonly [string, string, string];
-  gradientBack:  readonly [string, string, string];
-  accentColor: string;
-  textColor: string;
-  subtleColor: string;
-  nameColor: string;
-  creationFeeUSD: string;
-  creationFeeNGN: string;
-  features: string[];
-}
-
-interface CardTx {
-  id: string;
-  merchant: string;
-  amount: string;
-  date: string;
-  status: "success" | "pending" | "error";
-  icon: string;
-}
-
-/* ─── Constants ──────────────────────────────────────── */
-const CARD_W = 320;
-const CARD_H = 200;
-
-const CARD_CONFIGS: CardConfig[] = [
-  {
-    tier: "regular",
+const CARD_CONFIGS = {
+  regular: {
     label: "Regular",
-    cardTitle: "Gold Plated",
-    gradientFront: ["#edcb78", "#f7e4b2", "#fee08b"],
-    gradientBack:  ["#fee08b", "#f7e4b2", "#edcb78"],
-    accentColor:  "#c9960a",
-    textColor:    "#3a2600",
-    subtleColor:  "rgba(90,60,0,0.55)",
-    nameColor:    "#bea35c",
-    creationFeeUSD: "$1.50",
-    creationFeeNGN: "₦2,088.00",
-    features: [
-      "Make payments & shop anywhere online",
-      "Easily manage your cards and merchant",
-    ],
+    cardTitle: "PayVora Classic",
+    gradient: ["#1A5AFF", "#0A3ECC", "#072EA8"] as const,
+    accent: "#7AA8FF",
+    features: ["$5,000/month limit", "Standard rewards", "24/7 Support", "3D Secure"],
   },
-  {
-    tier: "platinum",
+  platinum: {
     label: "Platinum",
-    cardTitle: "Platinum Gold",
-    gradientFront: ["#c9a032", "#e8c56a", "#d4a843"],
-    gradientBack:  ["#d4a843", "#e8c56a", "#c9a032"],
-    accentColor:  "#a07820",
-    textColor:    "#2e1c00",
-    subtleColor:  "rgba(70,45,0,0.55)",
-    nameColor:    "#a87d2a",
-    creationFeeUSD: "$5.00",
-    creationFeeNGN: "₦6,960.00",
-    features: [
-      "Contactless online or in-store payment",
-      "Apple Pay & Google Pay Support",
-      "NFC-enabled.",
-    ],
+    cardTitle: "PayVora Platinum",
+    gradient: ["#D4AF37", "#C5932B", "#A87320"] as const,
+    accent: "#FFE08A",
+    features: ["$50,000/month limit", "Premium rewards (3%)", "Priority Support", "Travel Insurance"],
   },
-];
-
-const CARD_TRANSACTIONS: CardTx[] = [
-  { id: "1", merchant: "Netflix",        amount: "-$15.99",  date: "Today, 4:12 PM",     status: "success", icon: "tv" },
-  { id: "2", merchant: "Amazon",         amount: "-$42.50",  date: "Today, 1:30 PM",     status: "success", icon: "shopping-bag" },
-  { id: "3", merchant: "Spotify",        amount: "-$9.99",   date: "Yesterday, 8:00 AM", status: "pending", icon: "music" },
-  { id: "4", merchant: "Adobe Creative", amount: "-$54.99",  date: "Apr 1, 2:15 PM",     status: "success", icon: "pen-tool" },
-  { id: "5", merchant: "Google Cloud",   amount: "-$120.00", date: "Mar 31, 11:00 AM",   status: "error",   icon: "cloud" },
-];
-
-const SPENDING_DATA = [25, 40, 35, 55, 45, 60, 50, 70, 65, 80, 72, 90, 85, 78, 92, 88];
-
-const STATUS_CFG: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  success: { bg: "rgba(0,255,136,0.12)",  border: "#00FF8830", text: "#00FF88", label: "Successful" },
-  pending: { bg: "rgba(245,158,11,0.12)", border: "#F59E0B30", text: "#F59E0B", label: "Pending" },
-  error:   { bg: "rgba(239,68,68,0.12)",  border: "#EF444430", text: "#EF4444", label: "Failed" },
 };
 
-/* ─── Mastercard Logo (silver/platinum circles) ──────── */
+const CARD_TRANSACTIONS = [
+  { id: "1", merchant: "Netflix",     amount: "-$15.99",  date: "Jun 1, 2026",   category: "🎬", isDebit: true  },
+  { id: "2", merchant: "Spotify",     amount: "-$9.99",   date: "May 30, 2026",  category: "🎵", isDebit: true  },
+  { id: "3", merchant: "Amazon",      amount: "-$89.00",  date: "May 28, 2026",  category: "📦", isDebit: true  },
+  { id: "4", merchant: "Top-up",      amount: "+$200.00", date: "May 25, 2026",  category: "💳", isDebit: false },
+  { id: "5", merchant: "Uber Eats",   amount: "-$32.50",  date: "May 24, 2026",  category: "🍕", isDebit: true  },
+  { id: "6", merchant: "Apple Store", amount: "-$1.29",   date: "May 22, 2026",  category: "🍎", isDebit: true  },
+];
+
+const SPENDING_DATA = [0.4, 0.6, 0.35, 0.8, 0.55, 0.7, 0.45, 0.9, 0.65, 0.75, 0.5, 0.85];
+
 function MastercardLogo() {
   return (
-    <View style={fc.mcWrap}>
-      <View style={[fc.mcCircle, { backgroundColor: "#d6d6d6" }]} />
-      <View style={[fc.mcCircle, { backgroundColor: "#b8b8b8", marginLeft: -10, opacity: 0.92 }]} />
+    <View style={{ flexDirection: "row" }}>
+      <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "#EB001B", opacity: 0.9 }} />
+      <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "#F79E1B", opacity: 0.9, marginLeft: -10 }} />
     </View>
   );
 }
 
-/* ─── EMV Chip ───────────────────────────────────────── */
 function ChipIcon() {
   return (
-    <View style={fc.chipOuter}>
-      <View style={fc.chipRow}>
-        <View style={fc.chipCell} /><View style={fc.chipCell} /><View style={fc.chipCell} />
-      </View>
-      <View style={[fc.chipRow, { flex: 1 }]}>
-        <View style={fc.chipCellTall} /><View style={[fc.chipCellTall, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: "#8a6800" }]} /><View style={fc.chipCellTall} />
-      </View>
-      <View style={fc.chipRow}>
-        <View style={fc.chipCell} /><View style={fc.chipCell} /><View style={fc.chipCell} />
-      </View>
+    <View style={{ width: 36, height: 26, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.25)", borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" }}>
+      <View style={{ position: "absolute", left: 12, top: 0, bottom: 0, width: 1, backgroundColor: "rgba(255,255,255,0.4)" }} />
+      <View style={{ position: "absolute", right: 12, top: 0, bottom: 0, width: 1, backgroundColor: "rgba(255,255,255,0.4)" }} />
+      <View style={{ position: "absolute", top: 9, left: 0, right: 0, height: 1, backgroundColor: "rgba(255,255,255,0.4)" }} />
     </View>
   );
 }
 
-/* ─── Contactless arcs ───────────────────────────────── */
-function ContactlessIcon({ color = "rgba(80,50,0,0.55)" }: { color?: string }) {
-  return (
-    <View style={fc.clWrap}>
-      {[12, 18, 24].map((s, i) => (
-        <View
-          key={i}
-          style={{
-            position: "absolute",
-            width: s,
-            height: s,
-            borderRadius: s / 2,
-            borderWidth: 1.5,
-            borderColor: color,
-            borderLeftColor: "transparent",
-            borderBottomColor: "transparent",
-            transform: [{ rotate: "45deg" }],
-          }}
-        />
-      ))}
-    </View>
-  );
-}
-
-/* ─── Flip Card ──────────────────────────────────────── */
-interface FlipCardProps {
-  config: CardConfig;
-  cardNumber: string;
-  holderName: string;
-  expiry: string;
-  cvv: string;
-  showDetails: boolean;
-}
-
-function FlipCard({ config, cardNumber, holderName, expiry, cvv, showDetails }: FlipCardProps) {
-  const flipAnim = useRef(new Animated.Value(0)).current;
-  const [flipped, setFlipped] = useState(false);
-
-  const handleFlip = useCallback(() => {
-    hapticLight();
-    Animated.spring(flipAnim, {
-      toValue: flipped ? 0 : 1,
-      friction: 8,
-      tension: 10,
-      useNativeDriver: true,
-    }).start();
-    setFlipped(!flipped);
-  }, [flipped, flipAnim]);
-
-  const frontRotateY = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
-  const backRotateY  = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
-  const frontOpacity = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [1, 1, 0, 0] });
-  const backOpacity  = flipAnim.interpolate({ inputRange: [0, 0.49, 0.5, 1], outputRange: [0, 0, 1, 1] });
-
-  const maskedNumber = showDetails
-    ? cardNumber
-    : cardNumber.replace(/(\d{4} )(\d{4} )(\d{4} )/, "**** **** **** ");
-  const maskedExpiry = showDetails ? expiry : "**/**";
-  const maskedCvv    = showDetails ? cvv    : "***";
-
-  /* embossed text-shadow (web only — RN supports single shadow) */
-  const embossWeb = Platform.OS === "web"
-    ? ({ textShadow: `-0.2px -0.2px 0.2px rgba(255,255,255,0.9), 0.2px 0.2px 0.3px rgba(80,40,0,0.45)` } as any)
-    : {};
-  const embossNative = Platform.OS !== "web"
-    ? { textShadowColor: "rgba(255,255,255,0.75)", textShadowOffset: { width: -0.4, height: -0.4 }, textShadowRadius: 1 }
-    : {};
-
-  return (
-    <TouchableOpacity activeOpacity={1} onPress={handleFlip} style={fc.outerWrap}>
-
-      {/* ── FRONT ── */}
-      <Animated.View
-        style={[
-          fc.card,
-          {
-            opacity: frontOpacity,
-            transform: [{ perspective: 1000 }, { rotateY: frontRotateY }],
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.65)",
-          },
-        ]}
-      >
-        {/* gold gradient fill */}
-        <LinearGradient
-          colors={config.gradientFront}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-
-        {/* ── row 1: card title (top-left) + silver logo (top-right) ── */}
-        <View style={fc.row}>
-          <Text
-            style={[
-              fc.cardTitle,
-              { color: config.textColor },
-              embossNative,
-              embossWeb,
-            ]}
-          >
-            {config.cardTitle}
-          </Text>
-          <MastercardLogo />
-        </View>
-
-        {/* ── row 2: chip (left) + contactless (right) ── */}
-        <View style={[fc.row, { marginTop: 6 }]}>
-          <ChipIcon />
-          <ContactlessIcon color={config.subtleColor} />
-        </View>
-
-        {/* ── card number ── */}
-        <Text style={[fc.cardNumber, { color: config.textColor }]}>{maskedNumber}</Text>
-
-        {/* ── bottom row ── */}
-        <View style={fc.bottomRow}>
-          <View>
-            <Text style={[fc.fieldLabel, { color: config.subtleColor }]}>VALID THRU</Text>
-            <Text style={[fc.fieldValue, { color: config.textColor }]}>{maskedExpiry}</Text>
-          </View>
-          <View style={{ flex: 1 }} />
-          <View style={{ alignItems: "flex-end" }}>
-            <Text style={[fc.fieldLabel, { color: config.subtleColor }]}>CARDHOLDER NAME</Text>
-            <Text style={[fc.holderName, { color: config.nameColor }]}>{holderName}</Text>
-          </View>
-        </View>
-      </Animated.View>
-
-      {/* ── BACK ── */}
-      <Animated.View
-        style={[
-          fc.card,
-          fc.cardAbsolute,
-          {
-            opacity: backOpacity,
-            transform: [{ perspective: 1000 }, { rotateY: backRotateY }],
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.55)",
-          },
-        ]}
-      >
-        {/* gold gradient (reversed) */}
-        <LinearGradient
-          colors={config.gradientBack}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-
-        {/* white top strip (signature area) */}
-        <View style={fc.topStrip} />
-
-        {/* magnetic stripe */}
-        <View style={[fc.magStripe, { backgroundColor: "#3b2200", borderColor: "#5a3300" }]} />
-
-        {/* signature + CVV */}
-        <View style={fc.backMid}>
-          <View style={[fc.sigStrip, { backgroundColor: "#f5ecd6" }]} />
-          <View style={[fc.cvvBox, { backgroundColor: "#fffaf0", borderColor: "rgba(100,70,0,0.25)" }]}>
-            <Text style={[fc.cvvLabel, { color: config.subtleColor }]}>CVV</Text>
-            <Text style={[fc.cvvText, { color: config.textColor }]}>{maskedCvv}</Text>
-          </View>
-        </View>
-
-        {/* contactless + logo row */}
-        <View style={[fc.row, { justifyContent: "space-between", marginTop: "auto", paddingTop: 8 }]}>
-          <ContactlessIcon color={config.subtleColor} />
-          <MastercardLogo />
-        </View>
-      </Animated.View>
-
-      {/* tap hint */}
-      <View style={fc.tapHint}>
-        <Feather name="refresh-cw" size={10} color="rgba(180,140,0,0.6)" />
-        <Text style={[fc.tapHintText, { color: "rgba(160,120,0,0.7)" }]}>tap to flip</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-/* ─── Spending Chart ─────────────────────────────────── */
-function SpendingChart() {
-  const max = Math.max(...SPENDING_DATA);
-  const min = Math.min(...SPENDING_DATA);
-  const range = max - min || 1;
-  return (
-    <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 3, height: 54 }}>
-      {SPENDING_DATA.map((v, i) => {
-        const pct = (v - min) / range;
-        const isLast = i === SPENDING_DATA.length - 1;
-        return (
-          <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
-            <View style={{ height: 6 + pct * 44, borderRadius: 3, backgroundColor: isLast ? "#8B5CF6" : `rgba(0,229,255,${0.2 + pct * 0.6})` }} />
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-/* ─── Main Screen ────────────────────────────────────── */
 export default function VirtualCardScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
-  const {
-    virtualCardBalance, virtualCardFrozen,
-    fundVirtualCard, withdrawVirtualCard, toggleFreezeCard,
-    addTransaction, usdBalance,
-  } = useWallet();
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const botPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const { virtualCardBalance, virtualCardFrozen, fundVirtualCard, withdrawVirtualCard, toggleFreezeCard, addTransaction } = useWallet() as any;
   const { addNotification } = useNotifications();
 
-  const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const botPad = isWeb ? 34 : insets.bottom;
-
-  const [stage, setStage]               = useState<"select" | "manage">("select");
   const [selectedTier, setSelectedTier] = useState<CardTier>("regular");
-  const [showDetails, setShowDetails]   = useState(false);
-  const [onlineTx, setOnlineTx]         = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
+  const [activeModal, setActiveModal] = useState<Modal>(null);
+  const [fundAmount, setFundAmount] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const activeConfig = CARD_CONFIGS.find((c) => c.tier === selectedTier)!;
+  const config = CARD_CONFIGS[selectedTier];
+  const cardBalance = typeof virtualCardBalance === "number" ? virtualCardBalance : 248.5;
+  const isFrozen = typeof virtualCardFrozen === "boolean" ? virtualCardFrozen : false;
 
-  const handleContinue = useCallback(() => { hapticLight(); setStage("manage"); }, []);
+  const cardNumber = showDetails ? "4242 4242 4242 4242" : "•••• •••• •••• 4242";
+  const cvv        = showDetails ? "345" : "•••";
+  const expiry     = "12/28";
+  const holderName = "PAYVORA USER";
 
   const handleFund = useCallback(async () => {
-    const amt = 100;
-    if (usdBalance < amt) { hapticWarning(); Alert.alert("Insufficient Balance", "You don't have enough USD in your wallet."); return; }
-    fundVirtualCard(amt); hapticSuccess();
-    addTransaction({ type: "card", category: "Card", title: "Virtual Card Funding",    amount: amt, currency: "USD", status: "success", date: "Just now", direction: "out" });
-    addNotification({ title: "Card Funded",    message: `$${amt} added to your virtual card.`,        type: "success", time: "Just now" });
-    Alert.alert("Card Funded", `Successfully added $${amt} to your virtual card.`);
-  }, [usdBalance, fundVirtualCard, addTransaction, addNotification]);
+    const num = parseFloat(fundAmount) || 0;
+    if (num <= 0) { hapticWarning(); Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1800));
+    setLoading(false);
+    if (typeof fundVirtualCard === "function") fundVirtualCard(num);
+    addTransaction({ type: "card", category: "Card", title: "Virtual Card Top-up", amount: num, currency: "USD", status: "success", date: "Just now", direction: "in" });
+    addNotification({ title: "Card Funded", message: `$${num.toFixed(2)} added to your virtual card.`, type: "success", time: "Just now" });
+    hapticSuccess();
+    setFundAmount("");
+    setActiveModal(null);
+    Alert.alert("Card Funded!", `$${num.toFixed(2)} has been added to your virtual card.`);
+  }, [fundAmount, fundVirtualCard, addTransaction, addNotification]);
 
-  const handleWithdraw = useCallback(() => {
-    const amt = 50;
-    if (virtualCardBalance < amt) { hapticWarning(); Alert.alert("Insufficient Card Balance", "Not enough funds on card to withdraw."); return; }
-    withdrawVirtualCard(amt);
-    addTransaction({ type: "card", category: "Card", title: "Virtual Card Withdrawal", amount: amt, currency: "USD", status: "success", date: "Just now", direction: "in" });
-    addNotification({ title: "Card Withdrawal", message: `$${amt} withdrawn from virtual card.`,       type: "info",    time: "Just now" });
-    Alert.alert("Withdraw", `Withdrawal of $${amt} initiated from your virtual card.`);
-  }, [virtualCardBalance, withdrawVirtualCard, addTransaction, addNotification]);
+  const handleWithdraw = useCallback(async () => {
+    const num = parseFloat(withdrawAmount) || 0;
+    if (num <= 0) { hapticWarning(); Alert.alert("Invalid Amount", "Please enter a valid amount."); return; }
+    if (num > cardBalance) { hapticWarning(); Alert.alert("Insufficient Funds", "Your card balance is too low."); return; }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1800));
+    setLoading(false);
+    if (typeof withdrawVirtualCard === "function") withdrawVirtualCard(num);
+    addTransaction({ type: "card", category: "Card", title: "Virtual Card Withdrawal", amount: num, currency: "USD", status: "success", date: "Just now", direction: "out" });
+    addNotification({ title: "Withdrawal Successful", message: `$${num.toFixed(2)} withdrawn from your virtual card.`, type: "success", time: "Just now" });
+    hapticSuccess();
+    setWithdrawAmount("");
+    setActiveModal(null);
+    Alert.alert("Withdrawn!", `$${num.toFixed(2)} has been moved to your USD wallet.`);
+  }, [withdrawAmount, cardBalance, withdrawVirtualCard, addTransaction, addNotification]);
 
-  /* card element — dark style for Regular, gold for Platinum */
-  const cardElement = selectedTier === "regular" ? (
-    <DarkFlipCard
-      cardNumber="9759 2484 5269 6576"
-      holderName="BRUCE WAYNE"
-      expiry="12/24"
-      cvv="491"
-      showDetails={showDetails}
-      frozen={virtualCardFrozen}
-    />
-  ) : (
-    <FlipCard
-      config={activeConfig}
-      cardNumber="9759 2484 5269 6576"
-      holderName="ALEX JOHNSON"
-      expiry="12/28"
-      cvv="491"
-      showDetails={showDetails}
-    />
-  );
-
-  /* ── SELECTION SCREEN ────────────────────────────────── */
-  if (stage === "select") {
-    return (
-      <View style={[s.root, { backgroundColor: colors.background }]}>
-        <View style={[s.header, { paddingTop: topPad + 12, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-          <TouchableOpacity onPress={() => router.back()} style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-            <Feather name="arrow-left" size={20} color={colors.foreground} />
-          </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: colors.foreground }]}>Virtual Dollar Card</Text>
-          <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-            <Feather name="mail" size={18} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.selectContent, { paddingBottom: botPad + 32 }]}>
-          <Text style={[s.selectTitle,    { color: colors.foreground }]}>Select Card Option</Text>
-          <Text style={[s.selectSubtitle, { color: colors.mutedForeground }]}>Read the description and select the card that you prefer</Text>
-
-          {/* tier toggle */}
-          <View style={[s.tierWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {CARD_CONFIGS.map((cfg) => {
-              const active = selectedTier === cfg.tier;
-              return (
-                <TouchableOpacity
-                  key={cfg.tier}
-                  style={[s.tierBtn, active && s.tierBtnActive]}
-                  onPress={() => { hapticLight(); setSelectedTier(cfg.tier); }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[s.tierBtnText, { color: active ? "#FFFFFF" : colors.mutedForeground }]}>{cfg.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {cardElement}
-
-          {/* creation fee */}
-          <View style={[s.feeRow, { backgroundColor: `${activeConfig.accentColor}18`, borderColor: `${activeConfig.accentColor}40` }]}>
-            <Text style={[s.feeText, { color: activeConfig.accentColor }]}>
-              Creation Fee: {activeConfig.creationFeeUSD} / {activeConfig.creationFeeNGN}
-            </Text>
-            <Feather name="info" size={16} color={activeConfig.accentColor} />
-          </View>
-
-          {/* features */}
-          <View style={s.featureList}>
-            {activeConfig.features.map((f, i) => (
-              <View key={i} style={s.featureRow}>
-                <View style={[s.checkCircle, { borderColor: activeConfig.accentColor }]}>
-                  <Feather name="check" size={11} color={activeConfig.accentColor} />
-                </View>
-                <Text style={[s.featureText, { color: colors.foreground }]}>{f}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        <View style={[s.btnWrap, { paddingBottom: botPad + 20, backgroundColor: colors.background }]}>
-          <TouchableOpacity style={s.continueBtn} onPress={handleContinue} activeOpacity={0.85}>
-            <Text style={s.continueBtnText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+  const handleFreeze = useCallback(() => {
+    hapticWarning();
+    Alert.alert(
+      isFrozen ? "Unfreeze Card?" : "Freeze Card?",
+      isFrozen ? "Your card will be reactivated immediately." : "No transactions will be allowed while frozen.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: isFrozen ? "Unfreeze" : "Freeze",
+          onPress: () => {
+            if (typeof toggleFreezeCard === "function") toggleFreezeCard();
+            addNotification({
+              title: isFrozen ? "Card Unfrozen" : "Card Frozen",
+              message: isFrozen ? "Your virtual card is now active." : "Your virtual card has been frozen.",
+              type: isFrozen ? "success" : "warning",
+              time: "Just now",
+            });
+            hapticSuccess();
+          },
+        },
+      ]
     );
-  }
+    setActiveModal(null);
+  }, [isFrozen, toggleFreezeCard, addNotification]);
 
-  /* ── MANAGEMENT SCREEN ───────────────────────────────── */
   return (
-    <View style={[s.root, { backgroundColor: colors.background }]}>
-      <View style={[s.header, { paddingTop: topPad + 12, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-        <TouchableOpacity onPress={() => setStage("select")} style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+    <View style={[s.root, { paddingTop: topPad }]}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8} style={s.backBtn}>
+          <Text style={s.backArrow}>←</Text>
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: colors.foreground }]}>{activeConfig.label} Dollar Card</Text>
-        <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.card, borderColor: colors.border }]} activeOpacity={0.8}>
-          <Feather name="settings" size={18} color={colors.mutedForeground} />
+        <Text style={s.headerTitle}>Virtual Card</Text>
+        <TouchableOpacity activeOpacity={0.8} style={s.headerBtn}>
+          <Text style={s.headerBtnTxt}>⋯</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.manageContent, { paddingBottom: botPad + 100 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: botPad + 60 }]}>
 
-        {cardElement}
-
-        {/* balance + frozen */}
-        <View style={[s.balanceBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[s.balanceLabel, { color: colors.mutedForeground }]}>Card Balance</Text>
-          <Text style={[s.balanceValue, { color: colors.foreground }]}>
-            ${virtualCardBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </Text>
-          {virtualCardFrozen && (
-            <View style={s.frozenBadge}>
-              <Feather name="lock" size={11} color="#EF4444" />
-              <Text style={{ color: "#EF4444", fontSize: 11, fontFamily: "Inter_600SemiBold" }}>Frozen</Text>
-            </View>
-          )}
-        </View>
-
-        {/* show/hide */}
-        <TouchableOpacity onPress={() => setShowDetails(!showDetails)} activeOpacity={0.8} style={s.toggleRow}>
-          <Feather name={showDetails ? "eye-off" : "eye"} size={16} color={colors.primary} />
-          <Text style={[s.toggleText, { color: colors.primary }]}>{showDetails ? "Hide" : "Show"} Card Details</Text>
-        </TouchableOpacity>
-
-        {/* actions */}
-        <View style={s.actionRow}>
-          {[
-            { label: "Fund Card", icon: "plus",           color: colors.primary, bg: "rgba(0,229,255,0.12)", bgI: "rgba(0,229,255,0.2)",  onPress: handleFund },
-            { label: "Withdraw",  icon: "arrow-up-right", color: "#14B8A6",      bg: "rgba(20,184,166,0.12)",bgI: "rgba(20,184,166,0.2)", onPress: handleWithdraw },
-            {
-              label: virtualCardFrozen ? "Unfreeze" : "Freeze",
-              icon: virtualCardFrozen ? "unlock" : "lock",
-              color: virtualCardFrozen ? "#EF4444" : "#F59E0B",
-              bg:  virtualCardFrozen ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)",
-              bgI: virtualCardFrozen ? "rgba(239,68,68,0.2)"  : "rgba(245,158,11,0.2)",
-              onPress: toggleFreezeCard,
-            },
-          ].map((a) => (
-            <TouchableOpacity key={a.label} onPress={a.onPress} activeOpacity={0.8} style={[s.actionBtn, { backgroundColor: a.bg }]}>
-              <View style={[s.actionIcon, { backgroundColor: a.bgI }]}>
-                <Feather name={a.icon as any} size={18} color={a.color} />
-              </View>
-              <Text style={[s.actionLabel, { color: a.color }]}>{a.label}</Text>
+        {/* Tier Selector */}
+        <View style={s.tierSection}>
+          {(["regular", "platinum"] as CardTier[]).map((tier) => (
+            <TouchableOpacity
+              key={tier}
+              onPress={() => { hapticLight(); setSelectedTier(tier); }}
+              activeOpacity={0.8}
+              style={[s.tierBtn, selectedTier === tier && s.tierBtnActive]}
+            >
+              <Text style={[s.tierBtnTxt, selectedTier === tier && s.tierBtnTxtActive]}>
+                {tier === "platinum" ? "⭐ Platinum" : "🔵 Regular"}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* spending chart */}
-        <View style={[s.spendCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <Text style={[s.sectionTitle, { color: colors.foreground }]}>Monthly Spending</Text>
-            <Text style={[s.sectionTitle, { color: colors.primary }]}>$255.47</Text>
+        {/* Credit Card */}
+        <View style={s.cardSection}>
+          <LinearGradient colors={config.gradient} style={s.creditCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            {isFrozen && (
+              <View style={s.frozenOverlay}>
+                <Text style={s.frozenIcon}>🔒</Text>
+                <Text style={s.frozenLabel}>CARD FROZEN</Text>
+              </View>
+            )}
+            {/* Card top row */}
+            <View style={s.cardTop}>
+              <Text style={s.cardTitle}>{config.cardTitle}</Text>
+              <MastercardLogo />
+            </View>
+            {/* Chip */}
+            <ChipIcon />
+            {/* Card number */}
+            <Text style={s.cardNumber}>{cardNumber}</Text>
+            {/* Card bottom */}
+            <View style={s.cardBottom}>
+              <View>
+                <Text style={s.cardFieldLabel}>CARD HOLDER</Text>
+                <Text style={s.cardFieldValue}>{holderName}</Text>
+              </View>
+              <View>
+                <Text style={s.cardFieldLabel}>EXPIRES</Text>
+                <Text style={s.cardFieldValue}>{expiry}</Text>
+              </View>
+              <View>
+                <Text style={s.cardFieldLabel}>CVV</Text>
+                <Text style={s.cardFieldValue}>{cvv}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          {/* Show/hide + balance */}
+          <View style={s.cardMeta}>
+            <TouchableOpacity onPress={() => { hapticLight(); setShowDetails(!showDetails); }} activeOpacity={0.8} style={s.showDetailsBtn}>
+              <Text style={s.showDetailsTxt}>{showDetails ? "🙈 Hide Details" : "👁 Show Details"}</Text>
+            </TouchableOpacity>
+            <View style={s.balanceTag}>
+              <Text style={s.balanceLbl}>Balance</Text>
+              <Text style={s.balanceAmt}>${cardBalance.toFixed(2)}</Text>
+            </View>
           </View>
-          <SpendingChart />
         </View>
 
-        {/* card settings */}
-        <View style={[s.settingsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[s.sectionTitle, { color: colors.foreground, marginBottom: 12 }]}>Card Settings</Text>
+        {/* Actions */}
+        <View style={s.actionsSection}>
           {[
-            {
-              icon: "globe", label: "Online Transactions", desc: "Allow online purchases",
-              right: <Switch value={onlineTx} onValueChange={setOnlineTx} trackColor={{ false: colors.border, true: "rgba(0,229,255,0.4)" }} thumbColor={onlineTx ? colors.primary : colors.mutedForeground} />,
-            },
-            {
-              icon: "shield", label: "Spending Limit", desc: "$500.00 / day",
-              right: <Feather name="chevron-right" size={18} color={colors.mutedForeground} />,
-            },
-            {
-              icon: "bell", label: "Transaction Alerts", desc: "Push notifications",
-              right: <Switch value={true} trackColor={{ false: colors.border, true: "rgba(0,255,136,0.4)" }} thumbColor="#00FF88" />,
-            },
-          ].map((row, idx, arr) => (
-            <View key={row.label} style={[s.settingRow, { borderBottomColor: colors.border, borderBottomWidth: idx < arr.length - 1 ? 1 : 0 }]}>
-              <View style={s.settingInfo}>
-                <Feather name={row.icon as any} size={16} color={colors.mutedForeground} />
-                <View>
-                  <Text style={[s.settingLabel, { color: colors.foreground }]}>{row.label}</Text>
-                  <Text style={[s.settingDesc,  { color: colors.mutedForeground }]}>{row.desc}</Text>
-                </View>
+            { label: "Fund",     emoji: "💰", modal: "fund"     as Modal, color: "#30D158" },
+            { label: "Withdraw", emoji: "💸", modal: "withdraw" as Modal, color: "#FF9F0A" },
+            { label: isFrozen ? "Unfreeze" : "Freeze", emoji: isFrozen ? "🔓" : "🔒", modal: "freeze" as Modal, color: isFrozen ? "#1A5AFF" : "#FF3B30" },
+          ].map((action) => (
+            <TouchableOpacity
+              key={action.label}
+              onPress={() => {
+                hapticLight();
+                if (action.modal === "freeze") { handleFreeze(); } else { setActiveModal(action.modal); }
+              }}
+              activeOpacity={0.8}
+              style={s.actionBtn}
+            >
+              <View style={[s.actionIcon, { backgroundColor: action.color + "18" }]}>
+                <Text style={s.actionEmoji}>{action.emoji}</Text>
               </View>
-              {row.right}
-            </View>
+              <Text style={[s.actionLabel, { color: action.color }]}>{action.label}</Text>
+            </TouchableOpacity>
           ))}
         </View>
 
-        {/* transactions */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <Text style={[s.sectionTitle, { color: colors.foreground }]}>Card Transactions</Text>
-          <TouchableOpacity activeOpacity={0.8}>
-            <Text style={{ color: colors.primary, fontSize: 13, fontFamily: "Inter_500Medium" }}>See all</Text>
-          </TouchableOpacity>
+        {/* Card Features */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Plan Features</Text>
+          <View style={s.card}>
+            {config.features.map((feat, i) => (
+              <View key={feat} style={[s.featRow, i < config.features.length - 1 && s.featRowBorder]}>
+                <Text style={s.featCheck}>✓</Text>
+                <Text style={s.featTxt}>{feat}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
-        {CARD_TRANSACTIONS.map((tx) => {
-          const st = STATUS_CFG[tx.status];
-          return (
-            <View key={tx.id} style={[s.txRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[s.txIcon, { backgroundColor: `${st.text}15` }]}>
-                <Feather name={tx.icon as any} size={16} color={st.text} />
-              </View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[s.txMerchant, { color: colors.foreground }]}>{tx.merchant}</Text>
-                <Text style={{ fontSize: 11, fontFamily: "Inter_400Regular", color: colors.mutedForeground }}>{tx.date}</Text>
-              </View>
-              <View style={{ alignItems: "flex-end", gap: 4 }}>
-                <Text style={[s.txMerchant, { color: colors.foreground }]}>{tx.amount}</Text>
-                <View style={[s.statusBadge, { backgroundColor: st.bg, borderColor: st.border }]}>
-                  <View style={[s.statusDot, { backgroundColor: st.text }]} />
-                  <Text style={{ fontSize: 10, fontFamily: "Inter_600SemiBold", color: st.text }}>{st.label}</Text>
-                </View>
-              </View>
+        {/* Spending Chart */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Monthly Spending</Text>
+          <View style={s.card}>
+            <View style={s.spendHeader}>
+              <Text style={s.spendTotal}>${(cardBalance * 1.8).toFixed(0)}</Text>
+              <Text style={s.spendSub}>Total spent this month</Text>
             </View>
-          );
-        })}
+            <View style={s.chartArea}>
+              {SPENDING_DATA.map((h, i) => {
+                const isLast = i === SPENDING_DATA.length - 1;
+                return (
+                  <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
+                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1A5AFF" : `rgba(26,90,255,${0.2 + h * 0.5})`, borderRadius: 3 }} />
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
+        {/* Transactions */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Card Transactions</Text>
+          <View style={s.card}>
+            {CARD_TRANSACTIONS.map((tx, i) => (
+              <View key={tx.id} style={[s.txRow, i < CARD_TRANSACTIONS.length - 1 && s.txRowBorder]}>
+                <View style={s.txIcon}><Text style={s.txEmoji}>{tx.category}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.txMerchant}>{tx.merchant}</Text>
+                  <Text style={s.txDate}>{tx.date}</Text>
+                </View>
+                <Text style={[s.txAmount, { color: tx.isDebit ? "#FF3B30" : "#30D158" }]}>{tx.amount}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </ScrollView>
+
+      {/* Fund Modal */}
+      <FocusedModal visible={activeModal === "fund"} onRequestClose={() => setActiveModal(null)} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>Fund Card</Text>
+            <Text style={s.modalSub}>Transfer from your USD wallet to your virtual card.</Text>
+            <View style={s.modalInputWrap}>
+              <Text style={s.modalPrefix}>$</Text>
+              <TextInput
+                value={fundAmount}
+                onChangeText={setFundAmount}
+                placeholder="0.00"
+                placeholderTextColor="#8E8E93"
+                keyboardType="numeric"
+                style={s.modalInput}
+                autoFocus
+              />
+            </View>
+            <View style={s.presetRow}>
+              {[50, 100, 200, 500].map((v) => (
+                <TouchableOpacity key={v} onPress={() => setFundAmount(String(v))} activeOpacity={0.8} style={s.presetBtn}>
+                  <Text style={s.presetTxt}>${v}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={s.modalActions}>
+              <TouchableOpacity onPress={() => setActiveModal(null)} activeOpacity={0.8} style={s.cancelBtn}>
+                <Text style={s.cancelTxt}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleFund} activeOpacity={0.85} disabled={loading} style={[s.confirmBtn, loading && { opacity: 0.65 }]}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.confirmTxt}>Fund Card</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </FocusedModal>
+
+      {/* Withdraw Modal */}
+      <FocusedModal visible={activeModal === "withdraw"} onRequestClose={() => setActiveModal(null)} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <Text style={s.modalTitle}>Withdraw</Text>
+            <Text style={s.modalSub}>Move funds from your card back to your USD wallet.</Text>
+            <View style={s.balancePillModal}>
+              <Text style={s.balancePillLbl}>Card Balance</Text>
+              <Text style={s.balancePillAmt}>${cardBalance.toFixed(2)}</Text>
+            </View>
+            <View style={s.modalInputWrap}>
+              <Text style={s.modalPrefix}>$</Text>
+              <TextInput
+                value={withdrawAmount}
+                onChangeText={setWithdrawAmount}
+                placeholder="0.00"
+                placeholderTextColor="#8E8E93"
+                keyboardType="numeric"
+                style={s.modalInput}
+                autoFocus
+              />
+            </View>
+            <View style={s.modalActions}>
+              <TouchableOpacity onPress={() => setActiveModal(null)} activeOpacity={0.8} style={s.cancelBtn}>
+                <Text style={s.cancelTxt}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleWithdraw} activeOpacity={0.85} disabled={loading} style={[s.confirmBtn, { backgroundColor: "#FF9F0A" }, loading && { opacity: 0.65 }]}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.confirmTxt}>Withdraw</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </FocusedModal>
     </View>
   );
 }
 
-/* ─── Flip-card styles ───────────────────────────────── */
-const fc = StyleSheet.create({
-  outerWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 24,
-    height: CARD_H + 22,
-  },
-  card: {
-    width: CARD_W,
-    height: CARD_H,
-    borderRadius: 18,
-    padding: 20,
-    overflow: "hidden",
-    shadowColor: "#a07820",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-    elevation: 14,
-    justifyContent: "space-between",
-  },
-  cardAbsolute: {
-    position: "absolute",
-    top: 0,
-    borderRadius: 18,
-    overflow: "hidden",
-  },
-
-  /* row helpers */
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  bottomRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-  },
-
-  /* card title ("Gold Plated" / "Platinum Gold") */
-  cardTitle: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 0.6,
-  },
-
-  /* Mastercard silver circles */
-  mcWrap: { flexDirection: "row", width: 36, height: 22, alignItems: "center" },
-  mcCircle: { width: 22, height: 22, borderRadius: 11 },
-
-  /* chip */
-  chipOuter: {
-    width: 36,
-    height: 28,
-    backgroundColor: "#D4A017",
-    borderRadius: 5,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#b8860b",
-    justifyContent: "space-between",
-  },
-  chipRow: { flexDirection: "row", height: 7 },
-  chipCell: { flex: 1, borderWidth: 0.5, borderColor: "#8a6800" },
-  chipCellTall: { flex: 1 },
-
-  /* contactless */
-  clWrap: {
-    width: 26,
-    height: 26,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  /* card text */
-  cardNumber: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 2.5,
-    textAlign: "center",
-    marginVertical: 2,
-  },
-  fieldLabel: {
-    fontSize: 7,
-    fontFamily: "Inter_400Regular",
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  fieldValue: {
-    fontSize: 12,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 1,
-  },
-  holderName: {
-    fontSize: 8.5,
-    fontFamily: "Inter_400Regular",
-    letterSpacing: 0.5,
-  },
-
-  /* back face */
-  topStrip: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 28,
-    backgroundColor: "rgba(255,255,255,0.72)",
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-  },
-  magStripe: {
-    position: "absolute",
-    top: 32,
-    left: 0,
-    right: 0,
-    height: 38,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-  },
-  backMid: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 90,
-    paddingHorizontal: 0,
-  },
-  sigStrip: {
-    flex: 1,
-    height: 32,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 3,
-  },
-  cvvBox: {
-    width: 58,
-    height: 36,
-    borderRadius: 4,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cvvLabel: {
-    fontSize: 6,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 1.2,
-    marginBottom: 1,
-  },
-  cvvText: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: 3,
-  },
-
-  /* tap hint */
-  tapHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 4,
-  },
-  tapHintText: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-  },
-});
-
-/* ─── Screen styles ──────────────────────────────────── */
 const s = StyleSheet.create({
-  root: { flex: 1 },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: 1,
-  },
-  iconBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-
-  selectContent:  { paddingHorizontal: 20, paddingTop: 28 },
-  selectTitle:    { fontSize: 22, fontFamily: "Inter_700Bold", marginBottom: 8 },
-  selectSubtitle: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20, marginBottom: 24 },
-
-  tierWrap: { flexDirection: "row", borderRadius: 30, padding: 4, borderWidth: 1, marginBottom: 0 },
-  tierBtn: { flex: 1, paddingVertical: 10, borderRadius: 26, alignItems: "center" },
-  tierBtnActive: { backgroundColor: "#0F2A5C" },
-  tierBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-
-  feeRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 8, paddingVertical: 10, paddingHorizontal: 18,
-    borderRadius: 30, borderWidth: 1, marginBottom: 20, alignSelf: "center",
-  },
-  feeText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-
-  featureList: { gap: 14, marginBottom: 12 },
-  featureRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  checkCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  featureText: { fontSize: 14, fontFamily: "Inter_400Regular", flex: 1 },
-
-  btnWrap: { paddingHorizontal: 20 },
-  continueBtn: { borderRadius: 14, paddingVertical: 17, alignItems: "center", justifyContent: "center", backgroundColor: "#0F2A5C" },
-  continueBtnText: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-
-  manageContent: { paddingHorizontal: 20, paddingTop: 8 },
-
-  balanceBadge: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 4 },
-  balanceLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  balanceValue: { fontSize: 22, fontFamily: "Inter_700Bold", flex: 1 },
-  frozenBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: "rgba(239,68,68,0.12)", borderWidth: 1, borderColor: "#EF444430" },
-
-  toggleRow: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center", paddingVertical: 12, marginBottom: 4 },
-  toggleText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-
-  actionRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
-  actionBtn: { flex: 1, borderRadius: 14, paddingVertical: 14, alignItems: "center", gap: 8 },
-  actionIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  scroll: {},
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
+  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  backArrow: { fontSize: 20, color: "#1C1C1E" },
+  headerBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  headerBtnTxt: { fontSize: 20, color: "#1C1C1E", fontWeight: "700" },
+  tierSection: { flexDirection: "row", marginHorizontal: 16, marginBottom: 16, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  tierBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
+  tierBtnActive: { backgroundColor: "#1A5AFF" },
+  tierBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
+  tierBtnTxtActive: { color: "#FFFFFF" },
+  cardSection: { paddingHorizontal: 16, marginBottom: 16 },
+  creditCard: { borderRadius: 20, padding: 20, height: 200, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 10 },
+  frozenOverlay: { ...StyleSheet.absoluteFillObject as any, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", gap: 8, zIndex: 10, borderRadius: 20 },
+  frozenIcon: { fontSize: 36 },
+  frozenLabel: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 3 },
+  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  cardTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "rgba(255,255,255,0.7)", letterSpacing: 1 },
+  cardNumber: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 2, marginVertical: 16 },
+  cardBottom: { flexDirection: "row", justifyContent: "space-between" },
+  cardFieldLabel: { fontSize: 9, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.6)", letterSpacing: 1, marginBottom: 3 },
+  cardFieldValue: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF", letterSpacing: 1 },
+  cardMeta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12 },
+  showDetailsBtn: { backgroundColor: "#FFFFFF", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  showDetailsTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  balanceTag: { backgroundColor: "#FFFFFF", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  balanceLbl: { fontSize: 10, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 1 },
+  balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  actionsSection: { flexDirection: "row", paddingHorizontal: 16, gap: 12, marginBottom: 20 },
+  actionBtn: { flex: 1, alignItems: "center", gap: 8 },
+  actionIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
+  actionEmoji: { fontSize: 24 },
   actionLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-
-  spendCard: { borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 20 },
-
-  settingsCard: { borderRadius: 14, padding: 16, borderWidth: 1, marginBottom: 20 },
-  settingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 12 },
-  settingInfo: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
-  settingLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  settingDesc: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
-
-  sectionTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-
-  txRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
-  txIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  txMerchant: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  statusBadge: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 20, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
-  statusDot: { width: 5, height: 5, borderRadius: 3 },
+  section: { paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
+  card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  featRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  featRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  featCheck: { fontSize: 14, color: "#30D158", fontWeight: "700" },
+  featTxt: { fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
+  spendHeader: { padding: 16, paddingBottom: 8 },
+  spendTotal: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.5, marginBottom: 2 },
+  spendSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  chartArea: { flexDirection: "row", alignItems: "flex-end", gap: 4, height: 60, paddingHorizontal: 16, paddingBottom: 16 },
+  txRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  txRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
+  txIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  txEmoji: { fontSize: 18 },
+  txMerchant: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
+  txDate: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
+  txAmount: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 8, letterSpacing: -0.3 },
+  modalSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", marginBottom: 20, lineHeight: 20 },
+  balancePillModal: { backgroundColor: "#F2F2F7", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  balancePillLbl: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
+  balancePillAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F2F2F7", borderRadius: 16, paddingHorizontal: 16, marginBottom: 16 },
+  modalPrefix: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 6 },
+  modalInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 14 },
+  presetRow: { flexDirection: "row", gap: 8, marginBottom: 20 },
+  presetBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: "#F2F2F7", alignItems: "center" },
+  presetTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  modalActions: { flexDirection: "row", gap: 12 },
+  cancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center" },
+  cancelTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
+  confirmBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center" },
+  confirmTxt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });
