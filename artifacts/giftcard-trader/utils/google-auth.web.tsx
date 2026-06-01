@@ -2,7 +2,20 @@ import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-export { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+export const statusCodes = {
+  SIGN_IN_CANCELLED: "SIGN_IN_CANCELLED",
+  IN_PROGRESS: "IN_PROGRESS",
+  PLAY_SERVICES_NOT_AVAILABLE: "PLAY_SERVICES_NOT_AVAILABLE",
+  SIGN_IN_REQUIRED: "SIGN_IN_REQUIRED",
+};
+
+export const GoogleSignin = {
+  configure: (_options?: Record<string, unknown>) => {},
+  signIn: async (): Promise<{ type: "cancelled" }> => ({ type: "cancelled" }),
+  signOut: async () => {},
+  isSignedIn: () => false,
+  hasPlayServices: async () => true,
+};
 
 function GoogleG({ size = 18 }: { size?: number }) {
   return (
