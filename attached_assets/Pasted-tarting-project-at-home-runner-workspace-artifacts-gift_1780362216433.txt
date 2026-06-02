@@ -1,0 +1,17 @@
+tarting project at /home/runner/workspace/artifacts/giftcard-trader
+React Compiler enabled
+Starting Metro Bundler
+Error: listen EADDRINUSE: address already in use :::5000
+Error: listen EADDRINUSE: address already in use :::5000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at /home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/metro/runServer-fork.ts:135:16
+    at new Promise (<anonymous>)
+    at runServer (/home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/metro/runServer-fork.ts:126:10)
+    at instantiateMetroAsync (/home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/metro/instantiateMetro.ts:288:40)
+    at MetroBundlerDevServer.startImplementationAsync (/home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/metro/MetroBundlerDevServer.ts:1062:69)
+    at MetroBundlerDevServer.startAsync (/home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/BundlerDevServer.ts:160:18)
+    at DevServerManager.startAsync (/home/runner/workspace/node_modules/.pnpm/@expo+cli@54.0.23_expo-router@6.0.23_expo@54.0.33_react-native@0.81.5_@babel+core@7.29._daef1aa59357a8cccc6b98050d411315/node_modules/@expo/cli/src/start/server/DevServerManager.ts:184:7)
+/home/runner/workspace/artifacts/giftcard-trader:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: expo start --web --port 5000 --clear
