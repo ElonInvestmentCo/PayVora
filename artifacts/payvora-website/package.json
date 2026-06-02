@@ -9,6 +9,10 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "react-icons": "^5.5.0",
+    "wouter": "^3.7.1"
+  },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "catalog:",
     "@replit/vite-plugin-runtime-error-modal": "catalog:",

@@ -61,8 +61,8 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=3001 pnpm --filter @workspace/payvora-website run dev"
-waitForPort = 3001
+args = "PORT=3000 pnpm --filter @workspace/payvora-website run dev"
+waitForPort = 3000
 
 # ─────────────────────────────
 # AGENT CONFIG

@@ -30,3 +30,39 @@ id = "SLmtsP59jqgkh4A8BcXuZ"
 uri = "file://artifacts/payvora-website/src/assets/gift-card.png"
 type = "image"
 title = "Gift cards floating"
+
+[[generated]]
+id = "BMbBCloW9_SjTC9JNaLSg"
+uri = "file://artifacts/payvora-website/src/assets/rates-dashboard.png"
+type = "image"
+title = "Financial rates dashboard"
+
+[[generated]]
+id = "bdlCKzqrLvteTlJlXokdv"
+uri = "file://artifacts/payvora-website/src/assets/bills-ui.png"
+type = "image"
+title = "Bills and eSIM app UI"
+
+[[generated]]
+id = "jOv36QgIQYLB5qArloYSu"
+uri = "file://artifacts/payvora-website/src/assets/team-1.png"
+type = "image"
+title = "Tech CEO headshot"
+
+[[generated]]
+id = "DBuavp14jwxeZt8IaYddJ"
+uri = "file://artifacts/payvora-website/src/assets/team-2.png"
+type = "image"
+title = "Female CTO headshot"
+
+[[generated]]
+id = "fJ0_3oC4mUJipedP61gIq"
+uri = "file://artifacts/payvora-website/src/assets/team-3.png"
+type = "image"
+title = "Lead designer headshot"
+
+[[generated]]
+id = "UK9muQPGBvBmTw0axR10h"
+uri = "file://artifacts/payvora-website/src/assets/qr-code.png"
+type = "image"
+title = "Stylized QR code"
