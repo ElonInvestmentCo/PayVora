@@ -8,6 +8,13 @@ import {
   Easing,
   Platform,
 } from "react-native";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing as REasing,
+} from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -91,10 +98,23 @@ function WaveLayer({ opacity: op }: { opacity: number }) {
 
 // ─── Splash Screen ─────────────────────────────────────────────────────────────
 export default function SplashScreen() {
-  // ── Wave parallax ──────────────────────────────────────────────────────────
-  const wave1X = useRef(new Animated.Value(0)).current;
-  const wave2X = useRef(new Animated.Value(0)).current;
-  const waveY  = useRef(new Animated.Value(0)).current;
+  // ── Gentle Tide wave animation (react-native-reanimated) ───────────────────
+  const tideY  = useSharedValue(0);
+  const tideX1 = useSharedValue(0);
+  const tideX2 = useSharedValue(0);
+
+  const tideStyle1 = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: tideX1.value },
+      { translateY: tideY.value },
+    ],
+  }));
+
+  const tideStyle2 = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: tideX2.value },
+    ],
+  }));
 
   // ── Logo entrance + shimmer ────────────────────────────────────────────────
   const logoScale   = useRef(new Animated.Value(0.8)).current;
@@ -108,66 +128,25 @@ export default function SplashScreen() {
   const taglineY      = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
-    // ── 1. Wave parallax loops (start immediately, run forever) ──────────────
-    // Wave layer 1: slow rightward drift 7s per cycle
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(wave1X, {
-          toValue: 30,
-          duration: 3500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(wave1X, {
-          toValue: 0,
-          duration: 3500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Wave layer 2: counter-direction, slightly faster 5s per cycle
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(wave2X, {
-          toValue: -20,
-          duration: 2500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(wave2X, {
-          toValue: 0,
-          duration: 2500,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-
-    // Vertical ripple for depth 4s cycle
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(waveY, {
-          toValue: 8,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(waveY, {
-          toValue: -4,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(waveY, {
-          toValue: 0,
-          duration: 1000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // ── 1. Gentle Tide — slow, sine-smoothed infinite loops via Reanimated ────
+    // Vertical breathing drift: 8s cycle, ±4px (ultra-subtle float)
+    tideY.value = withRepeat(
+      withTiming(4, { duration: 8000, easing: REasing.inOut(REasing.sin) }),
+      -1,
+      true
+    );
+    // Layer 1 horizontal parallax: 10s cycle, +8px (calm rightward tide)
+    tideX1.value = withRepeat(
+      withTiming(8, { duration: 10000, easing: REasing.inOut(REasing.sin) }),
+      -1,
+      true
+    );
+    // Layer 2 counter-parallax: 12s cycle, −6px (opposing gentle current)
+    tideX2.value = withRepeat(
+      withTiming(-6, { duration: 12000, easing: REasing.inOut(REasing.sin) }),
+      -1,
+      true
+    );
 
     // ── 2. Logo entrance: scale 0.8→1.0 with Ease-Out Back (800ms) + fade ──
     Animated.parallel([
@@ -266,29 +245,21 @@ export default function SplashScreen() {
       {/* ── Top-right decorative arc ── */}
       <View style={styles.topRightShape} />
 
-      {/* ── Wave parallax layer 1 (back, more subtle) ── */}
-      <Animated.View
-        style={[
-          styles.waveContainer,
-          { top: H * 0.50 },
-          { transform: [{ translateX: wave1X }, { translateY: waveY }] },
-        ]}
+      {/* ── Wave parallax layer 1 — Gentle Tide (back, more subtle) ── */}
+      <Reanimated.View
+        style={[styles.waveContainer, { top: H * 0.50 }, tideStyle1]}
         pointerEvents="none"
       >
         <WaveLayer opacity={0.055} />
-      </Animated.View>
+      </Reanimated.View>
 
-      {/* ── Wave parallax layer 2 (front, slightly more visible, counter-moves) ── */}
-      <Animated.View
-        style={[
-          styles.waveContainer,
-          { top: H * 0.54 },
-          { transform: [{ translateX: wave2X }] },
-        ]}
+      {/* ── Wave parallax layer 2 — Gentle Tide (front, counter-current) ── */}
+      <Reanimated.View
+        style={[styles.waveContainer, { top: H * 0.54 }, tideStyle2]}
         pointerEvents="none"
       >
         <WaveLayer opacity={0.09} />
-      </Animated.View>
+      </Reanimated.View>
 
       {/* ── Bottom decorative shapes ── */}
       <View style={styles.bottomShapeBack} />
