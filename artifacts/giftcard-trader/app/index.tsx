@@ -15,6 +15,11 @@ import Reanimated, {
   withTiming,
   Easing as REasing,
 } from "react-native-reanimated";
+import {
+  Inter_700Bold,
+  Inter_500Medium,
+  useFonts,
+} from "@expo-google-fonts/inter";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -98,6 +103,9 @@ function WaveLayer({ opacity: op }: { opacity: number }) {
 
 // ─── Splash Screen ─────────────────────────────────────────────────────────────
 export default function SplashScreen() {
+  // ── Font readiness — ensures brand text never mounts on fallback fonts ──────
+  const [fontsLoaded] = useFonts({ Inter_700Bold, Inter_500Medium });
+
   // ── Gentle Tide wave animation (react-native-reanimated) ───────────────────
   const tideY  = useSharedValue(0);
   const tideX1 = useSharedValue(0);
@@ -164,7 +172,26 @@ export default function SplashScreen() {
       }),
     ]).start();
 
-    // ── 3. "PayVora" — slide up 20px + fade, delay 300ms ────────────────────
+    // ── 3. Navigate to onboarding ────────────────────────────────────────────
+    const navTimer = setTimeout(() => {
+      router.replace("/onboarding");
+    }, 2800);
+
+    return () => clearTimeout(navTimer);
+  }, []);
+
+  // ── Font-gated text animations — only start once Inter is fully loaded ──────
+  // This guarantees brand text and tagline NEVER animate in on a fallback font.
+  useEffect(() => {
+    if (!fontsLoaded) return;
+
+    // Reset values so animation plays fresh even if fonts loaded very quickly
+    brandOpacity.setValue(0);
+    brandY.setValue(20);
+    taglineOpacity.setValue(0);
+    taglineY.setValue(10);
+
+    // "PayVora" — slide up 20px + fade, delay 300ms
     Animated.sequence([
       Animated.delay(300),
       Animated.parallel([
@@ -183,7 +210,7 @@ export default function SplashScreen() {
       ]),
     ]).start();
 
-    // ── 4. Tagline — slide up 10px + fade, delay 500ms ──────────────────────
+    // Tagline — slide up 10px + fade, delay 500ms
     Animated.sequence([
       Animated.delay(500),
       Animated.parallel([
@@ -202,9 +229,9 @@ export default function SplashScreen() {
       ]),
     ]).start();
 
-    // ── 5. Shimmer sweep: starts at 1000ms, repeats every 3s ────────────────
-    const startShimmer = () => {
-      shimmerX.setValue(-100);
+    // Shimmer sweep: starts at 1000ms, repeats every 3s
+    shimmerX.setValue(-100);
+    const shimmerTimer = setTimeout(() => {
       Animated.loop(
         Animated.sequence([
           Animated.timing(shimmerX, {
@@ -216,20 +243,10 @@ export default function SplashScreen() {
           Animated.delay(3000),
         ])
       ).start();
-    };
+    }, 1000);
 
-    const shimmerTimer = setTimeout(startShimmer, 1000);
-
-    // ── 6. Navigate to onboarding ─────────────────────────────────────────────
-    const navTimer = setTimeout(() => {
-      router.replace("/onboarding");
-    }, 2800);
-
-    return () => {
-      clearTimeout(shimmerTimer);
-      clearTimeout(navTimer);
-    };
-  }, []);
+    return () => clearTimeout(shimmerTimer);
+  }, [fontsLoaded]);
 
   return (
     <View style={styles.root}>
@@ -303,31 +320,36 @@ export default function SplashScreen() {
           </View>
         </Animated.View>
 
-        {/* "PayVora" — slide up 20px + fade */}
-        <Animated.Text
-          style={[
-            styles.brand,
-            {
-              opacity: brandOpacity,
-              transform: [{ translateY: brandY }],
-            },
-          ]}
-        >
-          PayVora
-        </Animated.Text>
+        {/* "PayVora" + Tagline — only mount once Inter is loaded so text
+            nodes never exist in the DOM while a fallback font is active.
+            This is the correct fix for font-flash/glitch on web. */}
+        {fontsLoaded && (
+          <>
+            <Animated.Text
+              style={[
+                styles.brand,
+                {
+                  opacity: brandOpacity,
+                  transform: [{ translateY: brandY }],
+                },
+              ]}
+            >
+              PayVora
+            </Animated.Text>
 
-        {/* Tagline — slide up 10px + fade */}
-        <Animated.Text
-          style={[
-            styles.tagline,
-            {
-              opacity: taglineOpacity,
-              transform: [{ translateY: taglineY }],
-            },
-          ]}
-        >
-          PAY SMART. GROW MORE.
-        </Animated.Text>
+            <Animated.Text
+              style={[
+                styles.tagline,
+                {
+                  opacity: taglineOpacity,
+                  transform: [{ translateY: taglineY }],
+                },
+              ]}
+            >
+              PAY SMART. GROW MORE.
+            </Animated.Text>
+          </>
+        )}
       </View>
 
       {/* ── Home indicator (web only) ── */}
