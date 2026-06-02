@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
+import { BlurView } from "expo-blur";
 
 const ACTIVE = "#1A5AFF";
 const INACTIVE = "rgba(255,255,255,0.45)";
@@ -68,43 +69,64 @@ const TABS_CONFIG = [
   { name: "profile", title: "Profile", Icon: ProfileIcon },
 ];
 
-const webBlurStyle: object = Platform.OS === "web"
-  ? ({ backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" } as object)
-  : {};
+function TabItems({ state, descriptors, navigation }: BottomTabBarProps) {
+  return (
+    <>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+        const cfg = TABS_CONFIG.find((t) => t.name === route.name);
+        if (!cfg) return null;
 
-function LiquidGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+        const onPress = () => {
+          const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={onPress}
+            activeOpacity={0.75}
+            style={[s.tab, isFocused && s.tabActive]}
+          >
+            <cfg.Icon active={isFocused} />
+            <Text style={[s.label, isFocused && s.labelActive]}>{cfg.title}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </>
+  );
+}
+
+function LiquidGlassTabBar(props: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, 8);
 
+  if (Platform.OS === "web") {
+    return (
+      <View style={[s.barContainer, { paddingBottom: bottomInset }]} pointerEvents="box-none">
+        <View style={[s.pillWeb]}>
+          <TabItems {...props} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[s.barContainer, { paddingBottom: bottomInset }]} pointerEvents="box-none">
-      <View style={[s.pill, webBlurStyle]}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const cfg = TABS_CONFIG.find((t) => t.name === route.name);
-          if (!cfg) return null;
-
-          const onPress = () => {
-            const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
-
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              activeOpacity={0.75}
-              style={[s.tab, isFocused && s.tabActive]}
-            >
-              <cfg.Icon active={isFocused} />
-              <Text style={[s.label, isFocused && s.labelActive]}>{cfg.title}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <BlurView
+        intensity={72}
+        tint="dark"
+        style={s.pillNative}
+        experimentalBlurMethod="dimezisBlurView"
+      >
+        <View style={s.pillInner}>
+          <TabItems {...props} />
+        </View>
+      </BlurView>
     </View>
   );
 }
@@ -126,48 +148,74 @@ export default function TabsLayout() {
   );
 }
 
+const GLASS_BG = "rgba(18, 18, 28, 0.52)";
+const BORDER   = "rgba(255, 255, 255, 0.14)";
+const SHADOW_COLOR = "#000";
+
+const pillBase = {
+  flexDirection:    "row"    as const,
+  alignItems:       "center" as const,
+  borderRadius:     36,
+  borderWidth:      1,
+  borderColor:      BORDER,
+  paddingHorizontal: 6,
+  paddingVertical:  8,
+  width:            "100%"   as const,
+  shadowColor:      SHADOW_COLOR,
+  shadowOpacity:    0.38,
+  shadowRadius:     32,
+  shadowOffset:     { width: 0, height: 10 },
+  elevation:        22,
+  overflow:         "hidden" as const,
+};
+
 const s = StyleSheet.create({
   barContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: "center",
+    position:         "absolute",
+    bottom:           0,
+    left:             0,
+    right:            0,
+    alignItems:       "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop:       10,
   },
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(14, 14, 22, 0.84)",
-    borderRadius: 36,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    width: "100%",
-    shadowColor: "#000",
-    shadowOpacity: 0.45,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 20,
+
+  pillWeb: {
+    ...pillBase,
+    backgroundColor: GLASS_BG,
+    ...(Platform.OS === "web"
+      ? ({ backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" } as object)
+      : {}),
   },
+
+  pillNative: {
+    ...pillBase,
+    backgroundColor: "transparent",
+  },
+
+  pillInner: {
+    flexDirection:    "row",
+    alignItems:       "center",
+    flex:             1,
+    backgroundColor: "rgba(18, 18, 28, 0.18)",
+  },
+
   tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
+    flex:            1,
+    alignItems:      "center",
+    justifyContent:  "center",
+    gap:             4,
     paddingVertical: 8,
     paddingHorizontal: 4,
-    borderRadius: 28,
+    borderRadius:    28,
   },
   tabActive: {
-    backgroundColor: "rgba(26, 90, 255, 0.18)",
+    backgroundColor: "rgba(26, 90, 255, 0.20)",
   },
   label: {
-    fontSize: 10,
-    fontFamily: "Inter_600SemiBold",
-    color: INACTIVE,
+    fontSize:    10,
+    fontFamily:  "Inter_600SemiBold",
+    color:       INACTIVE,
   },
   labelActive: {
     color: ACTIVE,
