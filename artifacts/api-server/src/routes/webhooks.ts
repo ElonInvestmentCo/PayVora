@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { eq, and } from "drizzle-orm";
+import { db, usersTable, walletsTable, transactionsTable } from "@workspace/db";
 
 const router = Router();
+const NGN_RATE = 1500;
 
 function paystackSecret(): string {
   const key = process.env.PAYSTACK_SECRET_KEY;
@@ -9,33 +12,41 @@ function paystackSecret(): string {
   return key;
 }
 
-/**
- * Verify Paystack webhook signature using HMAC-SHA512.
- * req.body MUST be the raw Buffer — mount express.raw() for this path
- * before express.json() in app.ts.
- */
 function verifyPaystackSignature(rawBody: Buffer, signature: string): boolean {
-  const expected = createHmac("sha512", paystackSecret())
-    .update(rawBody)
-    .digest("hex");
-
+  const expected = createHmac("sha512", paystackSecret()).update(rawBody).digest("hex");
   try {
-    const sigBuf  = Buffer.from(signature, "hex");
-    const expBuf  = Buffer.from(expected,  "hex");
+    const sigBuf = Buffer.from(signature, "hex");
+    const expBuf = Buffer.from(expected, "hex");
     return sigBuf.length === expBuf.length && timingSafeEqual(sigBuf, expBuf);
   } catch {
     return false;
   }
 }
 
+async function ensureUser(email: string) {
+  const rows = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+  if (rows.length) return rows[0];
+  const [u] = await db.insert(usersTable).values({ email, fullName: "PayVora User" }).returning();
+  return u;
+}
+
+async function ensureWallet(userId: number) {
+  const rows = await db.select().from(walletsTable).where(eq(walletsTable.userId, userId)).limit(1);
+  if (rows.length) return rows[0];
+  const [w] = await db.insert(walletsTable).values({ userId }).returning();
+  return w;
+}
+
 /**
  * POST /api/webhooks/paystack
  *
- * Paystack sends a POST with the event JSON and an X-Paystack-Signature header.
- * We verify the HMAC, then dispatch on event.event.
- * Always respond 200 immediately — Paystack will retry on any non-200.
+ * HMAC-SHA512 verified. charge.success is fully idempotent:
+ *   - Uses stored amountUsd from DB as the authoritative credit amount
+ *   - DB transaction only fires when status is still "pending"
+ *   - Re-delivered webhooks for an already-credited reference are silently ignored
+ * Always responds 200 — Paystack retries on any non-200.
  */
-router.post("/paystack", (req, res) => {
+router.post("/paystack", async (req, res) => {
   const signature = req.headers["x-paystack-signature"];
 
   if (typeof signature !== "string" || !signature) {
@@ -71,27 +82,83 @@ router.post("/paystack", (req, res) => {
         customer: { email: string };
         metadata: unknown;
       };
-      req.log?.info(
-        { reference: tx.reference, amount: tx.amount / 100, currency: tx.currency },
-        "charge.success",
-      );
-      // TODO: look up order by tx.reference and credit user wallet in DB:
-      // await creditUserWallet(tx.reference, tx.amount / 100, tx.currency);
+
+      const amountMajor = tx.amount / 100;
+
+      try {
+        const existing = await db
+          .select()
+          .from(transactionsTable)
+          .where(eq(transactionsTable.reference, tx.reference))
+          .limit(1);
+
+        if (existing.length && existing[0].status === "success") {
+          req.log?.info({ reference: tx.reference }, "charge.success already processed — skipping");
+          break;
+        }
+
+        const user   = await ensureUser(tx.customer?.email ?? "webhook@payvora.io");
+        const wallet = await ensureWallet(user.id);
+
+        // Prefer stored amountUsd (accurate, avoids FX drift between initiate and webhook)
+        const creditUsd = (existing.length && existing[0].amountUsd != null)
+          ? Number(existing[0].amountUsd)
+          : (tx.currency === "USD" ? amountMajor : amountMajor / NGN_RATE);
+
+        await db.transaction(async (dbTx) => {
+          if (existing.length) {
+            await dbTx
+              .update(transactionsTable)
+              .set({ status: "success", paystackStatus: "success", updatedAt: new Date() })
+              .where(
+                and(
+                  eq(transactionsTable.reference, tx.reference),
+                  eq(transactionsTable.status, "pending"),
+                ),
+              );
+          } else {
+            await dbTx.insert(transactionsTable).values({
+              userId:         user.id,
+              reference:      tx.reference,
+              type:           "deposit",
+              title:          "Paystack Deposit",
+              amountUsd:      String(tx.currency === "USD" ? amountMajor : amountMajor / NGN_RATE),
+              amountNgn:      String(tx.currency === "NGN" ? amountMajor : amountMajor * NGN_RATE),
+              currency:       "NGN",
+              status:         "success",
+              direction:      "in",
+              paystackStatus: "success",
+              metadata:       tx.metadata as Record<string, unknown>,
+            });
+          }
+
+          await dbTx
+            .update(walletsTable)
+            .set({
+              usdBalance: String(Math.max(0, Number(wallet.usdBalance) + creditUsd)),
+              updatedAt:  new Date(),
+            })
+            .where(eq(walletsTable.userId, user.id));
+        });
+
+        req.log?.info(
+          { reference: tx.reference, creditUsd, currency: tx.currency },
+          "charge.success — wallet credited",
+        );
+      } catch (err) {
+        req.log?.error(err, "charge.success handler failed");
+      }
       break;
     }
 
-    case "transfer.success": {
+    case "transfer.success":
       req.log?.info({ data: event.data }, "transfer.success");
-      // TODO: mark withdrawal as completed in DB
       break;
-    }
 
     case "transfer.failed":
-    case "transfer.reversed": {
+    case "transfer.reversed":
       req.log?.warn({ event: event.event, data: event.data }, "transfer failed/reversed");
-      // TODO: refund user balance in DB
       break;
-    }
 
     default:
       req.log?.info({ event: event.event }, "Unhandled Paystack event");

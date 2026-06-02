@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Modal, KeyboardAvoidingView, Platform,
+  TextInput, Modal, KeyboardAvoidingView, Platform, ActivityIndicator, Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useWallet } from "@/contexts/WalletContext";
-import { hapticLight, hapticSuccess } from "@/utils/haptics";
+import { hapticLight, hapticSuccess, hapticError } from "@/utils/haptics";
+import { apiUrl } from "@/utils/api";
 
 type ModalType = "deposit" | "withdraw" | null;
+type DepositPhase = "idle" | "loading" | "browser" | "verifying" | "success" | "error";
 
 const ASSET_COLORS: Record<string, string> = {
   USD: "#30D158", NGN: "#1A5AFF", BTC: "#F7931A",
@@ -19,26 +21,210 @@ const ASSET_COLORS: Record<string, string> = {
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
   const { usdBalance, ngnBalance, assets, transactions, updateUsdBalance, addTransaction } = useWallet();
-  const [modal, setModal] = useState<ModalType>(null);
-  const [amount, setAmount] = useState("");
 
-  const totalUSD = usdBalance + (assets || []).reduce((s, a) => s + (a.balance || 0) * (a.price || 0), 0);
+  const [modal, setModal]               = useState<ModalType>(null);
+  const [amount, setAmount]             = useState("");
+  const [depositPhase, setDepositPhase] = useState<DepositPhase>("idle");
+  const [depositRef, setDepositRef]     = useState<string | null>(null);
+  const [depositAmt, setDepositAmt]     = useState(0);
+  const [depositError, setDepositError] = useState<string | null>(null);
+
+  const totalUSD  = usdBalance + (assets || []).reduce((s, a) => s + (a.balance || 0) * (a.price || 0), 0);
   const recentTxs = (transactions || []).slice(0, 5);
 
-  const handleAction = () => {
+  const resetDepositState = useCallback(() => {
+    setDepositPhase("idle");
+    setDepositRef(null);
+    setDepositAmt(0);
+    setDepositError(null);
+    setAmount("");
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModal(null);
+    resetDepositState();
+  }, [resetDepositState]);
+
+  const handleWithdraw = useCallback(() => {
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0 || amt > usdBalance) return;
+    hapticSuccess();
+    updateUsdBalance(-amt);
+    addTransaction({
+      type: "wallet", category: "Wallet", title: "Withdrawal",
+      amount: amt, currency: "USD", status: "success",
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      direction: "out",
+    });
+    closeModal();
+  }, [amount, usdBalance, updateUsdBalance, addTransaction, closeModal]);
+
+  const handleInitiateDeposit = useCallback(async () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return;
-    hapticSuccess();
-    if (modal === "deposit") {
-      updateUsdBalance(amt);
-      addTransaction({ id: Date.now().toString(), title: "Deposit", amount: amt, currency: "USD", direction: "in", date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), type: "wallet" });
-    } else {
-      if (amt > usdBalance) return;
-      updateUsdBalance(-amt);
-      addTransaction({ id: Date.now().toString(), title: "Withdrawal", amount: amt, currency: "USD", direction: "out", date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), type: "wallet" });
+
+    hapticLight();
+    setDepositPhase("loading");
+    setDepositAmt(amt);
+    setDepositError(null);
+
+    try {
+      const resp = await fetch(apiUrl("/api/payments/initiate"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email:    "customer@payvora.io",
+          amount:   amt,
+          currency: "USD",
+          metadata: { source: "wallet_deposit" },
+        }),
+      });
+
+      const data = await resp.json() as
+        | { authorizationUrl: string; reference: string }
+        | { error: string };
+
+      if (!resp.ok || "error" in data) {
+        throw new Error(("error" in data ? data.error : null) ?? "Payment initialization failed");
+      }
+
+      setDepositRef(data.reference);
+      await Linking.openURL(data.authorizationUrl);
+      setDepositPhase("browser");
+    } catch (err: unknown) {
+      hapticError();
+      setDepositError(err instanceof Error ? err.message : "Could not start payment");
+      setDepositPhase("error");
     }
-    setAmount("");
-    setModal(null);
+  }, [amount]);
+
+  const handleVerifyDeposit = useCallback(async () => {
+    if (!depositRef) return;
+    setDepositPhase("verifying");
+
+    try {
+      const resp = await fetch(apiUrl(`/api/payments/verify/${depositRef}`));
+      const data = await resp.json() as { status: string; amount: number } | { error: string };
+
+      if (!resp.ok || "error" in data) {
+        throw new Error(("error" in data ? data.error : null) ?? "Verification request failed");
+      }
+
+      if (data.status === "success") {
+        hapticSuccess();
+        updateUsdBalance(depositAmt);
+        addTransaction({
+          type: "wallet", category: "Wallet", title: "Paystack Deposit",
+          amount: depositAmt, currency: "USD", status: "success",
+          date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          direction: "in",
+        });
+        setDepositPhase("success");
+      } else {
+        hapticError();
+        setDepositError(`Payment status: ${data.status}. Complete your payment then tap Verify again.`);
+        setDepositPhase("browser");
+      }
+    } catch (err: unknown) {
+      hapticError();
+      setDepositError(err instanceof Error ? err.message : "Verification failed");
+      setDepositPhase("error");
+    }
+  }, [depositRef, depositAmt, updateUsdBalance, addTransaction]);
+
+  const renderDepositContent = () => {
+    switch (depositPhase) {
+      case "loading":
+      case "verifying":
+        return (
+          <View style={s.phaseCenter}>
+            <ActivityIndicator size="large" color="#1A5AFF" />
+            <Text style={s.phaseLabel}>
+              {depositPhase === "loading" ? "Opening Paystack…" : "Verifying payment…"}
+            </Text>
+          </View>
+        );
+
+      case "browser":
+        return (
+          <View style={s.phaseCenter}>
+            <Text style={s.browserEmoji}>🔗</Text>
+            <Text style={s.phaseTitle}>Complete Payment</Text>
+            <Text style={s.phaseSub}>
+              Paystack has opened in your browser. After completing the${" "}
+              <Text style={{ fontWeight: "700" }}>${depositAmt.toFixed(2)}</Text> payment, tap Verify below.
+            </Text>
+            {depositError ? <Text style={s.errorText}>{depositError}</Text> : null}
+            <TouchableOpacity onPress={handleVerifyDeposit} activeOpacity={0.85} style={s.verifyBtn}>
+              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.verifyGrad}>
+                <Text style={s.verifyLabel}>Verify Payment</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={closeModal} style={s.cancelBtn}>
+              <Text style={s.cancelLabel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        );
+
+      case "success":
+        return (
+          <View style={s.phaseCenter}>
+            <Text style={s.browserEmoji}>✅</Text>
+            <Text style={s.phaseTitle}>Deposit Successful!</Text>
+            <Text style={s.phaseSub}>${depositAmt.toFixed(2)} has been added to your USD wallet.</Text>
+            <TouchableOpacity onPress={closeModal} activeOpacity={0.85} style={s.verifyBtn}>
+              <LinearGradient colors={["#30D158", "#1B8B3B"]} style={s.verifyGrad}>
+                <Text style={s.verifyLabel}>Done</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        );
+
+      case "error":
+        return (
+          <View style={s.phaseCenter}>
+            <Text style={s.browserEmoji}>⚠️</Text>
+            <Text style={s.phaseTitle}>Payment Error</Text>
+            {depositError ? <Text style={s.errorText}>{depositError}</Text> : null}
+            <TouchableOpacity onPress={resetDepositState} activeOpacity={0.85} style={s.verifyBtn}>
+              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.verifyGrad}>
+                <Text style={s.verifyLabel}>Try Again</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={closeModal} style={s.cancelBtn}>
+              <Text style={s.cancelLabel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        );
+
+      default:
+        return (
+          <>
+            <Text style={s.modalTitle}>Deposit Funds</Text>
+            <Text style={s.modalSub}>Powered by Paystack · Secure card payment</Text>
+            <View style={s.modalInputWrap}>
+              <Text style={s.modalSign}>$</Text>
+              <TextInput
+                style={s.modalInput}
+                placeholder="0.00"
+                placeholderTextColor="#C7C7CC"
+                keyboardType="decimal-pad"
+                value={amount}
+                onChangeText={setAmount}
+                autoFocus
+              />
+            </View>
+            <TouchableOpacity onPress={handleInitiateDeposit} activeOpacity={0.85}>
+              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.modalBtn}>
+                <Text style={s.modalBtnLabel}>Pay with Paystack</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={closeModal} style={s.cancelBtn}>
+              <Text style={s.cancelLabel}>Cancel</Text>
+            </TouchableOpacity>
+          </>
+        );
+    }
   };
 
   return (
@@ -116,11 +302,24 @@ export default function WalletScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={!!modal} transparent animationType="slide">
+      {/* Deposit Modal */}
+      <Modal visible={modal === "deposit"} transparent animationType="slide"
+        onRequestClose={closeModal}>
         <KeyboardAvoidingView style={s.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View style={s.modalSheet}>
             <View style={s.modalHandle} />
-            <Text style={s.modalTitle}>{modal === "deposit" ? "Deposit Funds" : "Withdraw Funds"}</Text>
+            {renderDepositContent()}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Withdraw Modal */}
+      <Modal visible={modal === "withdraw"} transparent animationType="slide"
+        onRequestClose={closeModal}>
+        <KeyboardAvoidingView style={s.modalOverlay} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <View style={s.modalSheet}>
+            <View style={s.modalHandle} />
+            <Text style={s.modalTitle}>Withdraw Funds</Text>
             <Text style={s.modalSub}>Available: ${usdBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             <View style={s.modalInputWrap}>
               <Text style={s.modalSign}>$</Text>
@@ -134,12 +333,12 @@ export default function WalletScreen() {
                 autoFocus
               />
             </View>
-            <TouchableOpacity onPress={handleAction} activeOpacity={0.85}>
+            <TouchableOpacity onPress={handleWithdraw} activeOpacity={0.85}>
               <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.modalBtn}>
-                <Text style={s.modalBtnLabel}>Confirm {modal === "deposit" ? "Deposit" : "Withdrawal"}</Text>
+                <Text style={s.modalBtnLabel}>Confirm Withdrawal</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setModal(null); setAmount(""); }} style={s.cancelBtn}>
+            <TouchableOpacity onPress={closeModal} style={s.cancelBtn}>
               <Text style={s.cancelLabel}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -150,20 +349,20 @@ export default function WalletScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", zIndex: 10 },
-  header: { paddingHorizontal: 20, paddingVertical: 12 },
+  root:        { flex: 1, backgroundColor: "#F2F2F7" },
+  headerWrap:  { backgroundColor: "#F2F2F7", zIndex: 10 },
+  header:      { paddingHorizontal: 20, paddingVertical: 12 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
-  scroll: { paddingHorizontal: 16, paddingBottom: 120 },
+  scroll:      { paddingHorizontal: 16, paddingBottom: 120 },
 
-  balCard: { borderRadius: 20, padding: 24, marginBottom: 20 },
-  balLabel: { fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "Inter_400Regular", marginBottom: 6 },
+  balCard:   { borderRadius: 20, padding: 24, marginBottom: 20 },
+  balLabel:  { fontSize: 14, color: "rgba(255,255,255,0.7)", fontFamily: "Inter_400Regular", marginBottom: 6 },
   balAmount: { fontSize: 36, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold", letterSpacing: -1, marginBottom: 4 },
-  balSub: { fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "Inter_400Regular", marginBottom: 20 },
+  balSub:    { fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "Inter_400Regular", marginBottom: 20 },
   actionRow: { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 14, overflow: "hidden" },
   actionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 14, backgroundColor: "#FFFFFF" },
   actionBtnLabel: { fontSize: 14, fontWeight: "600", color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
-  actionDivider: { width: 1, backgroundColor: "#E5E5EA" },
+  actionDivider:  { width: 1, backgroundColor: "#E5E5EA" },
 
   sectionTitle: { fontSize: 18, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 10 },
   card: {
@@ -173,33 +372,43 @@ const s = StyleSheet.create({
   },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
 
-  assetRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  assetBadge: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  assetRow:    { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  assetBadge:  { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   assetSymbol: { fontSize: 16, fontWeight: "800", fontFamily: "Inter_700Bold" },
-  assetInfo: { flex: 1 },
-  assetName: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  assetInfo:   { flex: 1 },
+  assetName:   { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
   assetBalance: { fontSize: 12, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
-  assetValue: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  assetValue:  { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
 
-  txRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  txIcon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  txRow:   { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  txIcon:  { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   txTitle: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
-  txDate: { fontSize: 12, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
+  txDate:  { fontSize: 12, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 1 },
   txAmount: { fontSize: 14, fontWeight: "700", fontFamily: "Inter_700Bold" },
 
-  empty: { padding: 28, alignItems: "center" },
+  empty:      { padding: 28, alignItems: "center" },
   emptyTitle: { fontSize: 15, fontWeight: "600", color: "#8E8E93", fontFamily: "Inter_600SemiBold" },
 
   modalOverlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.4)" },
-  modalSheet: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
-  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E5EA", alignSelf: "center", marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", marginBottom: 6 },
-  modalSub: { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular", marginBottom: 20 },
+  modalSheet:   { backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
+  modalHandle:  { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E5EA", alignSelf: "center", marginBottom: 20 },
+  modalTitle:   { fontSize: 20, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", marginBottom: 6 },
+  modalSub:     { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular", marginBottom: 20 },
   modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F2F2F7", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16 },
-  modalSign: { fontSize: 24, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginRight: 4 },
-  modalInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
-  modalBtn: { borderRadius: 16, paddingVertical: 17, alignItems: "center", marginBottom: 12 },
+  modalSign:    { fontSize: 24, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginRight: 4 },
+  modalInput:   { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
+  modalBtn:     { borderRadius: 16, paddingVertical: 17, alignItems: "center", marginBottom: 12 },
   modalBtnLabel: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
-  cancelBtn: { alignItems: "center", paddingVertical: 12 },
-  cancelLabel: { fontSize: 15, color: "#8E8E93", fontFamily: "Inter_600SemiBold" },
+  cancelBtn:    { alignItems: "center", paddingVertical: 12 },
+  cancelLabel:  { fontSize: 15, color: "#8E8E93", fontFamily: "Inter_600SemiBold" },
+
+  phaseCenter:  { alignItems: "center", paddingVertical: 16 },
+  browserEmoji: { fontSize: 48, marginBottom: 16 },
+  phaseTitle:   { fontSize: 20, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", marginBottom: 8, textAlign: "center" },
+  phaseSub:     { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 24, lineHeight: 20 },
+  phaseLabel:   { fontSize: 15, color: "#8E8E93", fontFamily: "Inter_400Regular", marginTop: 16 },
+  verifyBtn:    { width: "100%", marginBottom: 8 },
+  verifyGrad:   { borderRadius: 16, paddingVertical: 17, alignItems: "center" },
+  verifyLabel:  { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
+  errorText:    { fontSize: 13, color: "#FF3B30", fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 16, lineHeight: 18 },
 });
