@@ -82,7 +82,7 @@ timeoutMs = 20000
 # NIX ENV
 # ─────────────────────────────
 [nix]
-packages = ["nano"]
+packages = ["nano", "psmisc"]
 channel = "stable-25_05"
 
 [[ports]]
