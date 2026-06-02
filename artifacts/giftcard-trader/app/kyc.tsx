@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import AddressInput from "@/components/AddressInput";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -388,19 +389,13 @@ export default function KycScreen() {
               </View>
 
               {/* Home Address */}
-              <View style={s.fieldGroup}>
+              <View style={[s.fieldGroup, { zIndex: 10 }]}>
                 <Text style={s.fieldLabel}>Home Address</Text>
-                <TextInput
+                <AddressInput
                   value={address}
                   onChangeText={(t) => { setAddress(t); setFieldErrors((p) => ({ ...p, address: "" })); }}
-                  placeholder="12 Lagos Road, Victoria Island, Lagos, Nigeria"
-                  placeholderTextColor="#C7C7CC"
-                  style={[s.fieldInput, { minHeight: 44 }]}
-                  multiline
-                  autoCapitalize="words"
+                  error={fieldErrors.address}
                 />
-                <Text style={s.fieldHint}>Include street number, city and country</Text>
-                {fieldErrors.address ? <Text style={s.fieldError}>{fieldErrors.address}</Text> : null}
               </View>
 
             </View>
