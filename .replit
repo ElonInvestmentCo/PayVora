@@ -36,6 +36,10 @@ args = "PORT=5000 EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN EXPO_P
 task = "workflow.run"
 args = "Start PayVora App"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "PayVora Website"
+
 [[workflows.workflow]]
 name = "Start PayVora App"
 author = "agent"
@@ -47,6 +51,18 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow]]
+name = "PayVora Website"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=3001 pnpm --filter @workspace/payvora-website run dev"
+waitForPort = 3001
 
 # ─────────────────────────────
 # AGENT CONFIG

@@ -6,3 +6,27 @@ id = "6GU0TljLCwIFKiPvooMdn"
 uri = "file://artifacts/giftcard-trader/assets/images/icon.png"
 type = "image"
 title = "giftcard trader app icon"
+
+[[generated]]
+id = "gd-tyGx3V-mTwB4Mx4g6e"
+uri = "file://artifacts/payvora-website/src/assets/hero-app.png"
+type = "image"
+title = "Hero smartphone mockup"
+
+[[generated]]
+id = "_E4zDT7vSknTp0rUZXpFc"
+uri = "file://artifacts/payvora-website/src/assets/virtual-card.png"
+type = "image"
+title = "Floating virtual card"
+
+[[generated]]
+id = "O_MPuUthxzvK7bvJrMSpv"
+uri = "file://artifacts/payvora-website/src/assets/crypto-trading.png"
+type = "image"
+title = "Crypto trading interface"
+
+[[generated]]
+id = "SLmtsP59jqgkh4A8BcXuZ"
+uri = "file://artifacts/payvora-website/src/assets/gift-card.png"
+type = "image"
+title = "Gift cards floating"
