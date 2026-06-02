@@ -9,9 +9,13 @@ export const statusCodes = {
   SIGN_IN_REQUIRED: "SIGN_IN_REQUIRED",
 };
 
+type GoogleSignInResult =
+  | { type: "cancelled" }
+  | { type: "success"; data: { idToken: string | null; user: { id: string; name: string | null; email: string; photo: string | null; familyName: string | null; givenName: string | null } } };
+
 export const GoogleSignin = {
   configure: (_options?: Record<string, unknown>) => {},
-  signIn: async (): Promise<{ type: "cancelled" }> => ({ type: "cancelled" }),
+  signIn: async (): Promise<GoogleSignInResult> => ({ type: "cancelled" }),
   signOut: async () => {},
   isSignedIn: () => false,
   hasPlayServices: async () => true,

@@ -75,6 +75,11 @@ interface InputFieldProps {
   rightElement?: React.ReactNode;
   leftElement?: React.ReactNode;
   editable?: boolean;
+  autoComplete?: string;
+  textContentType?: string;
+  autoCorrect?: boolean;
+  maxLength?: number;
+  inputMode?: "none" | "text" | "decimal" | "numeric" | "tel" | "search" | "email" | "url";
 }
 
 function InputField({
@@ -89,6 +94,11 @@ function InputField({
   rightElement,
   leftElement,
   editable = true,
+  autoComplete,
+  textContentType,
+  autoCorrect = false,
+  maxLength,
+  inputMode,
 }: InputFieldProps) {
   return (
     <View style={inputStyles.wrap}>
@@ -104,6 +114,11 @@ function InputField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           editable={editable}
+          autoComplete={autoComplete as any}
+          textContentType={textContentType as any}
+          autoCorrect={autoCorrect}
+          maxLength={maxLength}
+          inputMode={inputMode as any}
           style={[inputStyles.input, leftElement ? { paddingLeft: 6 } : null]}
         />
         {rightElement}
@@ -176,12 +191,16 @@ function PasswordField({
   onChange,
   error,
   placeholder,
+  autoComplete,
+  textContentType,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   error?: string;
   placeholder?: string;
+  autoComplete?: string;
+  textContentType?: string;
 }) {
   const [show, setShow] = useState(false);
   return (
@@ -192,6 +211,8 @@ function PasswordField({
       placeholder={placeholder ?? "••••••••"}
       secureTextEntry={!show}
       error={error}
+      autoComplete={autoComplete}
+      textContentType={textContentType}
       rightElement={
         <TouchableOpacity onPress={() => setShow((s) => !s)} hitSlop={8}>
           {show ? (
@@ -285,7 +306,13 @@ const tabStyles = StyleSheet.create({
 });
 
 // ─── Login Form ────────────────────────────────────────────────────────────────
-function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+function LoginForm({
+  onSuccess,
+  onForgotPassword,
+}: {
+  onSuccess: () => void;
+  onForgotPassword: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -318,16 +345,21 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={setEmail}
         placeholder="you@example.com"
         keyboardType="email-address"
+        inputMode="email"
+        autoComplete="username"
+        textContentType="username"
         error={errors.email}
       />
       <PasswordField
         label="Password"
         value={password}
         onChange={setPassword}
+        autoComplete="current-password"
+        textContentType="password"
         error={errors.password}
       />
 
-      <TouchableOpacity style={formStyles.forgotRow}>
+      <TouchableOpacity style={formStyles.forgotRow} onPress={onForgotPassword}>
         <Text style={formStyles.forgot}>Forgot Password?</Text>
       </TouchableOpacity>
 
@@ -405,6 +437,8 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={set("name")}
         placeholder="e.g. Amaka Johnson"
         autoCapitalize="words"
+        autoComplete="name"
+        textContentType="name"
         error={errors.name}
       />
       <InputField
@@ -413,6 +447,9 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={set("email")}
         placeholder="you@example.com"
         keyboardType="email-address"
+        inputMode="email"
+        autoComplete="username"
+        textContentType="emailAddress"
         error={errors.email}
       />
       <InputField
@@ -421,6 +458,9 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         onChange={set("phone")}
         placeholder="800 000 0001"
         keyboardType="phone-pad"
+        inputMode="tel"
+        autoComplete="tel"
+        textContentType="telephoneNumber"
         error={errors.phone}
         leftElement={<PhonePrefix />}
       />
@@ -428,6 +468,8 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         label="Password"
         value={form.password}
         onChange={set("password")}
+        autoComplete="new-password"
+        textContentType="newPassword"
         error={errors.password}
         placeholder="Min. 8 characters"
       />
@@ -435,6 +477,8 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         label="Confirm Password"
         value={form.confirm}
         onChange={set("confirm")}
+        autoComplete="new-password"
+        textContentType="newPassword"
         error={errors.confirm}
       />
       <InputField
@@ -442,6 +486,8 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         value={form.referral}
         onChange={set("referral")}
         placeholder="Enter referral code"
+        autoComplete="off"
+        textContentType="none"
       />
 
       {/* Terms checkbox */}
@@ -573,14 +619,420 @@ const formStyles = StyleSheet.create({
   },
 });
 
+// ─── Forgot Password Form ──────────────────────────────────────────────────────
+type ForgotStep = "email" | "reset";
+
+function ForgotPasswordForm({
+  onBack,
+  onSuccess,
+}: {
+  onBack: () => void;
+  onSuccess: () => void;
+}) {
+  const [step, setStep] = useState<ForgotStep>("email");
+  const [email, setEmail] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const submitEmail = () => {
+    const e: Record<string, string> = {};
+    if (!email.trim()) e.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) e.email = "Enter a valid email";
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
+    hapticMedium();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      hapticSuccess();
+      setStep("reset");
+    }, 1200);
+  };
+
+  const submitReset = () => {
+    const e: Record<string, string> = {};
+    if (!newPass) e.newPass = "Password is required";
+    else if (newPass.length < 8) e.newPass = "Min 8 characters";
+    if (newPass !== confirmPass) e.confirmPass = "Passwords do not match";
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
+    hapticMedium();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      hapticSuccess();
+      onSuccess();
+    }, 1200);
+  };
+
+  return (
+    <View>
+      {/* Back button */}
+      <TouchableOpacity style={forgotStyles.backRow} onPress={onBack} activeOpacity={0.7}>
+        <Text style={forgotStyles.backArrow}>←</Text>
+        <Text style={forgotStyles.backLabel}>Back to Login</Text>
+      </TouchableOpacity>
+
+      <Text style={forgotStyles.title}>
+        {step === "email" ? "Reset Password" : "Set New Password"}
+      </Text>
+      <Text style={forgotStyles.subtitle}>
+        {step === "email"
+          ? "Enter your email address and we'll send a reset link."
+          : `A reset link was sent to ${email}. Set your new password below.`}
+      </Text>
+
+      {step === "email" ? (
+        <>
+          <InputField
+            label="Email Address"
+            value={email}
+            onChange={setEmail}
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            inputMode="email"
+            autoComplete="email"
+            textContentType="emailAddress"
+            error={errors.email}
+          />
+          <TouchableOpacity
+            onPress={submitEmail}
+            disabled={loading}
+            activeOpacity={0.85}
+            style={[formStyles.cta, loading && formStyles.ctaLoading]}
+          >
+            <LinearGradient
+              colors={["#1A5AFF", "#0C38C0"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={formStyles.ctaGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={formStyles.ctaText}>Send Reset Link</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <PasswordField
+            label="New Password"
+            value={newPass}
+            onChange={setNewPass}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            placeholder="Min. 8 characters"
+            error={errors.newPass}
+          />
+          <PasswordField
+            label="Confirm New Password"
+            value={confirmPass}
+            onChange={setConfirmPass}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            error={errors.confirmPass}
+          />
+          <TouchableOpacity
+            onPress={submitReset}
+            disabled={loading}
+            activeOpacity={0.85}
+            style={[formStyles.cta, loading && formStyles.ctaLoading]}
+          >
+            <LinearGradient
+              colors={["#1A5AFF", "#0C38C0"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={formStyles.ctaGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={formStyles.ctaText}>Update Password</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+  );
+}
+
+const forgotStyles = StyleSheet.create({
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 20,
+  },
+  backArrow: {
+    fontSize: 18,
+    color: "#1254EC",
+    lineHeight: 22,
+  },
+  backLabel: {
+    fontSize: 14,
+    color: "#1254EC",
+    fontFamily: "Inter_500Medium",
+  },
+  title: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    color: "#0F172A",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    fontFamily: "Inter_400Regular",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+});
+
+// ─── OTP Verification Form ─────────────────────────────────────────────────────
+function OtpForm({
+  onSuccess,
+  onBack,
+}: {
+  onSuccess: () => void;
+  onBack: () => void;
+}) {
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [resendTimer, setResendTimer] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setResendTimer((t) => {
+        if (t <= 1) {
+          clearInterval(timerRef.current!);
+          setCanResend(true);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current!);
+  }, []);
+
+  const handleResend = () => {
+    if (!canResend) return;
+    hapticLight();
+    setCanResend(false);
+    setResendTimer(30);
+    timerRef.current = setInterval(() => {
+      setResendTimer((t) => {
+        if (t <= 1) {
+          clearInterval(timerRef.current!);
+          setCanResend(true);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  };
+
+  const submit = () => {
+    if (otp.trim().length < 6) {
+      setError("Enter the 6-digit code");
+      hapticError();
+      return;
+    }
+    setError("");
+    hapticMedium();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      hapticSuccess();
+      onSuccess();
+    }, 1200);
+  };
+
+  const digits = otp.padEnd(6, " ").split("").slice(0, 6);
+
+  return (
+    <View>
+      <TouchableOpacity style={forgotStyles.backRow} onPress={onBack} activeOpacity={0.7}>
+        <Text style={forgotStyles.backArrow}>←</Text>
+        <Text style={forgotStyles.backLabel}>Back</Text>
+      </TouchableOpacity>
+
+      <Text style={forgotStyles.title}>Verify Your Account</Text>
+      <Text style={forgotStyles.subtitle}>
+        Enter the 6-digit code sent to your email or phone number.
+      </Text>
+
+      {/* Visual OTP digit boxes — single hidden input underneath drives autofill */}
+      <View style={otpStyles.container}>
+        {digits.map((d, i) => (
+          <View
+            key={i}
+            style={[
+              otpStyles.box,
+              otp.length === i && otpStyles.boxActive,
+              error ? otpStyles.boxError : null,
+            ]}
+          >
+            <Text style={otpStyles.digit}>{d.trim()}</Text>
+            {otp.length === i && <View style={otpStyles.cursor} />}
+          </View>
+        ))}
+        {/* Single transparent TextInput covering all digit boxes — required for
+            autoComplete="one-time-code" and textContentType="oneTimeCode" to work.
+            iOS SMS autofill and Android SMS Retriever fill a single input, not
+            individual boxes. The visual boxes above are purely presentational. */}
+        <TextInput
+          value={otp}
+          onChangeText={(v) => {
+            setError("");
+            setOtp(v.replace(/\D/g, "").slice(0, 6));
+          }}
+          keyboardType="number-pad"
+          autoComplete={"one-time-code" as any}
+          textContentType={"oneTimeCode" as any}
+          autoFocus
+          maxLength={6}
+          style={otpStyles.hiddenInput}
+          caretHidden
+        />
+      </View>
+
+      {error ? <Text style={otpStyles.errorText}>{error}</Text> : null}
+
+      {/* Resend row */}
+      <View style={otpStyles.resendRow}>
+        <Text style={otpStyles.resendLabel}>Didn't receive a code? </Text>
+        <TouchableOpacity onPress={handleResend} disabled={!canResend} activeOpacity={0.7}>
+          <Text style={[otpStyles.resendLink, !canResend && otpStyles.resendDisabled]}>
+            {canResend ? "Resend" : `Resend in ${resendTimer}s`}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        onPress={submit}
+        disabled={loading || otp.length < 6}
+        activeOpacity={0.85}
+        style={[formStyles.cta, (loading || otp.length < 6) && formStyles.ctaLoading]}
+      >
+        <LinearGradient
+          colors={["#1A5AFF", "#0C38C0"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={formStyles.ctaGradient}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={formStyles.ctaText}>Verify Code</Text>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const otpStyles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    marginBottom: 8,
+    position: "relative",
+  },
+  box: {
+    width: 48,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: "#F4F4F4",
+    borderWidth: 2,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  boxActive: {
+    borderColor: "#1254EC",
+    backgroundColor: "#EEF4FF",
+  },
+  boxError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FFF2F2",
+  },
+  digit: {
+    fontSize: 22,
+    fontFamily: "Inter_600SemiBold",
+    color: "#0F172A",
+  },
+  cursor: {
+    position: "absolute",
+    bottom: 10,
+    width: 2,
+    height: 20,
+    backgroundColor: "#1254EC",
+    borderRadius: 1,
+  },
+  hiddenInput: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
+    width: "100%",
+    height: "100%",
+  },
+  errorText: {
+    fontSize: 13,
+    color: "#EF4444",
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  resendRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  resendLabel: {
+    fontSize: 14,
+    color: "#64748B",
+    fontFamily: "Inter_400Regular",
+  },
+  resendLink: {
+    fontSize: 14,
+    color: "#1254EC",
+    fontFamily: "Inter_600SemiBold",
+  },
+  resendDisabled: {
+    color: "#94A3B8",
+    fontFamily: "Inter_400Regular",
+  },
+});
+
 // ─── Auth Screen ───────────────────────────────────────────────────────────────
+type AuthView = "main" | "otp" | "forgot";
+
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [view, setView] = useState<AuthView>("main");
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const handleSuccess = useCallback(() => {
+  const handleVerified = useCallback(() => {
     router.replace("/(tabs)");
+  }, []);
+
+  const handleSuccess = useCallback(() => {
+    setView("otp");
   }, []);
 
   // Configure Google Sign-In SDK once on mount.
@@ -626,7 +1078,7 @@ export default function AuthScreen() {
         await SecureStore.setItemAsync("google_user_id", user.id);
 
         hapticSuccess();
-        handleSuccess();
+        setView("otp");
       }
       // response.type === "cancelled" — user dismissed the sheet, no action needed
     } catch (e: any) {
@@ -681,7 +1133,7 @@ export default function AuthScreen() {
       await SecureStore.setItemAsync("apple_user_id", credential.user);
 
       hapticSuccess();
-      handleSuccess();
+      setView("otp");
     } catch (e: any) {
       if (e.code === "ERR_REQUEST_CANCELED") {
         // User cancelled the Apple Sign In sheet — no action needed
@@ -720,7 +1172,11 @@ export default function AuthScreen() {
         </View>
 
         <Text style={styles.headerHook}>
-          {tab === "login"
+          {view === "otp"
+            ? "Verify your identity 🔐"
+            : view === "forgot"
+            ? "Reset your password 🔑"
+            : tab === "login"
             ? "Welcome back 👋"
             : "Join thousands of smart users"}
         </Text>
@@ -737,64 +1193,92 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.card}>
-          <TabToggle active={tab} onChange={setTab} />
 
-          {tab === "login" ? (
-            <LoginForm onSuccess={handleSuccess} />
-          ) : (
-            <SignUpForm onSuccess={handleSuccess} />
-          )}
-
-          {/* ── Social sign-in section ──────────────────────────────────────── */}
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Apple Sign In — iOS only, shown before Google per Apple HIG.
-              Uses ASAuthorizationAppleIDButton natively; styling owned by Apple. */}
-          {Platform.OS === "ios" && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={10}
-              style={styles.appleNativeBtn}
-              onPress={handleAppleSignIn}
+          {/* ── OTP Verification ── */}
+          {view === "otp" && (
+            <OtpForm
+              onSuccess={handleVerified}
+              onBack={() => setView("main")}
             />
           )}
 
-          {/* Google Sign In — native GoogleSigninButton on iOS/Android (Google's
-              official ASAuthorizationGoogleIDButton equivalent); brand-compliant
-              web button via platform stub. Placed after Apple per Apple HIG. */}
-          <GoogleSigninButton
-            style={[
-              styles.googleBtn,
-              Platform.OS === "ios" && { marginTop: 12 },
-            ]}
-            onPress={handleGoogleSignIn}
-            disabled={googleLoading}
-          />
-
-          {/* Bottom switch */}
-          <View style={styles.switchRow}>
-            <Text style={styles.switchLabel}>
-              {tab === "login"
-                ? "Don't have an account? "
-                : "Already have an account? "}
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                hapticLight();
-                setTab(tab === "login" ? "signup" : "login");
+          {/* ── Forgot / Reset Password ── */}
+          {view === "forgot" && (
+            <ForgotPasswordForm
+              onBack={() => setView("main")}
+              onSuccess={() => {
+                setView("main");
+                setTab("login");
               }}
-            >
-              <Text style={styles.switchLink}>
-                {tab === "login" ? "Sign Up" : "Login"}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            />
+          )}
+
+          {/* ── Login / Sign Up ── */}
+          {view === "main" && (
+            <>
+              <TabToggle active={tab} onChange={setTab} />
+
+              {tab === "login" ? (
+                <LoginForm
+                  onSuccess={handleSuccess}
+                  onForgotPassword={() => setView("forgot")}
+                />
+              ) : (
+                <SignUpForm onSuccess={handleSuccess} />
+              )}
+
+              {/* ── Social sign-in section ────────────────────────────────── */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* Apple Sign In — iOS only, shown before Google per Apple HIG.
+                  Uses ASAuthorizationAppleIDButton natively; styling owned by Apple. */}
+              {Platform.OS === "ios" && (
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  cornerRadius={10}
+                  style={styles.appleNativeBtn}
+                  onPress={handleAppleSignIn}
+                />
+              )}
+
+              {/* Google Sign In — native GoogleSigninButton on iOS/Android (Google's
+                  official ASAuthorizationGoogleIDButton equivalent); brand-compliant
+                  web button via platform stub. Placed after Apple per Apple HIG. */}
+              <GoogleSigninButton
+                style={[
+                  styles.googleBtn,
+                  Platform.OS === "ios" && { marginTop: 12 },
+                ]}
+                onPress={handleGoogleSignIn}
+                disabled={googleLoading}
+              />
+
+              {/* Bottom switch */}
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>
+                  {tab === "login"
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    hapticLight();
+                    setTab(tab === "login" ? "signup" : "login");
+                  }}
+                >
+                  <Text style={styles.switchLink}>
+                    {tab === "login" ? "Sign Up" : "Login"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
