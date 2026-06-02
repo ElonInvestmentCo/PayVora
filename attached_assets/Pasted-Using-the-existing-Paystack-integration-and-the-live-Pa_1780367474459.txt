@@ -1,0 +1,21 @@
+Using the existing Paystack integration and the live Paystack keys stored in Replit Secrets, complete the entire production payment flow for PayVora. First, build and run the API server, then perform a real payment initialization test through `POST /api/payments/initiate` and confirm that Paystack returns a valid `authorization_url`, transaction reference, and expected response data. Next, verify that `GET /api/payments/verify/:reference` correctly confirms successful, pending, failed, and abandoned transactions. Ensure the Paystack webhook endpoint is fully operational by validating HMAC-SHA512 signatures using the live secret key and handling events such as `charge.success`, `transfer.success`, and `transfer.failed`.
+
+After backend verification, connect the PayVora frontend checkout/deposit/payment flow to `/api/payments/initiate` so users can start transactions directly from the app. Ensure successful payment completion automatically triggers transaction verification and updates the correct user account, wallet balance, transaction history, and any related records in the database. Add proper loading states, success states, failure handling, timeout handling, duplicate transaction protection, and user-friendly error messages throughout the payment process.
+
+Review the current database schema and implement any missing wallet, balance, ledger, or transaction update logic required for production-grade payment processing. Ensure payment references are unique, transactions are idempotent, and webhook processing cannot credit a wallet more than once.
+
+Deploy the API server to a permanent production URL, configure all required environment variables, verify deployment health, and provide the exact webhook URL that should be entered into the Paystack Dashboard. Confirm that the deployed webhook endpoint is publicly accessible and functioning correctly.
+
+Perform end-to-end testing of the complete payment flow from frontend initiation through Paystack authorization, webhook delivery, transaction verification, wallet crediting, and transaction history updates. Fix all compile errors, runtime errors, TypeScript issues, route conflicts, middleware conflicts, deployment issues, and payment-processing bugs encountered during testing.
+
+Finally, provide a complete implementation report showing:
+
+* All files created or modified
+* All routes and endpoints implemented
+* Request and response formats
+* Database changes made
+* Webhook URL to register in Paystack
+* Deployment URL
+* Remaining tasks before public launch
+* Security recommendations for production
+* Confirmation of whether PayVora is ready to accept real customer payments
