@@ -9,9 +9,12 @@ export const usersTable = pgTable("users", {
   dob: text("dob").notNull().default(""),
   address: text("address").notNull().default(""),
   idType: text("id_type").notNull().default("passport"),
+  // Valid statuses: not_verified | pending | reviewing | verified | rejected | requires_resubmission
   kycStatus: text("kyc_status").notNull().default("not_verified"),
   kycSubmittedAt: timestamp("kyc_submitted_at"),
   kycReviewedAt: timestamp("kyc_reviewed_at"),
+  rejectionReason: text("rejection_reason"),
+  reviewerNotes: text("reviewer_notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

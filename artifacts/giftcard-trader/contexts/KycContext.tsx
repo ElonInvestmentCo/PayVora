@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { apiUrl } from "@/utils/api";
 
-export type KycStatus = "not_verified" | "pending" | "verified" | "rejected";
+export type KycStatus =
+  | "not_verified"
+  | "pending"
+  | "reviewing"
+  | "verified"
+  | "rejected"
+  | "requires_resubmission";
 
 export interface KycData {
   kycStatus: KycStatus;
@@ -11,7 +18,8 @@ export interface KycData {
   idType: string;
   submittedAt: string | null;
   reviewedAt: string | null;
-  rejectionReasons?: string[];
+  rejectionReason: string | null;
+  reviewerNotes: string | null;
 }
 
 export interface KycValidationResult {
@@ -27,14 +35,14 @@ interface KycContextType {
   error: string | null;
   refresh: () => Promise<void>;
   submitKyc: (data: { fullName: string; dob: string; address: string; idType?: string }) => Promise<void>;
-  setStatus: (status: KycStatus, reasons?: string[]) => void;
+  setStatus: (status: KycStatus, rejectionReason?: string) => void;
   validatePersonalInfo: (fullName: string, dob: string, address: string) => KycValidationResult;
-  validateDocument: (side: "front" | "back", uploaded: boolean) => KycValidationResult;
+  validateDocument: (uploaded: boolean) => KycValidationResult;
   validateSelfie: (uploaded: boolean) => KycValidationResult;
   runFullVerification: (data: {
     fullName: string; dob: string; address: string; idType: string;
-    frontUploaded: boolean; backUploaded: boolean; selfieUploaded: boolean;
-  }) => Promise<{ verified: boolean; errors: string[] }>;
+    documentUploaded: boolean; selfieUploaded: boolean;
+  }) => Promise<{ submitted: boolean; errors: string[] }>;
 }
 
 const KycContext = createContext<KycContextType>({} as KycContextType);
@@ -53,149 +61,217 @@ function parseDate(dateStr: string): Date | null {
 function calculateAge(dob: Date): number {
   const today = new Date();
   let age = today.getFullYear() - dob.getFullYear();
-  const monthDiff = today.getMonth() - dob.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
   return age;
 }
 
+const DEFAULT_KYC_DATA: KycData = {
+  kycStatus: "not_verified",
+  fullName: "",
+  email: "customer@payvora.io",
+  dob: "",
+  address: "",
+  idType: "passport",
+  submittedAt: null,
+  reviewedAt: null,
+  rejectionReason: null,
+  reviewerNotes: null,
+};
+
 export function KycProvider({ children }: { children: React.ReactNode }) {
-  const [kycData, setKycData] = useState<KycData | null>({
-    kycStatus: "not_verified",
-    fullName: "",
-    email: "alex.johnson@email.com",
-    dob: "",
-    address: "",
-    idType: "passport",
-    submittedAt: null,
-    reviewedAt: null,
-  });
+  const [kycData, setKycData] = useState<KycData | null>(DEFAULT_KYC_DATA);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {}, []);
-
-  const setStatus = useCallback((status: KycStatus, reasons?: string[]) => {
-    setKycData((prev) => prev ? { ...prev, kycStatus: status, rejectionReasons: reasons, reviewedAt: new Date().toISOString() } : prev);
-  }, []);
-
-  const validatePersonalInfo = useCallback((fullName: string, dob: string, address: string): KycValidationResult => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    const trimmedName = fullName.trim();
-    if (!trimmedName) {
-      errors.push("Full name is required");
-    } else if (trimmedName.split(/\s+/).length < 2) {
-      errors.push("Please enter your first and last name");
-    } else if (trimmedName.length < 3) {
-      errors.push("Name is too short");
-    } else if (/\d/.test(trimmedName)) {
-      errors.push("Name should not contain numbers");
-    }
-
-    const trimmedDob = dob.trim();
-    if (!trimmedDob) {
-      errors.push("Date of birth is required");
-    } else {
-      const parsed = parseDate(trimmedDob);
-      if (!parsed) {
-        errors.push("Invalid date format. Use DD/MM/YYYY");
-      } else {
-        const age = calculateAge(parsed);
-        if (age < 18) errors.push("You must be at least 18 years old");
-        else if (age > 120) errors.push("Please enter a valid date of birth");
-        if (age >= 18 && age < 21) warnings.push("Some features may be restricted for users under 21");
-      }
-    }
-
-    const trimmedAddr = address.trim();
-    if (!trimmedAddr) {
-      errors.push("Residential address is required");
-    } else if (trimmedAddr.length < 10) {
-      errors.push("Please enter a complete address (at least 10 characters)");
-    } else if (!/\d/.test(trimmedAddr)) {
-      warnings.push("Address typically includes a house/building number");
-    }
-
-    return { valid: errors.length === 0, errors, warnings };
-  }, []);
-
-  const validateDocument = useCallback((side: "front" | "back", uploaded: boolean): KycValidationResult => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    if (!uploaded) {
-      errors.push(`${side === "front" ? "Front" : "Back"} side of ID is required`);
-    }
-    return { valid: errors.length === 0, errors, warnings };
-  }, []);
-
-  const validateSelfie = useCallback((uploaded: boolean): KycValidationResult => {
-    const errors: string[] = [];
-    if (!uploaded) errors.push("Selfie photo is required");
-    return { valid: errors.length === 0, errors, warnings: [] };
-  }, []);
-
-  const runFullVerification = useCallback(async (data: {
-    fullName: string; dob: string; address: string; idType: string;
-    frontUploaded: boolean; backUploaded: boolean; selfieUploaded: boolean;
-  }): Promise<{ verified: boolean; errors: string[] }> => {
-    const allErrors: string[] = [];
-
-    const personalResult = validatePersonalInfo(data.fullName, data.dob, data.address);
-    allErrors.push(...personalResult.errors);
-
-    const frontResult = validateDocument("front", data.frontUploaded);
-    allErrors.push(...frontResult.errors);
-    const backResult = validateDocument("back", data.backUploaded);
-    allErrors.push(...backResult.errors);
-
-    const selfieResult = validateSelfie(data.selfieUploaded);
-    allErrors.push(...selfieResult.errors);
-
-    if (allErrors.length > 0) {
-      setStatus("rejected", allErrors);
-      return { verified: false, errors: allErrors };
-    }
-
-    setKycData((prev) => prev ? {
-      ...prev,
-      kycStatus: "verified",
-      fullName: data.fullName.trim(),
-      dob: data.dob.trim(),
-      address: data.address.trim(),
-      idType: data.idType,
-      submittedAt: new Date().toISOString(),
-      reviewedAt: new Date().toISOString(),
-      rejectionReasons: undefined,
-    } : prev);
-
-    return { verified: true, errors: [] };
-  }, [validatePersonalInfo, validateDocument, validateSelfie, setStatus]);
-
-  const submitKyc = useCallback(async (data: { fullName: string; dob: string; address: string; idType?: string }) => {
-    setLoading(true);
+  const refresh = useCallback(async () => {
     try {
-      setKycData((prev) => prev ? {
-        ...prev,
-        kycStatus: "pending",
-        fullName: data.fullName,
-        dob: data.dob,
-        address: data.address,
-        idType: data.idType || "passport",
-        submittedAt: new Date().toISOString(),
-      } : prev);
-    } finally {
-      setLoading(false);
+      const resp = await fetch(apiUrl("/api/kyc/status"));
+      if (resp.ok) {
+        const json = (await resp.json()) as KycData;
+        setKycData(json);
+      }
+    } catch {
+      // Network failure — keep local state
     }
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const setStatus = useCallback((status: KycStatus, rejectionReason?: string) => {
+    setKycData((prev) =>
+      prev
+        ? {
+            ...prev,
+            kycStatus: status,
+            rejectionReason: rejectionReason ?? null,
+            reviewedAt: new Date().toISOString(),
+          }
+        : prev,
+    );
+  }, []);
+
+  const validatePersonalInfo = useCallback(
+    (fullName: string, dob: string, address: string): KycValidationResult => {
+      const errors: string[] = [];
+      const warnings: string[] = [];
+
+      const trimmedName = fullName.trim();
+      if (!trimmedName) {
+        errors.push("Full name is required");
+      } else if (trimmedName.split(/\s+/).length < 2) {
+        errors.push("Please enter your first and last name");
+      } else if (/\d/.test(trimmedName)) {
+        errors.push("Name should not contain numbers");
+      }
+
+      const trimmedDob = dob.trim();
+      if (!trimmedDob) {
+        errors.push("Date of birth is required");
+      } else {
+        const parsed = parseDate(trimmedDob);
+        if (!parsed) {
+          errors.push("Invalid date. Use DD/MM/YYYY (e.g. 15/03/1990)");
+        } else {
+          const age = calculateAge(parsed);
+          if (age < 18) errors.push("You must be at least 18 years old");
+          else if (age > 120) errors.push("Please enter a valid date of birth");
+          if (age >= 18 && age < 21)
+            warnings.push("Some features may be restricted for users under 21");
+        }
+      }
+
+      const trimmedAddr = address.trim();
+      if (!trimmedAddr) {
+        errors.push("Residential address is required");
+      } else if (trimmedAddr.length < 10) {
+        errors.push("Enter your full address (street, city, country)");
+      } else if (!/\d/.test(trimmedAddr)) {
+        warnings.push("Address usually includes a building or house number");
+      }
+
+      return { valid: errors.length === 0, errors, warnings };
+    },
+    [],
+  );
+
+  const validateDocument = useCallback(
+    (uploaded: boolean): KycValidationResult => ({
+      valid: uploaded,
+      errors: uploaded ? [] : ["Please upload a photo of your ID document"],
+      warnings: [],
+    }),
+    [],
+  );
+
+  const validateSelfie = useCallback(
+    (uploaded: boolean): KycValidationResult => ({
+      valid: uploaded,
+      errors: uploaded ? [] : ["Please take a selfie photo"],
+      warnings: [],
+    }),
+    [],
+  );
+
+  const submitKyc = useCallback(
+    async (data: { fullName: string; dob: string; address: string; idType?: string }) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const resp = await fetch(apiUrl("/api/kyc/submit"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: data.fullName,
+            dob: data.dob,
+            address: data.address,
+            idType: data.idType ?? "passport",
+          }),
+        });
+        const json = (await resp.json()) as KycData & { error?: string };
+        if (!resp.ok) throw new Error(json.error ?? "Submission failed");
+        setKycData((prev) =>
+          prev
+            ? {
+                ...prev,
+                kycStatus: json.kycStatus ?? "pending",
+                fullName: json.fullName ?? data.fullName,
+                dob: json.dob ?? data.dob,
+                address: json.address ?? data.address,
+                idType: json.idType ?? data.idType ?? "passport",
+                submittedAt: json.submittedAt ?? new Date().toISOString(),
+                rejectionReason: null,
+                reviewerNotes: null,
+              }
+            : prev,
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Submission failed";
+        setError(msg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const runFullVerification = useCallback(
+    async (data: {
+      fullName: string;
+      dob: string;
+      address: string;
+      idType: string;
+      documentUploaded: boolean;
+      selfieUploaded: boolean;
+    }): Promise<{ submitted: boolean; errors: string[] }> => {
+      const allErrors: string[] = [];
+
+      const personalResult = validatePersonalInfo(data.fullName, data.dob, data.address);
+      allErrors.push(...personalResult.errors);
+      if (!data.documentUploaded) allErrors.push("ID document photo is required");
+      if (!data.selfieUploaded) allErrors.push("Selfie photo is required");
+
+      if (allErrors.length > 0) return { submitted: false, errors: allErrors };
+
+      try {
+        await submitKyc({
+          fullName: data.fullName,
+          dob: data.dob,
+          address: data.address,
+          idType: data.idType,
+        });
+        return { submitted: true, errors: [] };
+      } catch (err) {
+        return {
+          submitted: false,
+          errors: [err instanceof Error ? err.message : "Submission failed"],
+        };
+      }
+    },
+    [validatePersonalInfo, submitKyc],
+  );
 
   const kycStatus = kycData?.kycStatus ?? "not_verified";
 
   return (
-    <KycContext.Provider value={{
-      kycStatus, kycData, loading, error, refresh, submitKyc, setStatus,
-      validatePersonalInfo, validateDocument, validateSelfie, runFullVerification,
-    }}>
+    <KycContext.Provider
+      value={{
+        kycStatus,
+        kycData,
+        loading,
+        error,
+        refresh,
+        submitKyc,
+        setStatus,
+        validatePersonalInfo,
+        validateDocument,
+        validateSelfie,
+        runFullVerification,
+      }}
+    >
       {children}
     </KycContext.Provider>
   );
