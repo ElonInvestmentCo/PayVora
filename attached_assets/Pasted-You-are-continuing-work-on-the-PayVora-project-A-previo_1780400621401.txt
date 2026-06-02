@@ -1,0 +1,194 @@
+You are continuing work on the PayVora project. A previous AI agent partially completed a live Paystack integration but stopped due to insufficient agent credits. Your job is to independently audit, verify, and complete any unfinished work.
+
+IMPORTANT:
+
+* Do NOT assume the previous AI's claims are correct.
+* Inspect the actual codebase and verify everything directly.
+* Use ONLY the live Paystack keys already stored in Replit Secrets.
+* Do NOT create mock, sandbox, demo, test, fake, or placeholder payment flows.
+* Do NOT break existing frontend functionality.
+
+PHASE 1 — AUDIT EVERYTHING
+
+Verify whether the following actually exist and function:
+
+1. POST /api/payments/initiate
+
+   * Initializes a real Paystack transaction.
+   * Uses PAYSTACK_SECRET_KEY from Replit Secrets.
+   * Returns:
+
+     * authorizationUrl
+     * accessCode
+     * reference
+
+2. GET /api/payments/verify/:reference
+
+   * Verifies a transaction against Paystack.
+   * Returns normalized transaction details.
+
+3. POST /api/webhooks/paystack
+
+   * Uses HMAC-SHA512 verification.
+   * Uses timingSafeEqual.
+   * Rejects invalid signatures.
+   * Accepts valid signatures.
+   * Processes charge.success events.
+
+4. Verify express.raw() middleware is mounted BEFORE express.json() for webhook verification.
+
+5. Verify routes are actually registered and reachable.
+
+6. Verify the API server builds successfully.
+
+7. Verify the API server starts successfully.
+
+8. Verify no duplicate webhook registration exists.
+
+Provide a detailed report of:
+
+* Completed work
+* Missing work
+* Broken work
+* Incorrect implementations
+
+PHASE 2 — COMPLETE MISSING WORK
+
+If anything is incomplete, finish it.
+
+Implement production-grade handling for:
+
+* charge.success
+* charge.failed
+* transfer.success
+* transfer.failed
+* transfer.reversed
+
+Ensure webhook processing is idempotent and secure.
+
+PHASE 3 — WALLET CREDITING
+
+Verify whether successful Paystack payments actually credit user balances.
+
+Requirements:
+
+* On successful charge.success:
+
+  * Locate the user.
+  * Locate the correct wallet.
+  * Prevent duplicate credits.
+  * Record transaction history.
+  * Update wallet balance.
+
+If this is not implemented:
+
+* Build it completely.
+
+PHASE 4 — FRONTEND PAYMENT FLOW
+
+Verify PayVora frontend is connected to:
+
+POST /api/payments/initiate
+
+Verify:
+
+* Deposit button works.
+* Payment modal works.
+* Authorization URL opens.
+* Reference is stored.
+* Verification occurs after payment.
+
+If disconnected:
+
+* Wire everything correctly.
+
+PHASE 5 — KYC IMPROVEMENTS
+
+On the Verification page:
+
+Date of Birth field:
+
+* Automatically format:
+  0103 → 01/03
+  01031999 → 01/03/1999
+
+Home Address field:
+
+* Provide intelligent autocomplete.
+* Show examples.
+* Improve validation.
+
+PHASE 6 — LIVE VERIFICATION ENGINE
+
+Implement a real verification engine.
+
+Requirements:
+
+Personal Info
+
+* Validate required fields.
+* Validate address structure.
+* Validate DOB format.
+
+ID Verification
+
+* Validate uploaded document.
+* Detect blurry images.
+* Detect invalid file types.
+* Detect missing edges.
+* Reject unusable uploads.
+
+Selfie Verification
+
+* Validate face presence.
+* Validate image quality.
+* Compare selfie against uploaded ID where possible.
+
+Verification Statuses:
+
+* Pending
+* Reviewing
+* Approved
+* Rejected
+* Requires Resubmission
+
+Store:
+
+* Verification timestamps
+* Reviewer notes
+* Rejection reasons
+
+PHASE 7 — PAYSTACK LIVE DEPLOYMENT
+
+Verify:
+
+* Live keys are being used.
+* No test keys remain.
+* No sandbox endpoints remain.
+* Webhook URL is production-ready.
+
+Provide exact webhook URL to register in Paystack.
+
+PHASE 8 — FINAL VERIFICATION
+
+Before finishing:
+
+1. Build the entire project.
+2. Start all services.
+3. Verify API server is running.
+4. Verify frontend is running.
+5. Verify payment endpoints respond correctly.
+6. Verify webhook signature validation works.
+7. Verify wallet crediting works.
+8. Verify KYC workflow works.
+
+At the end provide:
+
+✅ Completed items
+⚠ Remaining issues
+📁 Files changed
+🔗 API endpoints
+🔒 Security checks completed
+🚀 Deployment readiness status
+
+Do not stop after auditing. Continue until all missing functionality is implemented and verified.
