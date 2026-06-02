@@ -575,7 +575,7 @@ importers:
   artifacts/payvora-website:
     dependencies:
       react-icons:
-        specifier: ^5.5.0
+        specifier: ^5.6.0
         version: 5.6.0(react@19.1.0)
       wouter:
         specifier: ^3.7.1
