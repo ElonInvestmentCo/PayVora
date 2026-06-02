@@ -25,8 +25,8 @@ interface ESimPlan {
 }
 
 const SERVICES: { id: ServiceId; label: string; emoji: string; color: string }[] = [
-  { id: "airtime",     label: "Airtime",     emoji: "📞", color: "#1A5AFF" },
-  { id: "data",        label: "Data",        emoji: "📡", color: "#30D158" },
+  { id: "airtime",     label: "Airtime",     emoji: "📞", color: "#1072EA" },
+  { id: "data",        label: "Data",        emoji: "📡", color: "#118D45" },
   { id: "electricity", label: "Electricity", emoji: "⚡", color: "#FF9F0A" },
   { id: "tv",          label: "TV Sub",      emoji: "📺", color: "#BF5AF2" },
   { id: "internet",    label: "Internet",    emoji: "🌐", color: "#32ADE6" },
@@ -43,12 +43,12 @@ const PROVIDERS: Record<ServiceId, string[]> = {
 const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
 
 const ESIM_PLANS: ESimPlan[] = [
-  { id: "1", region: "Nigeria",       flag: "🇳🇬", data: "5GB",  validity: "30 days",  price: 15,  color: "#30D158" },
-  { id: "2", region: "United States", flag: "🇺🇸", data: "10GB", validity: "30 days",  price: 25,  color: "#1A5AFF" },
+  { id: "1", region: "Nigeria",       flag: "🇳🇬", data: "5GB",  validity: "30 days",  price: 15,  color: "#118D45" },
+  { id: "2", region: "United States", flag: "🇺🇸", data: "10GB", validity: "30 days",  price: 25,  color: "#1072EA" },
   { id: "3", region: "Europe",        flag: "🇪🇺", data: "8GB",  validity: "14 days",  price: 20,  color: "#32ADE6" },
   { id: "4", region: "Asia Pacific",  flag: "🌏", data: "15GB", validity: "30 days",  price: 30,  color: "#BF5AF2" },
   { id: "5", region: "Global",        flag: "🌍", data: "20GB", validity: "60 days",  price: 50,  color: "#FF9F0A" },
-  { id: "6", region: "UK",            flag: "🇬🇧", data: "12GB", validity: "28 days",  price: 28,  color: "#FF3B30" },
+  { id: "6", region: "UK",            flag: "🇬🇧", data: "12GB", validity: "28 days",  price: 28,  color: "#E02E5B" },
 ];
 
 const BILL_TRANSACTIONS = [
@@ -249,8 +249,8 @@ export default function BillsScreen() {
                     </View>
                     <View style={{ alignItems: "flex-end" }}>
                       <Text style={s.txAmount}>{tx.amount}</Text>
-                      <View style={[s.txStatus, { backgroundColor: tx.status === "success" ? "#F0FDF4" : "#FFF9EC" }]}>
-                        <Text style={[s.txStatusTxt, { color: tx.status === "success" ? "#30D158" : "#FF9F0A" }]}>{tx.status}</Text>
+                      <View style={[s.txStatus, { backgroundColor: tx.status === "success" ? "#E8F7EE" : "#FFF9EC" }]}>
+                        <Text style={[s.txStatusTxt, { color: tx.status === "success" ? "#118D45" : "#FF9F0A" }]}>{tx.status}</Text>
                       </View>
                     </View>
                   </View>
@@ -309,7 +309,7 @@ export default function BillsScreen() {
                   ].map((row, i, arr) => (
                     <View key={row.label} style={[s.modalRow, i < arr.length - 1 && s.modalRowBorder]}>
                       <Text style={s.modalRowLabel}>{row.label}</Text>
-                      <Text style={[s.modalRowValue, (row as any).accent && { color: "#1A5AFF", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
+                      <Text style={[s.modalRowValue, (row as any).accent && { color: "#1072EA", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
                     </View>
                   ))}
                 </View>
@@ -339,7 +339,7 @@ export default function BillsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -347,14 +347,14 @@ const s = StyleSheet.create({
   backArrow: { fontSize: 20, color: "#1C1C1E" },
   tabToggle: { flexDirection: "row", marginHorizontal: 16, marginBottom: 16, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   toggleBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
-  toggleBtnActive: { backgroundColor: "#1A5AFF" },
+  toggleBtnActive: { backgroundColor: "#1072EA" },
   toggleBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   toggleBtnTxtActive: { color: "#FFFFFF" },
   section: { paddingHorizontal: 16, marginBottom: 14 },
   sectionTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   balancePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#30D158" },
+  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#118D45" },
   balanceLbl: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
   balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   serviceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
@@ -363,7 +363,7 @@ const s = StyleSheet.create({
   serviceLabel: { fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", textAlign: "center" },
   providerRow: { gap: 8, paddingBottom: 4 },
   providerBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  providerBtnActive: { backgroundColor: "#1A5AFF" },
+  providerBtnActive: { backgroundColor: "#1072EA" },
   providerTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   providerTxtActive: { color: "#FFFFFF" },
   phoneInput: { fontSize: 16, fontFamily: "Inter_400Regular", color: "#1C1C1E", paddingHorizontal: 16, paddingVertical: 15 },
@@ -371,13 +371,13 @@ const s = StyleSheet.create({
   amtPrefix: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 6 },
   amtInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 10 },
   quickAmtRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 },
-  qaBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#F2F2F7" },
-  qaBtnActive: { backgroundColor: "#1A5AFF" },
+  qaBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#F7F9FC" },
+  qaBtnActive: { backgroundColor: "#1072EA" },
   qaTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   qaTxtActive: { color: "#FFFFFF" },
   txRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
   txRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  txIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  txIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   txEmoji: { fontSize: 18 },
   txService: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
   txDate: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
@@ -395,20 +395,20 @@ const s = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 20, letterSpacing: -0.3 },
-  modalPlanCard: { backgroundColor: "#F2F2F7", borderRadius: 16, padding: 20, alignItems: "center", gap: 6, marginBottom: 16 },
+  modalPlanCard: { backgroundColor: "#F7F9FC", borderRadius: 16, padding: 20, alignItems: "center", gap: 6, marginBottom: 16 },
   modalFlag: { fontSize: 40 },
   modalRegion: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   modalData: { fontSize: 28, fontFamily: "Inter_700Bold" },
-  modalDetailsCard: { backgroundColor: "#F2F2F7", borderRadius: 16, overflow: "hidden", marginBottom: 16 },
+  modalDetailsCard: { backgroundColor: "#F7F9FC", borderRadius: 16, overflow: "hidden", marginBottom: 16 },
   modalRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 12 },
   modalRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
   modalRowLabel: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   modalRowValue: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  modalQrPlaceholder: { backgroundColor: "#F2F2F7", borderRadius: 14, padding: 20, alignItems: "center", marginBottom: 20, borderWidth: 2, borderColor: "#E5E5EA", borderStyle: "dashed" },
+  modalQrPlaceholder: { backgroundColor: "#F7F9FC", borderRadius: 14, padding: 20, alignItems: "center", marginBottom: 20, borderWidth: 2, borderColor: "#E5E5EA", borderStyle: "dashed" },
   modalQrTxt: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center" },
   modalActions: { flexDirection: "row", gap: 12 },
-  modalCancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center" },
+  modalCancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F7F9FC", alignItems: "center" },
   modalCancelTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  modalBuyBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center" },
+  modalBuyBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1072EA", alignItems: "center" },
   modalBuyTxt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });

@@ -209,9 +209,9 @@ export default function SellScreen() {
                       <Text style={s.summaryValue}>{row.value}</Text>
                     </View>
                   ))}
-                  <View style={[s.summaryRow, { backgroundColor: "#F0FDF4", borderRadius: 12, margin: 4, marginTop: 0 }]}>
+                  <View style={[s.summaryRow, { backgroundColor: "#E8F7EE", borderRadius: 12, margin: 4, marginTop: 0 }]}>
                     <Text style={[s.summaryLabel, { fontFamily: "Inter_600SemiBold", color: "#1C1C1E" }]}>You Receive</Text>
-                    <Text style={[s.summaryValue, { color: "#30D158", fontSize: 18, fontFamily: "Inter_700Bold" }]}>₦{payout.toLocaleString()}</Text>
+                    <Text style={[s.summaryValue, { color: "#118D45", fontSize: 18, fontFamily: "Inter_700Bold" }]}>₦{payout.toLocaleString()}</Text>
                   </View>
                 </View>
               </View>
@@ -257,7 +257,7 @@ export default function SellScreen() {
                     <Text style={s.pricePillVal}>${cryptoPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
                   </View>
 
-                  <View style={[s.inputRow, { margin: 16, marginTop: 8, backgroundColor: "#F2F2F7", borderRadius: 14 }]}>
+                  <View style={[s.inputRow, { margin: 16, marginTop: 8, backgroundColor: "#F7F9FC", borderRadius: 14 }]}>
                     <TextInput
                       value={cryptoAmount}
                       onChangeText={setCryptoAmount}
@@ -295,7 +295,7 @@ export default function SellScreen() {
                     ].map((row, i, arr) => (
                       <View key={row.label} style={[s.feeRow, i < arr.length - 1 && s.feeRowBorder]}>
                         <Text style={s.feeLbl}>{row.label}</Text>
-                        <Text style={[s.feeVal, (row as any).highlight && { color: "#30D158", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
+                        <Text style={[s.feeVal, (row as any).highlight && { color: "#118D45", fontFamily: "Inter_700Bold" }]}>{row.value}</Text>
                       </View>
                     ))}
                   </View>
@@ -314,7 +314,7 @@ export default function SellScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
 
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
@@ -326,13 +326,13 @@ const s = StyleSheet.create({
 
   modeToggle: { flexDirection: "row", backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   modeBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
-  modeBtnActive: { backgroundColor: "#1A5AFF" },
+  modeBtnActive: { backgroundColor: "#1072EA" },
   modeBtnTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   modeBtnTxtActive: { color: "#FFFFFF" },
 
   currRow: { gap: 8, paddingBottom: 4 },
   currBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  currBtnActive: { backgroundColor: "#1A5AFF" },
+  currBtnActive: { backgroundColor: "#1072EA" },
   currBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   currBtnTxtActive: { color: "#FFFFFF" },
 
@@ -364,10 +364,10 @@ const s = StyleSheet.create({
   pricePillVal: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
 
   pctRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16 },
-  pctBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
+  pctBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F7F9FC", alignItems: "center" },
   pctBtnTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 
-  feeSection: { marginHorizontal: 16, backgroundColor: "#F2F2F7", borderRadius: 12, marginBottom: 16 },
+  feeSection: { marginHorizontal: 16, backgroundColor: "#F7F9FC", borderRadius: 12, marginBottom: 16 },
   feeRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 11 },
   feeRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
   feeLbl: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },

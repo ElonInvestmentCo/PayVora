@@ -12,7 +12,7 @@ interface StatusBadgeProps {
 const STATUS_CONFIG = {
   success: { color: "#00FF88", bg: "rgba(0,255,136,0.12)", icon: "check-circle" as const, label: "Completed" },
   pending: { color: "#F59E0B", bg: "rgba(245,158,11,0.12)", icon: "clock" as const, label: "Pending" },
-  error: { color: "#FF4444", bg: "rgba(255,68,68,0.12)", icon: "x-circle" as const, label: "Failed" },
+  error: { color: "#E02E5B", bg: "rgba(224,46,91,0.12)", icon: "x-circle" as const, label: "Failed" },
 };
 
 export function StatusBadge({ status, label }: StatusBadgeProps) {

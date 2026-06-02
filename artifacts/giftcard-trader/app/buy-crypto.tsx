@@ -57,7 +57,7 @@ function MiniChart() {
         const isLast = i === CHART_DATA.length - 1;
         return (
           <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
-            <View style={{ height: 8 + pct * 40, backgroundColor: isLast ? "#30D158" : `rgba(48,209,88,${0.2 + pct * 0.5})`, borderRadius: 2 }} />
+            <View style={{ height: 8 + pct * 40, backgroundColor: isLast ? "#118D45" : `rgba(17,141,69,${0.2 + pct * 0.5})`, borderRadius: 2 }} />
           </View>
         );
       })}
@@ -142,8 +142,8 @@ export default function BuyCryptoScreen() {
             <View>
               <Text style={s.priceLbl}>{crypto.symbol} / USD</Text>
               <Text style={s.priceVal}>${crypto.price.toLocaleString()}</Text>
-              <View style={[s.changeBadge, { backgroundColor: crypto.change >= 0 ? "#F0FDF4" : "#FFF2F2" }]}>
-                <Text style={[s.changeTxt, { color: crypto.change >= 0 ? "#30D158" : "#FF3B30" }]}>
+              <View style={[s.changeBadge, { backgroundColor: crypto.change >= 0 ? "#E8F7EE" : "#FCEEF3" }]}>
+                <Text style={[s.changeTxt, { color: crypto.change >= 0 ? "#118D45" : "#E02E5B" }]}>
                   {crypto.change >= 0 ? "+" : ""}{crypto.change}%
                 </Text>
               </View>
@@ -165,11 +165,11 @@ export default function BuyCryptoScreen() {
                   key={c.id}
                   onPress={() => { hapticLight(); setSelectedCrypto(c.id as CryptoId); setFiatAmount(""); }}
                   activeOpacity={0.8}
-                  style={[s.chip, active && { backgroundColor: "#EEF3FF", borderColor: "#1A5AFF", borderWidth: 1.5 }]}
+                  style={[s.chip, active && { backgroundColor: "#E8F1FD", borderColor: "#1072EA", borderWidth: 1.5 }]}
                 >
                   <CryptoIcon symbol={c.symbol} size={24} />
-                  <Text style={[s.chipTxt, active && { color: "#1A5AFF" }]}>{c.symbol}</Text>
-                  {active && <Text style={{ color: "#1A5AFF", fontSize: 10 }}>✓</Text>}
+                  <Text style={[s.chipTxt, active && { color: "#1072EA" }]}>{c.symbol}</Text>
+                  {active && <Text style={{ color: "#1072EA", fontSize: 10 }}>✓</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -262,9 +262,9 @@ export default function BuyCryptoScreen() {
                   <Text style={s.modalLabel}>{row.label}</Text>
                   <Text style={[
                     s.modalValue,
-                    (row as any).highlight && { color: "#30D158", fontFamily: "Inter_700Bold" },
+                    (row as any).highlight && { color: "#118D45", fontFamily: "Inter_700Bold" },
                     (row as any).warn && { color: "#FF9F0A" },
-                    (row as any).accent && { color: "#1A5AFF", fontFamily: "Inter_700Bold" },
+                    (row as any).accent && { color: "#1072EA", fontFamily: "Inter_700Bold" },
                   ]}>{row.value}</Text>
                 </View>
               ))}
@@ -285,7 +285,7 @@ export default function BuyCryptoScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -294,7 +294,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   balancePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#30D158" },
+  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#118D45" },
   balanceLbl: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
   balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   priceCard: { backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
@@ -309,33 +309,33 @@ const s = StyleSheet.create({
   amtPrefix: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 6 },
   amtInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 10 },
   cryptoEquiv: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93", paddingHorizontal: 16, paddingBottom: 6 },
-  errorTxt: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#FF3B30", paddingHorizontal: 16, marginBottom: 4 },
+  errorTxt: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#E02E5B", paddingHorizontal: 16, marginBottom: 4 },
   presetRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 },
-  presetBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
-  presetBtnActive: { backgroundColor: "#1A5AFF" },
+  presetBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F7F9FC", alignItems: "center" },
+  presetBtnActive: { backgroundColor: "#1072EA" },
   presetTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   presetTxtActive: { color: "#FFFFFF" },
   payRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   payRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  payIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  payIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   payLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
   payDetail: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: "#C7C7CC", alignItems: "center", justifyContent: "center" },
-  radioActive: { borderColor: "#1A5AFF" },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#1A5AFF" },
-  confirmBtn: { backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
+  radioActive: { borderColor: "#1072EA" },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#1072EA" },
+  confirmBtn: { backgroundColor: "#1072EA", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   confirmBtnTxt: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 20, letterSpacing: -0.3 },
-  modalBody: { backgroundColor: "#F2F2F7", borderRadius: 16, marginBottom: 20, overflow: "hidden" },
+  modalBody: { backgroundColor: "#F7F9FC", borderRadius: 16, marginBottom: 20, overflow: "hidden" },
   modalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 14, paddingVertical: 12 },
   modalRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
   modalLabel: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   modalValue: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
   modalActions: { flexDirection: "row", gap: 12 },
-  modalCancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center" },
+  modalCancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F7F9FC", alignItems: "center" },
   modalCancelTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  modalConfirmBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center" },
+  modalConfirmBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1072EA", alignItems: "center" },
   modalConfirmTxt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });

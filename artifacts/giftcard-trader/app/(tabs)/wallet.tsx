@@ -14,7 +14,7 @@ type ModalType = "deposit" | "withdraw" | null;
 type DepositPhase = "idle" | "loading" | "browser" | "verifying" | "success" | "error";
 
 const ASSET_COLORS: Record<string, string> = {
-  USD: "#30D158", NGN: "#1A5AFF", BTC: "#F7931A",
+  USD: "#118D45", NGN: "#1072EA", BTC: "#F7931A",
   ETH: "#627EEA", SOL: "#9945FF", BNB: "#F3BA2F",
 };
 
@@ -138,7 +138,7 @@ export default function WalletScreen() {
       case "verifying":
         return (
           <View style={s.phaseCenter}>
-            <ActivityIndicator size="large" color="#1A5AFF" />
+            <ActivityIndicator size="large" color="#1072EA" />
             <Text style={s.phaseLabel}>
               {depositPhase === "loading" ? "Opening Paystack…" : "Verifying payment…"}
             </Text>
@@ -156,7 +156,7 @@ export default function WalletScreen() {
             </Text>
             {depositError ? <Text style={s.errorText}>{depositError}</Text> : null}
             <TouchableOpacity onPress={handleVerifyDeposit} activeOpacity={0.85} style={s.verifyBtn}>
-              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.verifyGrad}>
+              <LinearGradient colors={["#1072EA", "#05305C"]} style={s.verifyGrad}>
                 <Text style={s.verifyLabel}>Verify Payment</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -173,7 +173,7 @@ export default function WalletScreen() {
             <Text style={s.phaseTitle}>Deposit Successful!</Text>
             <Text style={s.phaseSub}>${depositAmt.toFixed(2)} has been added to your USD wallet.</Text>
             <TouchableOpacity onPress={closeModal} activeOpacity={0.85} style={s.verifyBtn}>
-              <LinearGradient colors={["#30D158", "#1B8B3B"]} style={s.verifyGrad}>
+              <LinearGradient colors={["#118D45", "#1B8B3B"]} style={s.verifyGrad}>
                 <Text style={s.verifyLabel}>Done</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -187,7 +187,7 @@ export default function WalletScreen() {
             <Text style={s.phaseTitle}>Payment Error</Text>
             {depositError ? <Text style={s.errorText}>{depositError}</Text> : null}
             <TouchableOpacity onPress={resetDepositState} activeOpacity={0.85} style={s.verifyBtn}>
-              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.verifyGrad}>
+              <LinearGradient colors={["#1072EA", "#05305C"]} style={s.verifyGrad}>
                 <Text style={s.verifyLabel}>Try Again</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -215,7 +215,7 @@ export default function WalletScreen() {
               />
             </View>
             <TouchableOpacity onPress={handleInitiateDeposit} activeOpacity={0.85}>
-              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.modalBtn}>
+              <LinearGradient colors={["#1072EA", "#05305C"]} style={s.modalBtn}>
                 <Text style={s.modalBtnLabel}>Pay with Paystack</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -236,21 +236,21 @@ export default function WalletScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
-        <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.balCard}>
+        <LinearGradient colors={["#1072EA", "#05305C"]} style={s.balCard}>
           <Text style={s.balLabel}>Total Portfolio</Text>
           <Text style={s.balAmount}>${totalUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={s.balSub}>USD equivalent</Text>
           <View style={s.actionRow}>
             <TouchableOpacity style={s.actionBtn} onPress={() => { hapticLight(); setModal("deposit"); }} activeOpacity={0.8}>
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 5v14M5 12l7-7 7 7" stroke="#1A5AFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M12 5v14M5 12l7-7 7 7" stroke="#1072EA" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
               <Text style={s.actionBtnLabel}>Deposit</Text>
             </TouchableOpacity>
             <View style={s.actionDivider} />
             <TouchableOpacity style={s.actionBtn} onPress={() => { hapticLight(); setModal("withdraw"); }} activeOpacity={0.8}>
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 19V5M5 12l7 7 7-7" stroke="#1A5AFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M12 19V5M5 12l7 7 7-7" stroke="#1072EA" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
               <Text style={s.actionBtnLabel}>Withdraw</Text>
             </TouchableOpacity>
@@ -285,16 +285,16 @@ export default function WalletScreen() {
             <View style={s.empty}><Text style={s.emptyTitle}>No transactions yet</Text></View>
           ) : recentTxs.map((tx, i) => (
             <View key={tx.id} style={[s.txRow, i < recentTxs.length - 1 && s.rowBorder]}>
-              <View style={[s.txIcon, { backgroundColor: tx.direction === "in" ? "rgba(48,209,88,0.12)" : "rgba(255,59,48,0.08)" }]}>
+              <View style={[s.txIcon, { backgroundColor: tx.direction === "in" ? "rgba(17,141,69,0.12)" : "rgba(224,46,91,0.08)" }]}>
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                  <Path d={tx.direction === "in" ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} stroke={tx.direction === "in" ? "#30D158" : "#FF3B30"} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+                  <Path d={tx.direction === "in" ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} stroke={tx.direction === "in" ? "#118D45" : "#E02E5B"} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
                 </Svg>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.txTitle}>{tx.title}</Text>
                 <Text style={s.txDate}>{tx.date}</Text>
               </View>
-              <Text style={[s.txAmount, { color: tx.direction === "in" ? "#30D158" : "#1C1C1E" }]}>
+              <Text style={[s.txAmount, { color: tx.direction === "in" ? "#118D45" : "#1C1C1E" }]}>
                 {tx.direction === "in" ? "+" : "-"}${tx.amount.toLocaleString()}
               </Text>
             </View>
@@ -334,7 +334,7 @@ export default function WalletScreen() {
               />
             </View>
             <TouchableOpacity onPress={handleWithdraw} activeOpacity={0.85}>
-              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.modalBtn}>
+              <LinearGradient colors={["#1072EA", "#05305C"]} style={s.modalBtn}>
                 <Text style={s.modalBtnLabel}>Confirm Withdrawal</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -349,8 +349,8 @@ export default function WalletScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap:  { backgroundColor: "#F2F2F7", zIndex: 10 },
+  root:        { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap:  { backgroundColor: "#F7F9FC", zIndex: 10 },
   header:      { paddingHorizontal: 20, paddingVertical: 12 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   scroll:      { paddingHorizontal: 16, paddingBottom: 120 },
@@ -361,7 +361,7 @@ const s = StyleSheet.create({
   balSub:    { fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "Inter_400Regular", marginBottom: 20 },
   actionRow: { flexDirection: "row", backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 14, overflow: "hidden" },
   actionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 14, backgroundColor: "#FFFFFF" },
-  actionBtnLabel: { fontSize: 14, fontWeight: "600", color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
+  actionBtnLabel: { fontSize: 14, fontWeight: "600", color: "#1072EA", fontFamily: "Inter_600SemiBold" },
   actionDivider:  { width: 1, backgroundColor: "#E5E5EA" },
 
   sectionTitle: { fontSize: 18, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.3, marginBottom: 10 },
@@ -394,7 +394,7 @@ const s = StyleSheet.create({
   modalHandle:  { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E5EA", alignSelf: "center", marginBottom: 20 },
   modalTitle:   { fontSize: 20, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", marginBottom: 6 },
   modalSub:     { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular", marginBottom: 20 },
-  modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F2F2F7", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16 },
+  modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F7F9FC", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16 },
   modalSign:    { fontSize: 24, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginRight: 4 },
   modalInput:   { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   modalBtn:     { borderRadius: 16, paddingVertical: 17, alignItems: "center", marginBottom: 12 },
@@ -410,5 +410,5 @@ const s = StyleSheet.create({
   verifyBtn:    { width: "100%", marginBottom: 8 },
   verifyGrad:   { borderRadius: 16, paddingVertical: 17, alignItems: "center" },
   verifyLabel:  { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
-  errorText:    { fontSize: 13, color: "#FF3B30", fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 16, lineHeight: 18 },
+  errorText:    { fontSize: 13, color: "#E02E5B", fontFamily: "Inter_400Regular", textAlign: "center", marginBottom: 16, lineHeight: 18 },
 });

@@ -6,7 +6,7 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Svg, { Path, Circle, Rect } from "react-native-svg";
 import { BlurView } from "expo-blur";
 
-const ACTIVE = "#1A5AFF";
+const ACTIVE = "#1072EA";
 const INACTIVE = "rgba(255,255,255,0.45)";
 
 function HomeIcon({ active }: { active: boolean }) {
@@ -210,7 +210,7 @@ const s = StyleSheet.create({
     borderRadius:    28,
   },
   tabActive: {
-    backgroundColor: "rgba(26, 90, 255, 0.20)",
+    backgroundColor: "rgba(16, 114, 234, 0.20)",
   },
   label: {
     fontSize:    10,

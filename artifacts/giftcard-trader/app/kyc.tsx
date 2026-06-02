@@ -216,7 +216,7 @@ export default function KycScreen() {
           <View style={{ width: 40 }} />
         </View>
         <ScrollView contentContainerStyle={s.verifiedScroll}>
-          <LinearGradient colors={["#30D158", "#20A845"]} style={s.verifiedBadge}>
+          <LinearGradient colors={["#118D45", "#118D45"]} style={s.verifiedBadge}>
             <Icon name="check" color="#FFFFFF" size={36} />
           </LinearGradient>
           <Text style={s.verifiedTitle}>Fully Verified</Text>
@@ -224,14 +224,14 @@ export default function KycScreen() {
           <View style={s.perksCard}>
             {PERKS.map((p, i) => (
               <View key={p.label} style={[s.perkRow, i < PERKS.length - 1 && s.perkRowBorder]}>
-                <View style={[s.perkIcon, { backgroundColor: "#30D15818" }]}>
-                  <Icon name={p.icon} color="#30D158" size={16} />
+                <View style={[s.perkIcon, { backgroundColor: "#118D4518" }]}>
+                  <Icon name={p.icon} color="#118D45" size={16} />
                 </View>
                 <View style={s.perkInfo}>
                   <Text style={s.perkLabel}>{p.label}</Text>
                   <Text style={s.perkSub}>{p.sub}</Text>
                 </View>
-                <Icon name="check" color="#30D158" size={14} />
+                <Icon name="check" color="#118D45" size={14} />
               </View>
             ))}
           </View>
@@ -256,8 +256,8 @@ export default function KycScreen() {
           <View style={{ width: 40 }} />
         </View>
         <View style={s.pendingContainer}>
-          <View style={[s.pendingIcon, isReviewing && { backgroundColor: "#EEF3FF" }]}>
-            <Icon name="shield" color={isReviewing ? "#1A5AFF" : "#FF9F0A"} size={40} />
+          <View style={[s.pendingIcon, isReviewing && { backgroundColor: "#E8F1FD" }]}>
+            <Icon name="shield" color={isReviewing ? "#1072EA" : "#FF9F0A"} size={40} />
           </View>
           <Text style={s.pendingTitle}>{isReviewing ? "Under Active Review" : "Under Review"}</Text>
           <Text style={s.pendingSub}>
@@ -265,9 +265,9 @@ export default function KycScreen() {
               ? "Our compliance team is actively reviewing your documents. You'll be notified once complete."
               : "Your identity verification is being reviewed. This usually takes 1–2 business days."}
           </Text>
-          <View style={[s.pendingBadge, isReviewing && { backgroundColor: "#EEF3FF" }]}>
-            <View style={[s.pendingDot, isReviewing && { backgroundColor: "#1A5AFF" }]} />
-            <Text style={[s.pendingBadgeTxt, isReviewing && { color: "#1A5AFF" }]}>
+          <View style={[s.pendingBadge, isReviewing && { backgroundColor: "#E8F1FD" }]}>
+            <View style={[s.pendingDot, isReviewing && { backgroundColor: "#1072EA" }]} />
+            <Text style={[s.pendingBadgeTxt, isReviewing && { color: "#1072EA" }]}>
               {isReviewing ? "Reviewing" : "Pending Review"}
             </Text>
           </View>
@@ -292,8 +292,8 @@ export default function KycScreen() {
           <View style={{ width: 40 }} />
         </View>
         <View style={s.pendingContainer}>
-          <View style={[s.pendingIcon, { backgroundColor: needsResub ? "#FFF9EC" : "#FFF0EF" }]}>
-            <Icon name={needsResub ? "alert-circle" : "x-circle"} color={needsResub ? "#FF9F0A" : "#FF3B30"} size={40} />
+          <View style={[s.pendingIcon, { backgroundColor: needsResub ? "#FFF9EC" : "#FCEEF3" }]}>
+            <Icon name={needsResub ? "alert-circle" : "x-circle"} color={needsResub ? "#FF9F0A" : "#E02E5B"} size={40} />
           </View>
           <Text style={s.pendingTitle}>{needsResub ? "Resubmission Required" : "Verification Rejected"}</Text>
           <Text style={s.pendingSub}>
@@ -313,7 +313,7 @@ export default function KycScreen() {
               activeOpacity={0.85}
               style={s.resubmitBtn}
             >
-              <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.resubmitGrad}>
+              <LinearGradient colors={["#1072EA", "#05305C"]} style={s.resubmitGrad}>
                 <Text style={s.resubmitTxt}>Resubmit Documents</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -391,7 +391,7 @@ export default function KycScreen() {
                 />
                 {fieldErrors.firstName ? (
                   <View style={s.fieldErrorRow}>
-                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Icon name="alert-circle" color="#E02E5B" size={12} />
                     <Text style={s.fieldError}>{fieldErrors.firstName}</Text>
                   </View>
                 ) : null}
@@ -417,7 +417,7 @@ export default function KycScreen() {
                 />
                 {fieldErrors.lastName ? (
                   <View style={s.fieldErrorRow}>
-                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Icon name="alert-circle" color="#E02E5B" size={12} />
                     <Text style={s.fieldError}>{fieldErrors.lastName}</Text>
                   </View>
                 ) : null}
@@ -444,14 +444,14 @@ export default function KycScreen() {
                   {/* Real-time validation badge */}
                   {dobValidation.state === "valid" && (
                     <View style={[s.dobBadge, s.dobBadgeGreen]}>
-                      <Icon name="check" color="#20A845" size={11} />
-                      <Text style={[s.dobBadgeText, { color: "#20A845" }]}>{dobValidation.label}</Text>
+                      <Icon name="check" color="#118D45" size={11} />
+                      <Text style={[s.dobBadgeText, { color: "#118D45" }]}>{dobValidation.label}</Text>
                     </View>
                   )}
                   {(dobValidation.state === "invalid" || dobValidation.state === "too_young") && (
                     <View style={[s.dobBadge, s.dobBadgeRed]}>
-                      <Icon name="x-circle" color="#FF3B30" size={11} />
-                      <Text style={[s.dobBadgeText, { color: "#FF3B30" }]}>{dobValidation.label}</Text>
+                      <Icon name="x-circle" color="#E02E5B" size={11} />
+                      <Text style={[s.dobBadgeText, { color: "#E02E5B" }]}>{dobValidation.label}</Text>
                     </View>
                   )}
                 </View>
@@ -462,7 +462,7 @@ export default function KycScreen() {
                 </Text>
                 {fieldErrors.dob ? (
                   <View style={s.fieldErrorRow}>
-                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Icon name="alert-circle" color="#E02E5B" size={12} />
                     <Text style={s.fieldError}>{fieldErrors.dob}</Text>
                   </View>
                 ) : null}
@@ -500,7 +500,7 @@ export default function KycScreen() {
               ) : (
                 <>
                   <View style={s.uploadIcon}>
-                    <Icon name="upload" color="#1A5AFF" size={28} />
+                    <Icon name="upload" color="#1072EA" size={28} />
                   </View>
                   <Text style={s.uploadTitle}>Upload Document</Text>
                   <Text style={s.uploadSub}>JPG or PNG · Max 10 MB</Text>
@@ -510,13 +510,13 @@ export default function KycScreen() {
 
             {docError ? (
               <View style={s.errorBox}>
-                <Icon name="alert-circle" color="#FF3B30" size={15} />
+                <Icon name="alert-circle" color="#E02E5B" size={15} />
                 <Text style={s.errorBoxTxt}>{docError}</Text>
               </View>
             ) : null}
 
             <View style={s.infoBox}>
-              <Icon name="shield" color="#1A5AFF" size={15} />
+              <Icon name="shield" color="#1072EA" size={15} />
               <Text style={s.infoBoxTxt}>Your documents are encrypted and processed securely in compliance with global data protection standards.</Text>
             </View>
 
@@ -547,7 +547,7 @@ export default function KycScreen() {
               ) : (
                 <>
                   <View style={s.uploadIcon}>
-                    <Icon name="camera" color="#1A5AFF" size={28} />
+                    <Icon name="camera" color="#1072EA" size={28} />
                   </View>
                   <Text style={s.uploadTitle}>Open Camera</Text>
                   <Text style={s.uploadSub}>Take a live selfie with your ID</Text>
@@ -557,7 +557,7 @@ export default function KycScreen() {
 
             {selfieError ? (
               <View style={s.errorBox}>
-                <Icon name="alert-circle" color="#FF3B30" size={15} />
+                <Icon name="alert-circle" color="#E02E5B" size={15} />
                 <Text style={s.errorBoxTxt}>{selfieError}</Text>
               </View>
             ) : null}
@@ -577,7 +577,7 @@ export default function KycScreen() {
         {/* Submit errors */}
         {submitErrors.length > 0 && (
           <View style={[s.errorBox, { marginHorizontal: 16, marginTop: 0 }]}>
-            <Icon name="alert-circle" color="#FF3B30" size={15} />
+            <Icon name="alert-circle" color="#E02E5B" size={15} />
             <View style={{ flex: 1 }}>
               {submitErrors.map((e, i) => (
                 <Text key={i} style={s.errorBoxTxt}>{e}</Text>
@@ -607,9 +607,9 @@ export default function KycScreen() {
           )}
           <Text style={s.disclaimer}>
             By submitting, you agree to our{" "}
-            <Text style={{ color: "#1A5AFF" }}>Privacy Policy</Text>
+            <Text style={{ color: "#1072EA" }}>Privacy Policy</Text>
             {" "}and{" "}
-            <Text style={{ color: "#1A5AFF" }}>Terms of Service</Text>.
+            <Text style={{ color: "#1072EA" }}>Terms of Service</Text>.
           </Text>
         </View>
 
@@ -619,7 +619,7 @@ export default function KycScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
 
   header: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
@@ -635,17 +635,17 @@ const s = StyleSheet.create({
   progressRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
   stepItem: { alignItems: "center", gap: 4 },
   stepCircle: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: "#F2F2F7",
+    width: 32, height: 32, borderRadius: 16, backgroundColor: "#F7F9FC",
     alignItems: "center", justifyContent: "center",
     borderWidth: 2, borderColor: "#E5E5EA",
   },
-  stepCircleActive: { backgroundColor: "#1A5AFF", borderColor: "#1A5AFF" },
+  stepCircleActive: { backgroundColor: "#1072EA", borderColor: "#1072EA" },
   stepNum: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   stepNumActive: { color: "#FFFFFF" },
   stepLabel: { fontSize: 10, fontFamily: "Inter_500Medium", color: "#8E8E93" },
-  stepLabelActive: { color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
+  stepLabelActive: { color: "#1072EA", fontFamily: "Inter_600SemiBold" },
   stepLine: { flex: 1, height: 2, backgroundColor: "#E5E5EA", marginBottom: 14, marginHorizontal: 4 },
-  stepLineActive: { backgroundColor: "#1A5AFF" },
+  stepLineActive: { backgroundColor: "#1072EA" },
 
   scroll: { paddingBottom: 40 },
   section: { paddingHorizontal: 16 },
@@ -661,7 +661,7 @@ const s = StyleSheet.create({
   fieldLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 4 },
   fieldInput: { fontSize: 16, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
   fieldHint: { fontSize: 11, fontFamily: "Inter_400Regular", color: "#C7C7CC", marginTop: 3 },
-  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#FF3B30" },
+  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#E02E5B" },
   fieldErrorRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 4, marginTop: 5 },
 
   // Address card — same shadow as card but NO overflow:hidden so dropdown can overflow
@@ -676,37 +676,37 @@ const s = StyleSheet.create({
     flexDirection: "row" as const, alignItems: "center" as const, gap: 4,
     paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20, flexShrink: 0,
   },
-  dobBadgeGreen: { backgroundColor: "#F0FFF5", borderWidth: 1, borderColor: "#30D15830" },
-  dobBadgeRed:   { backgroundColor: "#FFF0EF", borderWidth: 1, borderColor: "#FF3B3030" },
+  dobBadgeGreen: { backgroundColor: "#F0FFF5", borderWidth: 1, borderColor: "#118D4530" },
+  dobBadgeRed:   { backgroundColor: "#FCEEF3", borderWidth: 1, borderColor: "#E02E5B30" },
   dobBadgeText:  { fontSize: 11, fontFamily: "Inter_600SemiBold" },
 
   uploadArea: {
     backgroundColor: "#FFFFFF", borderRadius: 20, padding: 28, alignItems: "center",
-    borderWidth: 2, borderColor: "#1A5AFF22", borderStyle: "dashed",
+    borderWidth: 2, borderColor: "#1072EA22", borderStyle: "dashed",
     shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  uploadAreaDone: { borderColor: "#30D15844", borderStyle: "solid" },
-  uploadIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#EEF3FF", alignItems: "center", justifyContent: "center", marginBottom: 14 },
+  uploadAreaDone: { borderColor: "#118D4544", borderStyle: "solid" },
+  uploadIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#E8F1FD", alignItems: "center", justifyContent: "center", marginBottom: 14 },
   uploadTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 4 },
   uploadSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   uploadPreview: { width: "100%", height: 160, borderRadius: 12, marginBottom: 10 },
   selfiePreview: { width: 160, height: 160, borderRadius: 80, marginBottom: 10 },
-  uploadDoneLabel: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#30D158" },
+  uploadDoneLabel: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#118D45" },
 
-  infoBox: { backgroundColor: "#EEF3FF", borderRadius: 14, padding: 14, marginTop: 16, flexDirection: "row", gap: 10, alignItems: "flex-start" },
-  infoBoxTxt: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", color: "#1A5AFF", lineHeight: 18 },
+  infoBox: { backgroundColor: "#E8F1FD", borderRadius: 14, padding: 14, marginTop: 16, flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  infoBoxTxt: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", color: "#1072EA", lineHeight: 18 },
 
-  errorBox: { backgroundColor: "#FFF0EF", borderRadius: 12, padding: 12, marginTop: 12, flexDirection: "row", gap: 8, alignItems: "flex-start" },
-  errorBoxTxt: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", color: "#FF3B30", lineHeight: 18 },
+  errorBox: { backgroundColor: "#FCEEF3", borderRadius: 12, padding: 12, marginTop: 12, flexDirection: "row", gap: 8, alignItems: "flex-start" },
+  errorBoxTxt: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", color: "#E02E5B", lineHeight: 18 },
 
   tipsCard: { backgroundColor: "#FFFFFF", borderRadius: 16, padding: 16, marginTop: 12, shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   tipsHeader: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 10 },
   tipRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 5 },
-  tipDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#1A5AFF" },
+  tipDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#1072EA" },
   tipTxt: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#3C3C43" },
 
   ctaSection: { paddingHorizontal: 16, paddingTop: 24 },
-  nextBtn: { backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 16, alignItems: "center", marginBottom: 12 },
+  nextBtn: { backgroundColor: "#1072EA", borderRadius: 14, paddingVertical: 16, alignItems: "center", marginBottom: 12 },
   nextBtnTxt: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
   disclaimer: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 18 },
 
@@ -714,7 +714,7 @@ const s = StyleSheet.create({
   verifiedScroll: { alignItems: "center", padding: 24, paddingBottom: 48 },
   verifiedBadge: {
     width: 88, height: 88, borderRadius: 44, alignItems: "center", justifyContent: "center",
-    marginBottom: 20, shadowColor: "#30D158", shadowOpacity: 0.3, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8,
+    marginBottom: 20, shadowColor: "#118D45", shadowOpacity: 0.3, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8,
   },
   verifiedTitle: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 8, letterSpacing: -0.3 },
   verifiedSub: { fontSize: 15, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 22, marginBottom: 24, paddingHorizontal: 10 },
@@ -728,7 +728,7 @@ const s = StyleSheet.create({
   perkInfo: { flex: 1 },
   perkLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
   perkSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
-  doneBtn: { width: "100%", backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
+  doneBtn: { width: "100%", backgroundColor: "#1072EA", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   doneBtnTxt: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
 
   // Pending / reviewing
@@ -741,13 +741,13 @@ const s = StyleSheet.create({
   pendingBadgeTxt: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#FF9F0A" },
 
   // Rejected
-  rejectionBox: { backgroundColor: "#FFF0EF", borderRadius: 12, padding: 14, marginBottom: 20, width: "100%" },
-  rejectionLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#FF3B30", marginBottom: 4 },
+  rejectionBox: { backgroundColor: "#FCEEF3", borderRadius: 12, padding: 14, marginBottom: 20, width: "100%" },
+  rejectionLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#E02E5B", marginBottom: 4 },
   rejectionText: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#1C1C1E", lineHeight: 20 },
   resubmitBtn: { width: "100%", marginBottom: 12 },
   resubmitGrad: { borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   resubmitTxt: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
 
-  cancelBtn: { backgroundColor: "#F2F2F7", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, alignItems: "center" },
+  cancelBtn: { backgroundColor: "#F7F9FC", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 40, alignItems: "center" },
   cancelBtnTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
 });

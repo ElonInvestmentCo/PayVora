@@ -11,7 +11,7 @@ const FILTERS = ["All", "Crypto", "Cards", "Bills", "Wallet"] as const;
 type Filter = typeof FILTERS[number];
 
 const TYPE_COLORS: Record<string, string> = {
-  crypto: "#9945FF", gift: "#F7931A", bills: "#30D158", wallet: "#1A5AFF",
+  crypto: "#9945FF", gift: "#F7931A", bills: "#118D45", wallet: "#1072EA",
 };
 
 export default function TransactionsScreen() {
@@ -41,11 +41,11 @@ export default function TransactionsScreen() {
         <View style={s.summaryRow}>
           <View style={s.summaryCard}>
             <Text style={s.summaryLabel}>Total In</Text>
-            <Text style={[s.summaryVal, { color: "#30D158" }]}>+${totalIn.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={[s.summaryVal, { color: "#118D45" }]}>+${totalIn.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           </View>
           <View style={s.summaryCard}>
             <Text style={s.summaryLabel}>Total Out</Text>
-            <Text style={[s.summaryVal, { color: "#FF3B30" }]}>-${totalOut.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={[s.summaryVal, { color: "#E02E5B" }]}>-${totalOut.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           </View>
         </View>
       </View>
@@ -87,9 +87,9 @@ export default function TransactionsScreen() {
           <View style={s.listCard}>
             {filtered.map((tx, i) => (
               <View key={tx.id} style={[s.row, i < filtered.length - 1 && s.rowBorder]}>
-                <View style={[s.txIcon, { backgroundColor: tx.direction === "in" ? "rgba(48,209,88,0.12)" : "rgba(255,59,48,0.08)" }]}>
+                <View style={[s.txIcon, { backgroundColor: tx.direction === "in" ? "rgba(17,141,69,0.12)" : "rgba(224,46,91,0.08)" }]}>
                   <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                    <Path d={tx.direction === "in" ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} stroke={tx.direction === "in" ? "#30D158" : "#FF3B30"} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d={tx.direction === "in" ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"} stroke={tx.direction === "in" ? "#118D45" : "#E02E5B"} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -103,7 +103,7 @@ export default function TransactionsScreen() {
                     )}
                   </View>
                 </View>
-                <Text style={[s.txAmount, { color: tx.direction === "in" ? "#30D158" : "#1C1C1E" }]}>
+                <Text style={[s.txAmount, { color: tx.direction === "in" ? "#118D45" : "#1C1C1E" }]}>
                   {tx.direction === "in" ? "+" : "-"}{tx.currency === "NGN" ? "₦" : "$"}{tx.amount.toLocaleString()}
                 </Text>
               </View>
@@ -116,8 +116,8 @@ export default function TransactionsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", paddingHorizontal: 16, paddingTop: 0 },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap: { backgroundColor: "#F7F9FC", paddingHorizontal: 16, paddingTop: 0 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5, paddingHorizontal: 4, paddingVertical: 12 },
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
   summaryCard: { flex: 1, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
@@ -133,7 +133,7 @@ const s = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 15, color: "#1C1C1E", fontFamily: "Inter_400Regular" },
   filterRow: { gap: 8, paddingBottom: 2 },
   chip: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  chipActive: { backgroundColor: "#1A5AFF" },
+  chipActive: { backgroundColor: "#1072EA" },
   chipLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   chipLabelActive: { color: "#FFFFFF" },
 

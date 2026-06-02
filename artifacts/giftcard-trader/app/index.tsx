@@ -44,7 +44,7 @@ function PayVoraLogo() {
           <Stop offset="100%" stopColor="#A8CCFF" />
         </SvgGrad>
         <SvgGrad id="bowlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#1A52E8" />
+          <Stop offset="0%" stopColor="#1072EA" />
           <Stop offset="100%" stopColor="#0C38C4" />
         </SvgGrad>
         <SvgGrad id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -254,7 +254,7 @@ export default function SplashScreen() {
 
       {/* ── Background gradient ── */}
       <LinearGradient
-        colors={["#0C38C0", "#1254EC", "#0F4ADA", "#1360F2"]}
+        colors={["#05305C", "#1072EA", "#0F4ADA", "#1360F2"]}
         locations={[0, 0.35, 0.68, 1]}
         style={StyleSheet.absoluteFillObject}
       />
@@ -362,7 +362,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#0C38C0",
+    backgroundColor: "#05305C",
     overflow: "hidden",
   },
 

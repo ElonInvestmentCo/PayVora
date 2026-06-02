@@ -194,12 +194,12 @@ export default function BuyScreen() {
                   key={c.code}
                   onPress={() => { setSelectedCountry(c); setCountryOpen(false); }}
                   activeOpacity={0.8}
-                  style={[s.dropItem, c.code === selectedCountry.code && { backgroundColor: "#EEF3FF" }]}
+                  style={[s.dropItem, c.code === selectedCountry.code && { backgroundColor: "#E8F1FD" }]}
                 >
                   <Text style={s.flag}>{c.flag}</Text>
-                  <Text style={[s.dropItemTxt, c.code === selectedCountry.code && { color: "#1A5AFF" }]}>{c.name}</Text>
+                  <Text style={[s.dropItemTxt, c.code === selectedCountry.code && { color: "#1072EA" }]}>{c.name}</Text>
                   <Text style={s.currencyTag}>{c.currency}</Text>
-                  {c.code === selectedCountry.code && <Text style={{ color: "#1A5AFF", fontSize: 12 }}>✓</Text>}
+                  {c.code === selectedCountry.code && <Text style={{ color: "#1072EA", fontSize: 12 }}>✓</Text>}
                 </TouchableOpacity>
               ))}
             </View>
@@ -283,8 +283,8 @@ export default function BuyScreen() {
                   <Text style={s.sumLabel}>{row.label}</Text>
                   <Text style={[
                     s.sumVal,
-                    (row as any).highlight && { color: "#1A5AFF" },
-                    (row as any).large && { fontSize: 17, fontFamily: "Inter_700Bold", color: "#30D158" },
+                    (row as any).highlight && { color: "#1072EA" },
+                    (row as any).large && { fontSize: 17, fontFamily: "Inter_700Bold", color: "#118D45" },
                   ]}>{row.value}</Text>
                 </View>
               ))}
@@ -303,7 +303,7 @@ export default function BuyScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -314,17 +314,17 @@ const s = StyleSheet.create({
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
 
   balancePill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFFFFF", borderRadius: 14, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#30D158" },
+  balanceDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#118D45" },
   balanceLbl: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93", flex: 1 },
   balanceAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
 
   rateCard: { backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   rateLbl: { fontSize: 11, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 },
-  rateVal: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1A5AFF", marginBottom: 4 },
-  rateBadge: { backgroundColor: "#F0FDF4", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start" },
-  rateBadgeTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#30D158" },
+  rateVal: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1072EA", marginBottom: 4 },
+  rateBadge: { backgroundColor: "#E8F7EE", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start" },
+  rateBadgeTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#118D45" },
   rateBars: { flexDirection: "row", alignItems: "flex-end", gap: 3 },
-  rateBar: { width: 6, backgroundColor: "#1A5AFF", borderRadius: 3 },
+  rateBar: { width: 6, backgroundColor: "#1072EA", borderRadius: 3 },
 
   cardRow: { gap: 10, paddingBottom: 4 },
   cardChip: { alignItems: "center", gap: 6, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: "transparent", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
@@ -334,7 +334,7 @@ const s = StyleSheet.create({
   selectRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   flag: { fontSize: 20 },
   selectTxt: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
-  currencyTag: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93", backgroundColor: "#F2F2F7", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  currencyTag: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#8E8E93", backgroundColor: "#F7F9FC", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   dropdown: { backgroundColor: "#FFFFFF", borderRadius: 16, marginTop: 4, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
   dropItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
   dropItemTxt: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
@@ -344,27 +344,27 @@ const s = StyleSheet.create({
   amtPrefix: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#8E8E93" },
   amtInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 8 },
   presetsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 14 },
-  presetBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
-  presetBtnActive: { backgroundColor: "#1A5AFF" },
+  presetBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: "#F7F9FC", alignItems: "center" },
+  presetBtnActive: { backgroundColor: "#1072EA" },
   presetTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   presetTxtActive: { color: "#FFFFFF" },
   qtyRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
   qtyLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  qtyStepper: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: "#F2F2F7", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  qtyStepper: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: "#F7F9FC", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 6 },
   qtyBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   qtyBtnTxt: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   qtyVal: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#1C1C1E", minWidth: 24, textAlign: "center" },
 
   payRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   payRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  payIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  payIconWrap: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   payIcon: { fontSize: 18 },
   payInfo: { flex: 1 },
   payLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
   payDetail: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: "#C7C7CC", alignItems: "center", justifyContent: "center" },
-  radioActive: { borderColor: "#1A5AFF" },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#1A5AFF" },
+  radioActive: { borderColor: "#1072EA" },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#1072EA" },
 
   sumRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12 },
   sumRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },

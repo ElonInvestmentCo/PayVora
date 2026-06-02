@@ -45,7 +45,7 @@ function MiniLogo({ size = 36 }: { size?: number }) {
           <Stop offset="100%" stopColor="#A8CCFF" />
         </SvgGrad>
         <SvgGrad id="mBG" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#1A52E8" />
+          <Stop offset="0%" stopColor="#1072EA" />
           <Stop offset="100%" stopColor="#0C38C4" />
         </SvgGrad>
       </Defs>
@@ -144,7 +144,7 @@ const inputStyles = StyleSheet.create({
     paddingHorizontal: 14,
     minHeight: 52,
   },
-  rowError: { backgroundColor: "#FFF2F2" },
+  rowError: { backgroundColor: "#FCEEF3" },
   input: {
     flex: 1,
     fontSize: 15,
@@ -154,7 +154,7 @@ const inputStyles = StyleSheet.create({
   },
   error: {
     fontSize: 12,
-    color: "#EF4444",
+    color: "#E02E5B",
     marginTop: 4,
     fontFamily: "Inter_400Regular",
   },
@@ -276,7 +276,7 @@ function TabToggle({
 const tabStyles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: "#EFF3FB",
+    backgroundColor: "#EEF3FA",
     borderRadius: 14,
     padding: 4,
     marginBottom: 24,
@@ -290,7 +290,7 @@ const tabStyles = StyleSheet.create({
     bottom: 4,
     backgroundColor: "#FFFFFF",
     borderRadius: 11,
-    shadowColor: "#1254EC",
+    shadowColor: "#1072EA",
     shadowOpacity: 0.12,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -370,7 +370,7 @@ function LoginForm({
         style={[formStyles.cta, loading && formStyles.ctaLoading]}
       >
         <LinearGradient
-          colors={["#1A5AFF", "#0C38C0"]}
+          colors={["#1072EA", "#05305C"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={formStyles.ctaGradient}
@@ -519,7 +519,7 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         style={[formStyles.cta, loading && formStyles.ctaLoading]}
       >
         <LinearGradient
-          colors={["#1A5AFF", "#0C38C0"]}
+          colors={["#1072EA", "#05305C"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={formStyles.ctaGradient}
@@ -560,8 +560,8 @@ const signupStyles = StyleSheet.create({
     flexShrink: 0,
   },
   checkboxActive: {
-    backgroundColor: "#1254EC",
-    borderColor: "#1254EC",
+    backgroundColor: "#1072EA",
+    borderColor: "#1072EA",
   },
   termsText: {
     flex: 1,
@@ -570,10 +570,10 @@ const signupStyles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     lineHeight: 19,
   },
-  link: { color: "#1254EC", fontFamily: "Inter_500Medium" },
+  link: { color: "#1072EA", fontFamily: "Inter_500Medium" },
   termsError: {
     fontSize: 12,
-    color: "#EF4444",
+    color: "#E02E5B",
     fontFamily: "Inter_400Regular",
     marginBottom: 8,
     marginLeft: 30,
@@ -592,14 +592,14 @@ const formStyles = StyleSheet.create({
   forgotRow: { alignItems: "flex-end", marginTop: -6, marginBottom: 20 },
   forgot: {
     fontSize: 13,
-    color: "#1254EC",
+    color: "#1072EA",
     fontFamily: "Inter_500Medium",
   },
   cta: {
     borderRadius: 14,
     overflow: "hidden",
     marginTop: 8,
-    shadowColor: "#1254EC",
+    shadowColor: "#1072EA",
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
@@ -704,7 +704,7 @@ function ForgotPasswordForm({
             style={[formStyles.cta, loading && formStyles.ctaLoading]}
           >
             <LinearGradient
-              colors={["#1A5AFF", "#0C38C0"]}
+              colors={["#1072EA", "#05305C"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={formStyles.ctaGradient}
@@ -743,7 +743,7 @@ function ForgotPasswordForm({
             style={[formStyles.cta, loading && formStyles.ctaLoading]}
           >
             <LinearGradient
-              colors={["#1A5AFF", "#0C38C0"]}
+              colors={["#1072EA", "#05305C"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={formStyles.ctaGradient}
@@ -770,12 +770,12 @@ const forgotStyles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 18,
-    color: "#1254EC",
+    color: "#1072EA",
     lineHeight: 22,
   },
   backLabel: {
     fontSize: 14,
-    color: "#1254EC",
+    color: "#1072EA",
     fontFamily: "Inter_500Medium",
   },
   title: {
@@ -923,7 +923,7 @@ function OtpForm({
         style={[formStyles.cta, (loading || otp.length < 6) && formStyles.ctaLoading]}
       >
         <LinearGradient
-          colors={["#1A5AFF", "#0C38C0"]}
+          colors={["#1072EA", "#05305C"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={formStyles.ctaGradient}
@@ -958,12 +958,12 @@ const otpStyles = StyleSheet.create({
     justifyContent: "center",
   },
   boxActive: {
-    borderColor: "#1254EC",
-    backgroundColor: "#EEF4FF",
+    borderColor: "#1072EA",
+    backgroundColor: "#E8F1FD",
   },
   boxError: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FFF2F2",
+    borderColor: "#E02E5B",
+    backgroundColor: "#FCEEF3",
   },
   digit: {
     fontSize: 22,
@@ -975,7 +975,7 @@ const otpStyles = StyleSheet.create({
     bottom: 10,
     width: 2,
     height: 20,
-    backgroundColor: "#1254EC",
+    backgroundColor: "#1072EA",
     borderRadius: 1,
   },
   hiddenInput: {
@@ -990,7 +990,7 @@ const otpStyles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    color: "#EF4444",
+    color: "#E02E5B",
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     marginBottom: 12,
@@ -1009,7 +1009,7 @@ const otpStyles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    color: "#1254EC",
+    color: "#1072EA",
     fontFamily: "Inter_600SemiBold",
   },
   resendDisabled: {
@@ -1157,7 +1157,7 @@ export default function AuthScreen() {
 
       {/* ── Header banner ── */}
       <LinearGradient
-        colors={["#0C38C0", "#1254EC", "#0E48D8"]}
+        colors={["#05305C", "#1072EA", "#0B5BC4"]}
         style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         {/* Top-right arc */}
@@ -1287,7 +1287,7 @@ export default function AuthScreen() {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F0F4FF" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
 
   header: {
     paddingHorizontal: 24,
@@ -1335,7 +1335,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 20,
-    shadowColor: "#1254EC",
+    shadowColor: "#1072EA",
     shadowOpacity: 0.08,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 4 },
@@ -1384,7 +1384,7 @@ const styles = StyleSheet.create({
   },
   switchLink: {
     fontSize: 14,
-    color: "#1254EC",
+    color: "#1072EA",
     fontFamily: "Inter_600SemiBold",
   },
 });

@@ -150,7 +150,7 @@ export default function SupportScreen() {
                 <View style={s.msgMeta}>
                   <Text style={s.msgTime}>{msg.time}</Text>
                   {!isAgent && (
-                    <Text style={[s.msgStatus, msg.status === "read" && { color: "#1A5AFF" }]}>
+                    <Text style={[s.msgStatus, msg.status === "read" && { color: "#1072EA" }]}>
                       {msg.status === "sent" ? "✓" : msg.status === "delivered" ? "✓✓" : "✓✓"}
                     </Text>
                   )}
@@ -212,17 +212,17 @@ export default function SupportScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12, backgroundColor: "#FFFFFF", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   backArrow: { fontSize: 20, color: "#1C1C1E" },
   headerCenter: { flexDirection: "row", alignItems: "center", gap: 10 },
-  agentAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  agentAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#1072EA", alignItems: "center", justifyContent: "center" },
   agentAvatarTxt: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
   headerName: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   onlineRow: { flexDirection: "row", alignItems: "center", gap: 5 },
-  onlineDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#30D158" },
-  onlineTxt: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#30D158" },
+  onlineDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#118D45" },
+  onlineTxt: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#118D45" },
   msgScroll: { flex: 1 },
   msgContent: { paddingHorizontal: 16, paddingTop: 16, gap: 4 },
   dateDivider: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16 },
@@ -231,11 +231,11 @@ const s = StyleSheet.create({
   msgRow: { flexDirection: "row", marginBottom: 8 },
   msgRowAgent: { justifyContent: "flex-start", gap: 8, alignItems: "flex-end" },
   msgRowUser: { justifyContent: "flex-end" },
-  agentBubbleAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  agentBubbleAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#1072EA", alignItems: "center", justifyContent: "center" },
   agentBubbleAvatarTxt: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
   bubble: { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10 },
   bubbleAgent: { backgroundColor: "#FFFFFF", borderBottomLeftRadius: 4, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
-  bubbleUser: { backgroundColor: "#1A5AFF", borderBottomRightRadius: 4 },
+  bubbleUser: { backgroundColor: "#1072EA", borderBottomRightRadius: 4 },
   bubbleTxt: { fontSize: 14, lineHeight: 20 },
   bubbleTxtAgent: { fontFamily: "Inter_400Regular", color: "#1C1C1E" },
   bubbleTxtUser: { fontFamily: "Inter_400Regular", color: "#FFFFFF" },
@@ -246,12 +246,12 @@ const s = StyleSheet.create({
   typingDots: { fontSize: 16, letterSpacing: 4, color: "#8E8E93" },
   qrScroll: { backgroundColor: "#FFFFFF", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5EA" },
   qrRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  qrBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#EEF3FF", borderWidth: 1, borderColor: "#1A5AFF20" },
-  qrTxt: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#1A5AFF" },
+  qrBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: "#E8F1FD", borderWidth: 1, borderColor: "#1072EA20" },
+  qrTxt: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#1072EA" },
   inputBar: { flexDirection: "row", alignItems: "flex-end", gap: 10, paddingHorizontal: 16, paddingTop: 12, backgroundColor: "#FFFFFF", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E5EA" },
-  attachBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  attachBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   attachEmoji: { fontSize: 18 },
-  textInput: { flex: 1, maxHeight: 100, backgroundColor: "#F2F2F7", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#1A5AFF", alignItems: "center", justifyContent: "center" },
+  textInput: { flex: 1, maxHeight: 100, backgroundColor: "#F7F9FC", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#1072EA", alignItems: "center", justifyContent: "center" },
   sendIcon: { fontSize: 20, color: "#FFFFFF", fontWeight: "700" },
 });

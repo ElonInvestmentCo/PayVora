@@ -29,8 +29,8 @@ const SLIDES = [
     title: "Send & Receive\nInstantly",
     subtitle:
       "Transfer money to anyone, anywhere in seconds. No delays, no hidden fees — just seamless payments at your fingertips.",
-    bg1: "#0C38C0" as const,
-    bg2: "#1A5AFF" as const,
+    bg1: "#05305C" as const,
+    bg2: "#1072EA" as const,
     accent: "#00C4F4" as const,
   },
   {
@@ -109,13 +109,13 @@ function GiftCardIllustration({ accent }: { accent: string }) {
     <Svg width={W * 0.72} height={220} viewBox="0 0 260 220">
       <Defs>
         <SvgGrad id="g0" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#60A8FF" /><Stop offset="100%" stopColor="#3A7AEA" />
+          <Stop offset="0%" stopColor="#4D9FF5" /><Stop offset="100%" stopColor="#1072EA" />
         </SvgGrad>
         <SvgGrad id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#3A7AEA" /><Stop offset="100%" stopColor="#1A5AFF" />
+          <Stop offset="0%" stopColor="#1072EA" /><Stop offset="100%" stopColor="#1072EA" />
         </SvgGrad>
         <SvgGrad id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-          <Stop offset="0%" stopColor="#1A5AFF" /><Stop offset="100%" stopColor="#0C38C0" />
+          <Stop offset="0%" stopColor="#1072EA" /><Stop offset="100%" stopColor="#05305C" />
         </SvgGrad>
       </Defs>
       {cards.map((c, i) => (
@@ -369,7 +369,7 @@ export default function OnboardingScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0C38C0" },
+  root: { flex: 1, backgroundColor: "#05305C" },
 
   arcTopRight: {
     position: "absolute", top: -80, right: -80,
@@ -453,14 +453,14 @@ const s = StyleSheet.create({
   ctaText: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#0C38C0",
+    color: "#05305C",
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.2,
   },
   ctaArrow: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#0C38C0",
+    color: "#05305C",
     fontFamily: "Inter_700Bold",
   },
 

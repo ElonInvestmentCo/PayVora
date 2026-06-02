@@ -101,7 +101,7 @@ export default function TradeScreen() {
             </View>
             <View style={s.rateRight}>
               <Text style={s.ratePrice}>${asset.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-              <Text style={[s.rateChange, { color: asset.change >= 0 ? "#30D158" : "#FF3B30" }]}>
+              <Text style={[s.rateChange, { color: asset.change >= 0 ? "#118D45" : "#E02E5B" }]}>
                 {asset.change >= 0 ? "+" : ""}{asset.change.toFixed(2)}% today
               </Text>
             </View>
@@ -148,7 +148,7 @@ export default function TradeScreen() {
 
         <TouchableOpacity onPress={handleTrade} activeOpacity={0.85} disabled={!canSubmit || done}>
           <LinearGradient
-            colors={done ? ["#30D158", "#25A248"] : canSubmit ? ["#1A5AFF", "#0C38C0"] : ["#C7C7CC", "#AEAEB2"]}
+            colors={done ? ["#118D45", "#25A248"] : canSubmit ? ["#1072EA", "#05305C"] : ["#C7C7CC", "#AEAEB2"]}
             style={s.submitBtn}
           >
             <Text style={s.submitLabel}>
@@ -162,8 +162,8 @@ export default function TradeScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", zIndex: 10 },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap: { backgroundColor: "#F7F9FC", zIndex: 10 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 12 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   toggle: { flexDirection: "row", backgroundColor: "#E5E5EA", borderRadius: 10, padding: 3 },
@@ -180,7 +180,7 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 1 }, elevation: 2,
   },
-  assetChipActive: { backgroundColor: "#1A5AFF" },
+  assetChipActive: { backgroundColor: "#1072EA" },
   assetDot: { width: 8, height: 8, borderRadius: 4 },
   assetChipLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   assetChipLabelActive: { color: "#FFFFFF" },
@@ -198,7 +198,7 @@ const s = StyleSheet.create({
   rateChange: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginTop: 2 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E5EA", marginVertical: 16 },
   label: { fontSize: 13, fontWeight: "600", color: "#8E8E93", fontFamily: "Inter_600SemiBold", marginBottom: 8 },
-  inputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F2F2F7", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14 },
+  inputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F7F9FC", borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14 },
   currencySign: { fontSize: 22, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginRight: 4 },
   input: { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   convertRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },

@@ -32,9 +32,9 @@ function ChevronRight({ color = "#8E8E93" }: { color?: string }) {
 // ─── Card Illustrations ───────────────────────────────────────────────────────
 function BuyGiftIllustration() {
   const cards = [
-    { colors: ["#60A8FF", "#3A7AE8"] as const, rotate: "8deg",  right: 8,  bottom: 6, w: 68, h: 80 },
-    { colors: ["#3A7AE8", "#1A5AFF"] as const, rotate: "-4deg", left: 28,  bottom: 2, w: 68, h: 86 },
-    { colors: ["#1A5AFF", "#0C38C0"] as const, rotate: "0deg",  left: 8,   bottom: 0, w: 70, h: 90 },
+    { colors: ["#4D9FF5", "#1072EA"] as const, rotate: "8deg",  right: 8,  bottom: 6, w: 68, h: 80 },
+    { colors: ["#1072EA", "#1570D8"] as const, rotate: "-4deg", left: 28,  bottom: 2, w: 68, h: 86 },
+    { colors: ["#1072EA", "#05305C"] as const, rotate: "0deg",  left: 8,   bottom: 0, w: 70, h: 90 },
   ];
   return (
     <View style={ill.giftWrap}>
@@ -63,9 +63,9 @@ function SellGiftIllustration() {
   return (
     <View style={ill.giftWrap}>
       {[
-        { colors: ["#0C38C0", "#1A5AFF"] as const, rotate: "-8deg", left: 8,   bottom: 6, w: 68, h: 80 },
-        { colors: ["#1A5AFF", "#3A7AE8"] as const, rotate: "4deg",  right: 22, bottom: 2, w: 68, h: 86 },
-        { colors: ["#3A7AE8", "#60A8FF"] as const, rotate: "0deg",  right: 8,  bottom: 0, w: 70, h: 90 },
+        { colors: ["#05305C", "#1072EA"] as const, rotate: "-8deg", left: 8,   bottom: 6, w: 68, h: 80 },
+        { colors: ["#1570D8", "#1072EA"] as const, rotate: "4deg",  right: 22, bottom: 2, w: 68, h: 86 },
+        { colors: ["#1072EA", "#4D9FF5"] as const, rotate: "0deg",  right: 8,  bottom: 0, w: 70, h: 90 },
       ].map((c, i) => (
         <LinearGradient
           key={i}
@@ -94,7 +94,7 @@ function BuyCryptoIllustration() {
         <LinearGradient
           key={i}
           colors={
-            i === 0 ? (["#1A5AFF", "#0C38C0"] as const)
+            i === 0 ? (["#1072EA", "#05305C"] as const)
             : i === 1 ? (["#1250E0", "#0A30A8"] as const)
             : (["#0E46C8", "#082890"] as const)
           }
@@ -113,8 +113,8 @@ function SellCryptoIllustration() {
       <Svg width="100%" height={90} viewBox="0 0 160 90" preserveAspectRatio="none">
         <Path d="M-10 70 C20 50,50 80,80 60 C110 40,140 65,170 45 L170 90 L-10 90 Z" fill="#A8C4FF" opacity={0.5} />
         <Path d="M-10 55 C20 72,50 40,80 58 C110 76,140 48,170 66 L170 90 L-10 90 Z" fill="#6090FF" opacity={0.7} />
-        <Path d="M-10 65 C20 82,50 50,80 68 C110 86,140 58,170 76 L170 90 L-10 90 Z" fill="#1A5AFF" opacity={0.9} />
-        <Path d="M-10 55 C20 72,50 40,80 58 C110 76,140 48,170 66" stroke="#0C38C0" strokeWidth={2} fill="none" opacity={0.5} />
+        <Path d="M-10 65 C20 82,50 50,80 68 C110 86,140 58,170 76 L170 90 L-10 90 Z" fill="#1072EA" opacity={0.9} />
+        <Path d="M-10 55 C20 72,50 40,80 58 C110 76,140 48,170 66" stroke="#05305C" strokeWidth={2} fill="none" opacity={0.5} />
       </Svg>
     </View>
   );
@@ -124,7 +124,7 @@ function VirtualCardIllustration() {
   return (
     <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "flex-end", paddingBottom: 10 }}>
       <LinearGradient
-        colors={["#1A5AFF", "#0C38C0"]}
+        colors={["#1072EA", "#05305C"]}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         style={{ width: "85%", height: 70, borderRadius: 10, padding: 12, justifyContent: "space-between" }}
       >
@@ -142,9 +142,9 @@ function BillsIllustration() {
   return (
     <View style={{ flex: 1, width: "100%", alignItems: "center", justifyContent: "flex-end", paddingBottom: 8, gap: 5 }}>
       {[
-        { label: "Airtime",     color: "#1A5AFF", w: "70%" },
-        { label: "Electricity", color: "#3A7AE8", w: "85%" },
-        { label: "Internet",    color: "#60A8FF", w: "55%" },
+        { label: "Airtime",     color: "#1072EA", w: "70%" },
+        { label: "Electricity", color: "#1072EA", w: "85%" },
+        { label: "Internet",    color: "#4D9FF5", w: "55%" },
       ].map((b) => (
         <View key={b.label} style={{ flexDirection: "row", alignItems: "center", gap: 6, width: "90%" as any }}>
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: b.color }} />
@@ -192,11 +192,11 @@ function ActionCard({
 function TxRow({ title, amount, date, isIn }: { title: string; amount: string; date: string; isIn: boolean }) {
   return (
     <View style={s.txRow}>
-      <View style={[s.txIcon, { backgroundColor: isIn ? "rgba(48,209,88,0.12)" : "rgba(255,59,48,0.08)" }]}>
+      <View style={[s.txIcon, { backgroundColor: isIn ? "rgba(17,141,69,0.12)" : "rgba(224,46,91,0.08)" }]}>
         <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
           <Path
             d={isIn ? "M12 19V5M5 12l7-7 7 7" : "M12 5v14M5 12l7 7 7-7"}
-            stroke={isIn ? "#30D158" : "#FF3B30"}
+            stroke={isIn ? "#118D45" : "#E02E5B"}
             strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
           />
         </Svg>
@@ -205,7 +205,7 @@ function TxRow({ title, amount, date, isIn }: { title: string; amount: string; d
         <Text style={s.txTitle}>{title}</Text>
         <Text style={s.txDate}>{date}</Text>
       </View>
-      <Text style={[s.txAmount, { color: isIn ? "#30D158" : "#1C1C1E" }]}>{amount}</Text>
+      <Text style={[s.txAmount, { color: isIn ? "#118D45" : "#1C1C1E" }]}>{amount}</Text>
     </View>
   );
 }
@@ -273,7 +273,7 @@ export default function HomeScreen() {
             onPress={() => { hapticLight(); router.push("/settings" as any); }}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.avatar}>
+            <LinearGradient colors={["#1072EA", "#05305C"]} style={s.avatar}>
               <Text style={s.avatarText}>PV</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -295,12 +295,12 @@ export default function HomeScreen() {
       >
         {/* ── Balance Card ── */}
         <View style={s.balanceSection}>
-          <View style={s.balanceCard}>
+          <LinearGradient colors={["#05305C", "#1072EA"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.balanceCard}>
             <View style={s.balanceTopRow}>
               <Text style={s.balanceLabel}>PayVora Balance</Text>
               <TouchableOpacity style={s.routingBtn} activeOpacity={0.7}>
                 <Text style={s.routingText}>Account & Routing</Text>
-                <ChevronRight />
+                <ChevronRight color="rgba(255,255,255,0.55)" />
               </TouchableOpacity>
             </View>
 
@@ -333,7 +333,7 @@ export default function HomeScreen() {
                 <Text style={s.actionBtnText}>Pay Out</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* ── Quick Actions — responsive 2-col or 1-col ── */}
@@ -428,12 +428,12 @@ export default function HomeScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: { paddingBottom: 40 },
 
   // Sticky header bar (outside scroll)
   headerWrap: {
-    backgroundColor: "#F2F2F7",
+    backgroundColor: "#F7F9FC",
     zIndex: 10,
   },
   header: {
@@ -465,34 +465,34 @@ const s = StyleSheet.create({
   avatar: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
-    shadowColor: "#1254EC", shadowOpacity: 0.35, shadowRadius: 8,
+    shadowColor: "#1072EA", shadowOpacity: 0.35, shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 }, elevation: 6,
   },
   avatarText: { fontSize: 14, fontWeight: "700", color: "#fff", fontFamily: "Inter_700Bold" },
 
   balanceSection: { paddingHorizontal: 16, marginBottom: 16 },
   balanceCard: {
-    backgroundColor: "#FFFFFF", borderRadius: 20, padding: 20,
-    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12,
-    shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    borderRadius: 20, padding: 20, overflow: "hidden",
+    shadowColor: "#05305C", shadowOpacity: 0.28, shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 }, elevation: 8,
   },
   balanceTopRow: {
     flexDirection: "row", justifyContent: "space-between",
     alignItems: "center", marginBottom: 6,
   },
-  balanceLabel: { fontSize: 15, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  balanceLabel: { fontSize: 15, fontWeight: "600", color: "rgba(255,255,255,0.75)", fontFamily: "Inter_600SemiBold" },
   routingBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
-  routingText: { fontSize: 13, color: "#8E8E93", fontFamily: "Inter_400Regular", marginRight: 3 },
+  routingText: { fontSize: 13, color: "rgba(255,255,255,0.55)", fontFamily: "Inter_400Regular", marginRight: 3 },
   balanceAmount: {
-    fontSize: 42, fontWeight: "700", color: "#1C1C1E",
+    fontSize: 42, fontWeight: "700", color: "#F8DF20",
     letterSpacing: -1, marginBottom: 20, fontFamily: "Inter_700Bold",
   },
   actionRow: { flexDirection: "row", gap: 10 },
   actionBtn: {
-    flex: 1, paddingVertical: 13, backgroundColor: "#F2F2F7",
+    flex: 1, paddingVertical: 13, backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 12, alignItems: "center",
   },
-  actionBtnText: { fontSize: 15, fontWeight: "600", color: "#1C1C1E", fontFamily: "Inter_600SemiBold" },
+  actionBtnText: { fontSize: 15, fontWeight: "600", color: "#FFFFFF", fontFamily: "Inter_600SemiBold" },
 
   sectionRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
@@ -502,7 +502,7 @@ const s = StyleSheet.create({
     fontSize: 18, fontWeight: "700", color: "#1C1C1E",
     fontFamily: "Inter_700Bold", letterSpacing: -0.3,
   },
-  seeAll: { fontSize: 14, color: "#1A5AFF", fontFamily: "Inter_600SemiBold" },
+  seeAll: { fontSize: 14, color: "#1072EA", fontFamily: "Inter_600SemiBold" },
 
   // 2-column grid (default: large screens)
   grid: {

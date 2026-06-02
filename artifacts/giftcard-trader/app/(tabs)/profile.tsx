@@ -80,7 +80,7 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
-        <LinearGradient colors={["#1A5AFF", "#0C38C0"]} style={s.userCard}>
+        <LinearGradient colors={["#1072EA", "#05305C"]} style={s.userCard}>
           <LinearGradient colors={["rgba(255,255,255,0.25)", "rgba(255,255,255,0.10)"]} style={s.avatar}>
             <Text style={s.avatarText}>PV</Text>
           </LinearGradient>
@@ -127,7 +127,7 @@ export default function ProfileScreen() {
             label="Sign Out"
             icon={
               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                <Path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="#FF3B30" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="#E02E5B" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             }
             danger
@@ -140,8 +140,8 @@ export default function ProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", paddingHorizontal: 20, paddingVertical: 12 },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap: { backgroundColor: "#F7F9FC", paddingHorizontal: 20, paddingVertical: 12 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
   scroll: { paddingBottom: 40 },
 
@@ -160,10 +160,10 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 13, fontWeight: "600", color: "#8E8E93", fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 8, paddingLeft: 4 },
   menuCard: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   menuItem: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 15 },
-  menuIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
-  menuIconDanger: { backgroundColor: "rgba(255,59,48,0.1)" },
+  menuIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
+  menuIconDanger: { backgroundColor: "rgba(224,46,91,0.1)" },
   menuLabel: { flex: 1, fontSize: 15, fontWeight: "500", color: "#1C1C1E", fontFamily: "Inter_500Medium" },
-  menuLabelDanger: { color: "#FF3B30" },
+  menuLabelDanger: { color: "#E02E5B" },
   menuValue: { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular", marginRight: 6 },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E5EA", marginLeft: 62 },
 });

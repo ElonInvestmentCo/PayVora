@@ -25,16 +25,16 @@ export default function NotFoundScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center", padding: 24 },
+  root: { flex: 1, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center", padding: 24 },
   card: {
     backgroundColor: "#FFFFFF", borderRadius: 24, padding: 32, alignItems: "center", width: "100%",
     shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 4,
   },
-  badge: { width: 80, height: 80, borderRadius: 40, backgroundColor: "#EEF3FF", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  badge: { width: 80, height: 80, borderRadius: 40, backgroundColor: "#E8F1FD", alignItems: "center", justifyContent: "center", marginBottom: 16 },
   emoji: { fontSize: 36 },
-  code: { fontSize: 52, fontFamily: "Inter_700Bold", color: "#1A5AFF", letterSpacing: -2, marginBottom: 4 },
+  code: { fontSize: 52, fontFamily: "Inter_700Bold", color: "#1072EA", letterSpacing: -2, marginBottom: 4 },
   title: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 8, letterSpacing: -0.3 },
   sub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", lineHeight: 20, marginBottom: 24 },
-  btn: { backgroundColor: "#1A5AFF", borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32 },
+  btn: { backgroundColor: "#1072EA", borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32 },
   btnTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
 });

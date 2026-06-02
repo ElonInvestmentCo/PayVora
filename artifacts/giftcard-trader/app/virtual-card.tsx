@@ -18,7 +18,7 @@ const CARD_CONFIGS = {
   regular: {
     label: "Regular",
     cardTitle: "PayVora Classic",
-    gradient: ["#1A5AFF", "#0A3ECC", "#072EA8"] as const,
+    gradient: ["#1072EA", "#0A3ECC", "#072EA8"] as const,
     accent: "#7AA8FF",
     features: ["$5,000/month limit", "Standard rewards", "24/7 Support", "3D Secure"],
   },
@@ -221,9 +221,9 @@ export default function VirtualCardScreen() {
         {/* Actions */}
         <View style={s.actionsSection}>
           {[
-            { label: "Fund",     emoji: "💰", modal: "fund"     as Modal, color: "#30D158" },
+            { label: "Fund",     emoji: "💰", modal: "fund"     as Modal, color: "#118D45" },
             { label: "Withdraw", emoji: "💸", modal: "withdraw" as Modal, color: "#FF9F0A" },
-            { label: isFrozen ? "Unfreeze" : "Freeze", emoji: isFrozen ? "🔓" : "🔒", modal: "freeze" as Modal, color: isFrozen ? "#1A5AFF" : "#FF3B30" },
+            { label: isFrozen ? "Unfreeze" : "Freeze", emoji: isFrozen ? "🔓" : "🔒", modal: "freeze" as Modal, color: isFrozen ? "#1072EA" : "#E02E5B" },
           ].map((action) => (
             <TouchableOpacity
               key={action.label}
@@ -268,7 +268,7 @@ export default function VirtualCardScreen() {
                 const isLast = i === SPENDING_DATA.length - 1;
                 return (
                   <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
-                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1A5AFF" : `rgba(26,90,255,${0.2 + h * 0.5})`, borderRadius: 3 }} />
+                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1072EA" : `rgba(16,114,234,${0.2 + h * 0.5})`, borderRadius: 3 }} />
                   </View>
                 );
               })}
@@ -287,7 +287,7 @@ export default function VirtualCardScreen() {
                   <Text style={s.txMerchant}>{tx.merchant}</Text>
                   <Text style={s.txDate}>{tx.date}</Text>
                 </View>
-                <Text style={[s.txAmount, { color: tx.isDebit ? "#FF3B30" : "#30D158" }]}>{tx.amount}</Text>
+                <Text style={[s.txAmount, { color: tx.isDebit ? "#E02E5B" : "#118D45" }]}>{tx.amount}</Text>
               </View>
             ))}
           </View>
@@ -369,7 +369,7 @@ export default function VirtualCardScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -379,7 +379,7 @@ const s = StyleSheet.create({
   headerBtnTxt: { fontSize: 20, color: "#1C1C1E", fontWeight: "700" },
   tierSection: { flexDirection: "row", marginHorizontal: 16, marginBottom: 16, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   tierBtn: { flex: 1, paddingVertical: 11, borderRadius: 12, alignItems: "center" },
-  tierBtnActive: { backgroundColor: "#1A5AFF" },
+  tierBtnActive: { backgroundColor: "#1072EA" },
   tierBtnTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   tierBtnTxtActive: { color: "#FFFFFF" },
   cardSection: { paddingHorizontal: 16, marginBottom: 16 },
@@ -409,7 +409,7 @@ const s = StyleSheet.create({
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   featRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
   featRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  featCheck: { fontSize: 14, color: "#30D158", fontWeight: "700" },
+  featCheck: { fontSize: 14, color: "#118D45", fontWeight: "700" },
   featTxt: { fontSize: 14, fontFamily: "Inter_500Medium", color: "#1C1C1E" },
   spendHeader: { padding: 16, paddingBottom: 8 },
   spendTotal: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.5, marginBottom: 2 },
@@ -417,7 +417,7 @@ const s = StyleSheet.create({
   chartArea: { flexDirection: "row", alignItems: "flex-end", gap: 4, height: 60, paddingHorizontal: 16, paddingBottom: 16 },
   txRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
   txRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  txIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  txIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   txEmoji: { fontSize: 18 },
   txMerchant: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 2 },
   txDate: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
@@ -426,18 +426,18 @@ const s = StyleSheet.create({
   modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 8, letterSpacing: -0.3 },
   modalSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", marginBottom: 20, lineHeight: 20 },
-  balancePillModal: { backgroundColor: "#F2F2F7", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  balancePillModal: { backgroundColor: "#F7F9FC", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   balancePillLbl: { fontSize: 13, fontFamily: "Inter_500Medium", color: "#8E8E93" },
   balancePillAmt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
-  modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F2F2F7", borderRadius: 16, paddingHorizontal: 16, marginBottom: 16 },
+  modalInputWrap: { flexDirection: "row", alignItems: "center", backgroundColor: "#F7F9FC", borderRadius: 16, paddingHorizontal: 16, marginBottom: 16 },
   modalPrefix: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#8E8E93", marginRight: 6 },
   modalInput: { flex: 1, fontSize: 28, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 14 },
   presetRow: { flexDirection: "row", gap: 8, marginBottom: 20 },
-  presetBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: "#F2F2F7", alignItems: "center" },
+  presetBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: "#F7F9FC", alignItems: "center" },
   presetTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
   modalActions: { flexDirection: "row", gap: 12 },
-  cancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center" },
+  cancelBtn: { flex: 1, paddingVertical: 15, borderRadius: 14, backgroundColor: "#F7F9FC", alignItems: "center" },
   cancelTxt: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  confirmBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1A5AFF", alignItems: "center" },
+  confirmBtn: { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: "#1072EA", alignItems: "center" },
   confirmTxt: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });

@@ -23,7 +23,7 @@ function ToggleRow({ label, value, onToggle }: { label: string; value: boolean; 
       <Switch
         value={value}
         onValueChange={() => { hapticLight(); onToggle(); }}
-        trackColor={{ false: "#E5E5EA", true: "#1A5AFF" }}
+        trackColor={{ false: "#E5E5EA", true: "#1072EA" }}
         thumbColor="#FFFFFF"
       />
     </View>
@@ -129,8 +129,8 @@ export default function SettingsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", paddingHorizontal: 20, paddingBottom: 8 },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap: { backgroundColor: "#F7F9FC", paddingHorizontal: 20, paddingBottom: 8 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5, paddingVertical: 12 },
   scroll: { paddingHorizontal: 16 },
   section: { marginBottom: 16 },
@@ -141,5 +141,5 @@ const s = StyleSheet.create({
   rowRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   rowValue: { fontSize: 14, color: "#8E8E93", fontFamily: "Inter_400Regular" },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E5EA", marginLeft: 16 },
-  signOut: { fontSize: 15, fontWeight: "600", color: "#FF3B30", fontFamily: "Inter_600SemiBold" },
+  signOut: { fontSize: 15, fontWeight: "600", color: "#E02E5B", fontFamily: "Inter_600SemiBold" },
 });

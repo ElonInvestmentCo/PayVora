@@ -28,7 +28,7 @@ function MiniChart({ up }: { up: boolean }) {
     : "0,4 8,8 16,6 24,12 32,10 40,14 48,12 56,18";
   return (
     <Svg width={56} height={20} viewBox="0 0 56 20">
-      <Polyline points={pts} fill="none" stroke={up ? "#30D158" : "#FF3B30"} strokeWidth={1.8} strokeLinejoin="round" />
+      <Polyline points={pts} fill="none" stroke={up ? "#118D45" : "#E02E5B"} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -103,7 +103,7 @@ export default function MarketsScreen() {
                 <Text style={s.price}>
                   ${a.price < 1 ? a.price.toFixed(4) : a.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
-                <Text style={[s.change, { color: a.change >= 0 ? "#30D158" : "#FF3B30" }]}>
+                <Text style={[s.change, { color: a.change >= 0 ? "#118D45" : "#E02E5B" }]}>
                   {a.change >= 0 ? "+" : ""}{a.change.toFixed(2)}%
                 </Text>
               </View>
@@ -122,8 +122,8 @@ export default function MarketsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
-  headerWrap: { backgroundColor: "#F2F2F7", zIndex: 10 },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
+  headerWrap: { backgroundColor: "#F7F9FC", zIndex: 10 },
   header: { paddingHorizontal: 20, paddingVertical: 12 },
   headerTitle: { fontSize: 28, fontWeight: "700", color: "#1C1C1E", fontFamily: "Inter_700Bold", letterSpacing: -0.5, marginBottom: 4 },
   statsRow: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
-  chipActive: { backgroundColor: "#1A5AFF" },
+  chipActive: { backgroundColor: "#1072EA" },
   chipLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   chipLabelActive: { color: "#FFFFFF" },
 

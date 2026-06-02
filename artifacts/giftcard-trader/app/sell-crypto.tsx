@@ -146,14 +146,14 @@ export default function SellCryptoScreen() {
                   key={c.id}
                   onPress={() => { hapticLight(); setSelectedCrypto(c.id as CryptoId); setAmount(""); setFiatValue("0.00"); }}
                   activeOpacity={0.8}
-                  style={[s.chip, active && { backgroundColor: "#EEF3FF", borderColor: "#1A5AFF", borderWidth: 1.5 }]}
+                  style={[s.chip, active && { backgroundColor: "#E8F1FD", borderColor: "#1072EA", borderWidth: 1.5 }]}
                 >
                   <CryptoIcon symbol={c.symbol} size={24} />
                   <View>
-                    <Text style={[s.chipSym, active && { color: "#1A5AFF" }]}>{c.symbol}</Text>
+                    <Text style={[s.chipSym, active && { color: "#1072EA" }]}>{c.symbol}</Text>
                     <Text style={s.chipBal}>{c.balance}</Text>
                   </View>
-                  {active && <Text style={{ color: "#1A5AFF", fontSize: 10 }}>✓</Text>}
+                  {active && <Text style={{ color: "#1072EA", fontSize: 10 }}>✓</Text>}
                 </TouchableOpacity>
               );
             })}
@@ -167,8 +167,8 @@ export default function SellCryptoScreen() {
               <Text style={s.priceLabel}>Current Price</Text>
               <Text style={s.priceVal}>${crypto.price.toLocaleString()}</Text>
             </View>
-            <View style={[s.changeBadge, { backgroundColor: crypto.change >= 0 ? "#F0FDF4" : "#FFF2F2" }]}>
-              <Text style={[s.changeTxt, { color: crypto.change >= 0 ? "#30D158" : "#FF3B30" }]}>
+            <View style={[s.changeBadge, { backgroundColor: crypto.change >= 0 ? "#E8F7EE" : "#FCEEF3" }]}>
+              <Text style={[s.changeTxt, { color: crypto.change >= 0 ? "#118D45" : "#E02E5B" }]}>
                 {crypto.change > 0 ? "+" : ""}{crypto.change}%
               </Text>
             </View>
@@ -178,7 +178,7 @@ export default function SellCryptoScreen() {
           <View style={s.sparkWrap}>
             {[60, 45, 70, 55, 80, 65, 90, 75, 85, 70, 95, 80, 100].map((h, i) => (
               <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
-                <View style={{ height: h * 0.38, backgroundColor: i === 12 ? "#30D158" : `rgba(48,209,88,${0.15 + (h / 100) * 0.5})`, borderRadius: 2 }} />
+                <View style={{ height: h * 0.38, backgroundColor: i === 12 ? "#118D45" : `rgba(17,141,69,${0.15 + (h / 100) * 0.5})`, borderRadius: 2 }} />
               </View>
             ))}
           </View>
@@ -240,7 +240,7 @@ export default function SellCryptoScreen() {
             {/* You Receive */}
             <View>
               <Text style={s.inputLabel}>You Receive</Text>
-              <View style={[s.amountRow, { backgroundColor: "#F0FDF4" }]}>
+              <View style={[s.amountRow, { backgroundColor: "#E8F7EE" }]}>
                 <Text style={s.fiatOutput}>${fiatValue}</Text>
                 <View style={s.assetTag}>
                   <Text style={s.assetTagTxt}>USD</Text>
@@ -257,7 +257,7 @@ export default function SellCryptoScreen() {
               ].map((row, i, arr) => (
                 <View key={row.label} style={[s.feeRow, i < arr.length - 1 && s.feeRowBorder]}>
                   <Text style={s.feeLbl}>{row.label}</Text>
-                  <Text style={[s.feeVal, (row as any).highlight && { color: "#30D158", fontFamily: "Inter_700Bold" }, (row as any).warn && { color: "#FF9F0A" }]}>{row.value}</Text>
+                  <Text style={[s.feeVal, (row as any).highlight && { color: "#118D45", fontFamily: "Inter_700Bold" }, (row as any).warn && { color: "#FF9F0A" }]}>{row.value}</Text>
                 </View>
               ))}
             </View>
@@ -286,7 +286,7 @@ export default function SellCryptoScreen() {
           <View style={s.modalCard}>
             {isProcessing ? (
               <View style={{ alignItems: "center", padding: 24 }}>
-                <ActivityIndicator size="large" color="#1A5AFF" style={{ marginBottom: 16 }} />
+                <ActivityIndicator size="large" color="#1072EA" style={{ marginBottom: 16 }} />
                 <Text style={s.modalTitle}>Processing Sale…</Text>
                 <Text style={s.modalSub}>Please wait while we process your order.</Text>
               </View>
@@ -317,7 +317,7 @@ export default function SellCryptoScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -330,8 +330,8 @@ const s = StyleSheet.create({
   balanceAmtRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
   balanceAmt: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.5 },
   balanceFiat: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
-  maxBtn: { backgroundColor: "#EEF3FF", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
-  maxBtnTxt: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1A5AFF" },
+  maxBtn: { backgroundColor: "#E8F1FD", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  maxBtnTxt: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1072EA" },
   chipRow: { gap: 8, paddingBottom: 4 },
   chip: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: "#FFFFFF", borderRadius: 14, borderWidth: 1, borderColor: "transparent", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   chipSym: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
@@ -344,33 +344,33 @@ const s = StyleSheet.create({
   sparkWrap: { flexDirection: "row", alignItems: "flex-end", gap: 3, height: 40, backgroundColor: "#FFFFFF", borderRadius: 16, padding: 10, shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   orderTypePill: { flexDirection: "row", backgroundColor: "#FFFFFF", borderRadius: 14, padding: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   orderTypeBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center" },
-  orderTypeBtnActive: { backgroundColor: "#F2F2F7", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  orderTypeBtnActive: { backgroundColor: "#F7F9FC", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   orderTypeTxt: { fontSize: 14, fontFamily: "Inter_500Medium", color: "#8E8E93" },
   orderTypeTxtActive: { fontFamily: "Inter_700Bold", color: "#1C1C1E" },
   inputLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#8E8E93", paddingHorizontal: 16, paddingTop: 14, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 },
-  amountRow: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, borderRadius: 12, backgroundColor: "#F2F2F7", paddingHorizontal: 14, marginBottom: 12 },
+  amountRow: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, borderRadius: 12, backgroundColor: "#F7F9FC", paddingHorizontal: 14, marginBottom: 12 },
   amountInput: { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold", color: "#1C1C1E", paddingVertical: 12 },
   assetTag: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FFFFFF", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, margin: 6 },
   assetTagTxt: { fontSize: 13, fontFamily: "Inter_700Bold", color: "#1C1C1E" },
-  fiatOutput: { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold", color: "#30D158", paddingVertical: 12 },
+  fiatOutput: { flex: 1, fontSize: 26, fontFamily: "Inter_700Bold", color: "#118D45", paddingVertical: 12 },
   pctRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginBottom: 12 },
-  pctBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F2F2F7", alignItems: "center" },
+  pctBtn: { flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: "#F7F9FC", alignItems: "center" },
   pctBtnTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
   arrowWrap: { alignItems: "center", marginVertical: 4 },
-  arrowCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E5EA" },
-  feeBlock: { marginHorizontal: 16, marginBottom: 16, backgroundColor: "#F2F2F7", borderRadius: 14, overflow: "hidden" },
+  arrowCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E5EA" },
+  feeBlock: { marginHorizontal: 16, marginBottom: 16, backgroundColor: "#F7F9FC", borderRadius: 14, overflow: "hidden" },
   feeRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 11 },
   feeRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
   feeLbl: { fontSize: 13, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   feeVal: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
-  sellBtn: { backgroundColor: "#FF3B30", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
+  sellBtn: { backgroundColor: "#E02E5B", borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   sellBtnTxt: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   modalCard: { backgroundColor: "#FFFFFF", borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#1C1C1E", textAlign: "center", marginBottom: 8, letterSpacing: -0.3 },
   modalSub: { fontSize: 14, fontFamily: "Inter_400Regular", color: "#8E8E93", textAlign: "center", marginBottom: 24, lineHeight: 20 },
-  successCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", marginBottom: 16 },
-  errorCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#FFF2F2", alignItems: "center", justifyContent: "center", marginBottom: 16 },
-  doneBtn: { backgroundColor: "#1A5AFF", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 48, alignItems: "center" },
+  successCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#E8F7EE", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  errorCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#FCEEF3", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  doneBtn: { backgroundColor: "#1072EA", borderRadius: 14, paddingVertical: 14, paddingHorizontal: 48, alignItems: "center" },
   doneBtnTxt: { fontSize: 16, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
 });

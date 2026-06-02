@@ -39,13 +39,13 @@ const ASSET_FILTERS: { id: AssetFilter; label: string }[] = [
 ];
 
 const TRADERS: Trader[] = [
-  { id: "1",  username: "CryptoKing_",   initials: "CK", avatarColor: "#F7931A", profit: 24850, pctChange: 142.5, totalVolume: "$1.2M",  badge: "Top Trader",  badgeColor: "#1A5AFF" },
+  { id: "1",  username: "CryptoKing_",   initials: "CK", avatarColor: "#F7931A", profit: 24850, pctChange: 142.5, totalVolume: "$1.2M",  badge: "Top Trader",  badgeColor: "#1072EA" },
   { id: "2",  username: "TradeQueen",    initials: "TQ", avatarColor: "#8B5CF6", profit: 18320, pctChange: 98.3,  totalVolume: "$890K",  badge: "Rising Star", badgeColor: "#FF9F0A" },
-  { id: "3",  username: "BlockMaster",   initials: "BM", avatarColor: "#30D158", profit: 15680, pctChange: 87.1,  totalVolume: "$720K" },
+  { id: "3",  username: "BlockMaster",   initials: "BM", avatarColor: "#118D45", profit: 15680, pctChange: 87.1,  totalVolume: "$720K" },
   { id: "4",  username: "SatoshiFan",    initials: "SF", avatarColor: "#14B8A6", profit: 12450, pctChange: 72.8,  totalVolume: "$580K" },
   { id: "5",  username: "DiamondHands",  initials: "DH", avatarColor: "#627EEA", profit: 9820,  pctChange: 58.4,  totalVolume: "$445K" },
-  { id: "6",  username: "You",           initials: "ME", avatarColor: "#1A5AFF", profit: 7340,  pctChange: 43.2,  totalVolume: "$330K",  isCurrentUser: true },
-  { id: "7",  username: "MoonShot99",    initials: "MS", avatarColor: "#FF3B30", profit: 6120,  pctChange: 35.7,  totalVolume: "$278K" },
+  { id: "6",  username: "You",           initials: "ME", avatarColor: "#1072EA", profit: 7340,  pctChange: 43.2,  totalVolume: "$330K",  isCurrentUser: true },
+  { id: "7",  username: "MoonShot99",    initials: "MS", avatarColor: "#E02E5B", profit: 6120,  pctChange: 35.7,  totalVolume: "$278K" },
   { id: "8",  username: "AltcoinPro",    initials: "AP", avatarColor: "#FF9F0A", profit: 5290,  pctChange: 29.1,  totalVolume: "$241K" },
   { id: "9",  username: "HodlMaster",    initials: "HM", avatarColor: "#34C759", profit: 4430,  pctChange: 24.6,  totalVolume: "$201K" },
   { id: "10", username: "StealthMode",   initials: "SM", avatarColor: "#5AC8FA", profit: 3780,  pctChange: 18.9,  totalVolume: "$172K" },
@@ -119,7 +119,7 @@ export default function LeaderboardScreen() {
                 const isLast = i === PERF_BARS.length - 1;
                 return (
                   <View key={i} style={{ flex: 1, justifyContent: "flex-end" }}>
-                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1A5AFF" : `rgba(26,90,255,${0.2 + h * 0.6})`, borderRadius: 3 }} />
+                    <View style={{ height: h * 52, backgroundColor: isLast ? "#1072EA" : `rgba(16,114,234,${0.2 + h * 0.6})`, borderRadius: 3 }} />
                   </View>
                 );
               })}
@@ -205,7 +205,7 @@ export default function LeaderboardScreen() {
                 {/* Info */}
                 <View style={{ flex: 1 }}>
                   <View style={s.nameRow}>
-                    <Text style={[s.traderName, trader.isCurrentUser && { color: "#1A5AFF" }]}>{trader.username}</Text>
+                    <Text style={[s.traderName, trader.isCurrentUser && { color: "#1072EA" }]}>{trader.username}</Text>
                     {trader.badge && (
                       <View style={[s.badgePill, { backgroundColor: (trader.badgeColor ?? "#8E8E93") + "18" }]}>
                         <Text style={[s.badgeTxt, { color: trader.badgeColor ?? "#8E8E93" }]}>{trader.badge}</Text>
@@ -234,7 +234,7 @@ export default function LeaderboardScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F2F2F7" },
+  root: { flex: 1, backgroundColor: "#F7F9FC" },
   scroll: {},
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14 },
   headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: "#1C1C1E", letterSpacing: -0.3 },
@@ -245,19 +245,19 @@ const s = StyleSheet.create({
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   tabSection: { flexDirection: "row", paddingHorizontal: 16, gap: 6, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", alignItems: "center", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  tabActive: { backgroundColor: "#1A5AFF" },
+  tabActive: { backgroundColor: "#1072EA" },
   tabTxt: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   tabTxtActive: { color: "#FFFFFF" },
   chartHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", padding: 16, paddingBottom: 10 },
   chartTitle: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 2 },
   chartSub: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
-  gainBadge: { backgroundColor: "#F0FDF4", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  gainBadgeTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#30D158" },
+  gainBadge: { backgroundColor: "#E8F7EE", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  gainBadgeTxt: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#118D45" },
   chartArea: { flexDirection: "row", alignItems: "flex-end", gap: 4, height: 60, paddingHorizontal: 16, paddingBottom: 16 },
   filterSection: { marginBottom: 14 },
   filterRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 4 },
   filterBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: "#FFFFFF", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  filterBtnActive: { backgroundColor: "#1A5AFF" },
+  filterBtnActive: { backgroundColor: "#1072EA" },
   filterTxt: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: "#8E8E93" },
   filterTxtActive: { color: "#FFFFFF" },
   searchRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFFFFF", borderRadius: 14, paddingHorizontal: 14, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
@@ -269,13 +269,13 @@ const s = StyleSheet.create({
   podiumInitials: { fontSize: 14, fontFamily: "Inter_700Bold" },
   podiumMedal: { position: "absolute", top: -8, right: -8, fontSize: 18 },
   podiumName: { fontSize: 11, fontFamily: "Inter_600SemiBold", color: "#1C1C1E", marginBottom: 3, textAlign: "center" },
-  podiumProfit: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#30D158", marginBottom: 5, textAlign: "center" },
+  podiumProfit: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#118D45", marginBottom: 5, textAlign: "center" },
   podiumPillar: { width: "100%", borderTopLeftRadius: 8, borderTopRightRadius: 8, alignItems: "center", justifyContent: "flex-end", paddingBottom: 8 },
   podiumRankTxt: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
   traderRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 13 },
   traderRowMe: { backgroundColor: "#F5F8FF" },
   traderRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E5E5EA" },
-  rankBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F2F2F7", alignItems: "center", justifyContent: "center" },
+  rankBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#F7F9FC", alignItems: "center", justifyContent: "center" },
   rankTxt: { fontSize: 12, fontFamily: "Inter_700Bold", color: "#8E8E93" },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   avatarTxt: { fontSize: 13, fontFamily: "Inter_700Bold" },
@@ -283,9 +283,9 @@ const s = StyleSheet.create({
   traderName: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#1C1C1E" },
   badgePill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
   badgeTxt: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
-  youPill: { backgroundColor: "#EEF3FF", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
-  youTxt: { fontSize: 10, fontFamily: "Inter_700Bold", color: "#1A5AFF" },
+  youPill: { backgroundColor: "#E8F1FD", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10 },
+  youTxt: { fontSize: 10, fontFamily: "Inter_700Bold", color: "#1072EA" },
   traderVol: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#8E8E93" },
   profit: { fontSize: 14, fontFamily: "Inter_700Bold", color: "#1C1C1E", marginBottom: 2 },
-  change: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#30D158" },
+  change: { fontSize: 12, fontFamily: "Inter_600SemiBold", color: "#118D45" },
 });

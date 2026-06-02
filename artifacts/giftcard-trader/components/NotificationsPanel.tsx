@@ -16,7 +16,7 @@ const TYPE_CFG: Record<string, { bg: string; color: string; icon: string }> = {
   success: { bg: "rgba(0,255,136,0.12)", color: "#00FF88", icon: "check-circle" },
   info:    { bg: "rgba(0,229,255,0.12)", color: "#00E5FF", icon: "info" },
   warning: { bg: "rgba(245,158,11,0.12)", color: "#F59E0B", icon: "alert-triangle" },
-  error:   { bg: "rgba(239,68,68,0.12)", color: "#EF4444", icon: "alert-circle" },
+  error:   { bg: "rgba(239,68,68,0.12)", color: "#E02E5B", icon: "alert-circle" },
 };
 
 function NotificationItem({ item, onPress }: { item: Notification; onPress: () => void }) {

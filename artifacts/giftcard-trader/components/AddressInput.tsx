@@ -20,7 +20,7 @@ import Svg, { Path, Circle } from "react-native-svg";
 
 // ── Icon helpers ───────────────────────────────────────────────────────────────
 
-function PinIcon({ size = 14, color = "#1A5AFF" }: { size?: number; color?: string }) {
+function PinIcon({ size = 14, color = "#1072EA" }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill={color} opacity={0.15} />
@@ -278,7 +278,7 @@ export default function AddressInput({
       {/* Input row */}
       <View style={[s.inputRow, focused && s.inputRowFocused, !!error && s.inputRowError]}>
         <View style={s.inputIcon}>
-          <SearchIcon size={16} color={focused ? "#1A5AFF" : "#C7C7CC"} />
+          <SearchIcon size={16} color={focused ? "#1072EA" : "#C7C7CC"} />
         </View>
         <TextInput
           ref={inputRef}
@@ -316,7 +316,7 @@ export default function AddressInput({
       {/* After-selection chip */}
       {selected && !focused && (
         <View style={s.selectedChip}>
-          <PinIcon size={12} color="#30D158" />
+          <PinIcon size={12} color="#118D45" />
           <Text style={s.selectedChipText} numberOfLines={1}>
             {selected.area ? `${selected.area} · ` : ""}{selected.city}, {selected.state}
           </Text>
@@ -360,7 +360,7 @@ export default function AddressInput({
                 accessibilityLabel={entry.full}
               >
                 <View style={s.suggestionPin}>
-                  <PinIcon size={13} color="#1A5AFF" />
+                  <PinIcon size={13} color="#1072EA" />
                 </View>
                 <View style={s.suggestionBody}>
                   <HighlightText
@@ -409,11 +409,11 @@ const s = StyleSheet.create({
     gap: 8,
   },
   inputRowFocused: {
-    borderColor: "#1A5AFF",
+    borderColor: "#1072EA",
     backgroundColor: "#FAFBFF",
   },
   inputRowError: {
-    borderColor: "#FF3B30",
+    borderColor: "#E02E5B",
     backgroundColor: "#FFF8F8",
   },
   inputIcon: { opacity: 0.9 },
@@ -444,12 +444,12 @@ const s = StyleSheet.create({
     borderRadius: 20,
     alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: "#30D15830",
+    borderColor: "#118D4530",
   },
   selectedChipText: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: "#20A845",
+    color: "#118D45",
     maxWidth: 260,
   },
 
@@ -463,7 +463,7 @@ const s = StyleSheet.create({
   errorText: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    color: "#FF3B30",
+    color: "#E02E5B",
     marginTop: 5,
     marginLeft: 2,
   },
@@ -509,13 +509,13 @@ const s = StyleSheet.create({
   },
   suggestionBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#F2F2F7",
+    borderBottomColor: "#F7F9FC",
   },
   suggestionPin: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: "#EEF3FF",
+    backgroundColor: "#E8F1FD",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
@@ -534,7 +534,7 @@ const s = StyleSheet.create({
     lineHeight: 16,
   },
   matchHighlight: {
-    color: "#1A5AFF",
+    color: "#1072EA",
     fontFamily: "Inter_700Bold",
   },
 
@@ -542,7 +542,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#F2F2F7",
+    borderTopColor: "#F7F9FC",
     alignItems: "center",
   },
   manualText: {
