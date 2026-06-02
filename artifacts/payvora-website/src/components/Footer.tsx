@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0C38C0] to-[#00C4F4] p-[1px]">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1072EA] to-[#05305C] p-[1px]">
                 <div className="w-full h-full rounded-lg bg-[#0A1428] flex items-center justify-center">
                   <img src={logoImg} alt="PayVora Logo" className="w-5 h-5 object-contain" />
                 </div>
@@ -25,16 +25,16 @@ export default function Footer() {
               The ultimate command center for your digital wealth.
             </p>
             <div className="flex items-center gap-4 text-white/40">
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">
+              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#1072EA] transition-colors">
                 <SiX className="w-5 h-5" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#1072EA] transition-colors">
                 <SiInstagram className="w-5 h-5" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">
+              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#1072EA] transition-colors">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="https://telegram.org" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">
+              <a href="https://telegram.org" target="_blank" rel="noreferrer" className="hover:text-[#1072EA] transition-colors">
                 <SiTelegram className="w-5 h-5" />
               </a>
             </div>
@@ -43,30 +43,30 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4">Products</h4>
             <ul className="space-y-3 text-sm text-white/50">
-              <li><Link href="/gift-cards" className="hover:text-cyan-400 transition-colors">Gift Cards</Link></li>
-              <li><Link href="/crypto" className="hover:text-cyan-400 transition-colors">Crypto Trading</Link></li>
-              <li><Link href="/virtual-card" className="hover:text-cyan-400 transition-colors">Virtual Card</Link></li>
-              <li><Link href="/bills" className="hover:text-cyan-400 transition-colors">Bills & eSIMs</Link></li>
-              <li><Link href="/download" className="hover:text-cyan-400 transition-colors">Download App</Link></li>
+              <li><Link href="/gift-cards" className="hover:text-[#1072EA] transition-colors">Gift Cards</Link></li>
+              <li><Link href="/crypto" className="hover:text-[#1072EA] transition-colors">Crypto Trading</Link></li>
+              <li><Link href="/virtual-card" className="hover:text-[#1072EA] transition-colors">Virtual Card</Link></li>
+              <li><Link href="/bills" className="hover:text-[#1072EA] transition-colors">Bills & eSIMs</Link></li>
+              <li><Link href="/download" className="hover:text-[#1072EA] transition-colors">Download App</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold text-white mb-4">Company</h4>
             <ul className="space-y-3 text-sm text-white/50">
-              <li><Link href="/about" className="hover:text-cyan-400 transition-colors">About Us</Link></li>
-              <li><Link href="/contact" className="hover:text-cyan-400 transition-colors">Contact</Link></li>
-              <li><Link href="#" className="hover:text-cyan-400 transition-colors">Blog</Link></li>
-              <li><Link href="#" className="hover:text-cyan-400 transition-colors">Careers</Link></li>
+              <li><Link href="/about" className="hover:text-[#1072EA] transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-[#1072EA] transition-colors">Contact</Link></li>
+              <li><Link href="#" className="hover:text-[#1072EA] transition-colors">Blog</Link></li>
+              <li><Link href="#" className="hover:text-[#1072EA] transition-colors">Careers</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold text-white mb-4">Legal</h4>
             <ul className="space-y-3 text-sm text-white/50">
-              <li><Link href="#" className="hover:text-cyan-400 transition-colors">Terms of Service</Link></li>
-              <li><Link href="#" className="hover:text-cyan-400 transition-colors">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-cyan-400 transition-colors">AML Policy</Link></li>
+              <li><Link href="#" className="hover:text-[#1072EA] transition-colors">Terms of Service</Link></li>
+              <li><Link href="#" className="hover:text-[#1072EA] transition-colors">Privacy Policy</Link></li>
+              <li><Link href="#" className="hover:text-[#1072EA] transition-colors">AML Policy</Link></li>
             </ul>
           </div>
         </div>

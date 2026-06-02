@@ -46,7 +46,7 @@ function MiniLogo({ size = 36 }: { size?: number }) {
         </SvgGrad>
         <SvgGrad id="mBG" x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0%" stopColor="#1072EA" />
-          <Stop offset="100%" stopColor="#0C38C4" />
+          <Stop offset="100%" stopColor="#0B5BC4" />
         </SvgGrad>
       </Defs>
       <Path

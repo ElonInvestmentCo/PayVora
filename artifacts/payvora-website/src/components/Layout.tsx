@@ -14,7 +14,7 @@ export default function Layout({ children, title = 'PayVora' }: LayoutProps) {
   }, [title]);
 
   return (
-    <div className="relative min-h-[100dvh] flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="relative min-h-[100dvh] flex flex-col selection:bg-[#1072EA]/30 selection:text-white">
       <div className="noise-bg" />
       <div className="grid-bg" />
       <Navbar />

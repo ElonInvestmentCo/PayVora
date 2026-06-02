@@ -45,7 +45,7 @@ function PayVoraLogo() {
         </SvgGrad>
         <SvgGrad id="bowlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0%" stopColor="#1072EA" />
-          <Stop offset="100%" stopColor="#0C38C4" />
+          <Stop offset="100%" stopColor="#0B5BC4" />
         </SvgGrad>
         <SvgGrad id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0%" stopColor="#FFFFFF" />
@@ -398,8 +398,8 @@ const styles = StyleSheet.create({
     width: W * 0.58,
     height: H * 0.18,
     borderRadius: 36,
-    backgroundColor: "#00C4F4",
-    opacity: 0.85,
+    backgroundColor: "#F8DF20",
+    opacity: 0.75,
     transform: [{ rotate: "-4deg" }],
   },
 

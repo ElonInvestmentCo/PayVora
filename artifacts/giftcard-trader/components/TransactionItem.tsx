@@ -21,7 +21,7 @@ export function TransactionItem({ item }: TransactionItemProps) {
   const colors = useColors();
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <View style={[styles.iconWrap, { backgroundColor: "rgba(0,229,255,0.1)" }]}>
+      <View style={[styles.iconWrap, { backgroundColor: "rgba(16,114,234,0.1)" }]}>
         <Feather name="credit-card" size={18} color={colors.primary} />
       </View>
       <View style={styles.info}>

@@ -23,9 +23,9 @@ export function RateCard({ rate, fromCurrency, toCurrency, change = 0 }: RateCar
             {fromCurrency}1 = {toCurrency}{rate.toLocaleString()}
           </Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: isUp ? "rgba(0,255,136,0.12)" : "rgba(224,46,91,0.12)" }]}>
-          <Feather name={isUp ? "trending-up" : "trending-down"} size={14} color={isUp ? "#00FF88" : "#E02E5B"} />
-          <Text style={[styles.change, { color: isUp ? "#00FF88" : "#E02E5B" }]}>
+        <View style={[styles.badge, { backgroundColor: isUp ? "rgba(17,141,69,0.12)" : "rgba(224,46,91,0.12)" }]}>
+          <Feather name={isUp ? "trending-up" : "trending-down"} size={14} color={isUp ? "#118D45" : "#E02E5B"} />
+          <Text style={[styles.change, { color: isUp ? "#118D45" : "#E02E5B" }]}>
             {isUp ? "+" : ""}{change.toFixed(1)}%
           </Text>
         </View>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: "#00FF88",
+    backgroundColor: "#118D45",
   },
   live: {
     fontSize: 12,

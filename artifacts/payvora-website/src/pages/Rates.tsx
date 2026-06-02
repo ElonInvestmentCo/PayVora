@@ -31,9 +31,9 @@ export default function Rates() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm font-semibold mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#1072EA]/30 bg-[#1072EA]/10 text-[#1072EA] text-sm font-semibold mb-6"
           >
-            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="flex h-2 w-2 rounded-full bg-[#F8DF20] animate-pulse" />
             Live Market Rates
           </motion.div>
           <motion.h1 
@@ -41,7 +41,7 @@ export default function Rates() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-display font-bold mb-6"
           >
-            Transparent pricing, <br/> <span className="text-gradient-cyan">zero surprises.</span>
+            Transparent pricing, <br/> <span className="text-gradient-gold">zero surprises.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,7 @@ export default function Rates() {
           <div className="glass-panel p-8 rounded-3xl">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-display font-bold">Gift Card Rates</h2>
-              <TrendingUp className="text-cyan-400 w-6 h-6" />
+              <TrendingUp className="text-[#1072EA] w-6 h-6" />
             </div>
             
             <div className="space-y-4">
@@ -79,7 +79,7 @@ export default function Rates() {
                     <div className="font-semibold text-white">{rate.brand}</div>
                     <div className="text-xs text-white/50">{rate.type}</div>
                   </div>
-                  <div className="text-center font-bold text-cyan-400">{rate.rate}</div>
+                  <div className="text-center font-bold text-[#F8DF20]">{rate.rate}</div>
                   <div className="text-right font-medium">{rate.value}</div>
                 </div>
               ))}

@@ -29,7 +29,7 @@ export default function About() {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-display font-bold mb-8"
           >
-            Democratizing finance <br/> <span className="text-gradient-cyan">for everyone.</span>
+            Democratizing finance <br/> <span className="text-gradient-gold">for everyone.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -48,7 +48,7 @@ export default function About() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, i) => (
               <div key={i}>
-                <div className="text-4xl md:text-5xl font-display font-bold text-cyan-400 mb-2">{stat.value}</div>
+                <div className="text-4xl md:text-5xl font-display font-bold text-[#F8DF20] mb-2">{stat.value}</div>
                 <div className="text-sm text-white/50 uppercase tracking-wider font-semibold">{stat.label}</div>
               </div>
             ))}
@@ -65,7 +65,7 @@ export default function About() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="glass-panel p-10 rounded-3xl">
-              <div className="text-xl font-bold font-display text-cyan-400 mb-4">01. Speed</div>
+              <div className="text-xl font-bold font-display text-[#1072EA] mb-4">01. Speed</div>
               <p className="text-white/70 text-lg leading-relaxed">Time is money. We build systems that execute instantly. No artificial delays, no slow approvals. If it can be automated safely, it is.</p>
             </div>
             <div className="glass-panel p-10 rounded-3xl">
@@ -99,7 +99,7 @@ export default function About() {
                   <img src={member.img} alt={member.name} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-xl font-bold font-display text-white mb-1">{member.name}</h3>
-                <p className="text-cyan-400 text-sm font-semibold">{member.role}</p>
+                <p className="text-[#1072EA] text-sm font-semibold">{member.role}</p>
               </div>
             ))}
           </div>

@@ -12,7 +12,7 @@ export default function CryptoTrading() {
     { name: 'Ethereum', symbol: 'ETH', color: 'text-blue-400' },
     { name: 'Solana', symbol: 'SOL', color: 'text-purple-400' },
     { name: 'Binance', symbol: 'BNB', color: 'text-yellow-400' },
-    { name: 'Cardano', symbol: 'ADA', color: 'text-cyan-400' },
+    { name: 'Cardano', symbol: 'ADA', color: 'text-blue-400' },
     { name: 'Ripple', symbol: 'XRP', color: 'text-gray-300' }
   ];
 

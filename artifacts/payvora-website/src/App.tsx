@@ -27,7 +27,7 @@ export default function App() {
       <Route>
         <div className="min-h-[100dvh] bg-[#0A1428] text-white flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-4xl font-display font-bold mb-4 text-cyan-400">404</h1>
+            <h1 className="text-4xl font-display font-bold mb-4 text-[#1072EA]">404</h1>
             <p className="text-white/60">Page not found</p>
           </div>
         </div>

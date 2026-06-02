@@ -50,7 +50,7 @@ export function CardTypeSelector({ selected, onSelect }: CardTypeSelectorProps) 
               style={[
                 styles.card,
                 {
-                  backgroundColor: isSelected ? "rgba(0,229,255,0.1)" : colors.card,
+                  backgroundColor: isSelected ? "rgba(16,114,234,0.08)" : colors.card,
                   borderColor: isSelected ? colors.primary : colors.border,
                 },
               ]}

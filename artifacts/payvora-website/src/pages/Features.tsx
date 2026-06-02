@@ -23,7 +23,7 @@ export default function Features() {
       title: "Gift Card Trading",
       icon: <Gift className="w-8 h-8" />,
       desc: "Convert unused gift cards from 50+ global brands into cash or crypto instantly at market-leading rates.",
-      color: "from-blue-500 to-cyan-400",
+      color: "from-[#1072EA] to-[#0B5BC4]",
       bullets: ["Automated instant verification", "Highest payouts guaranteed", "24/7 automated processing"],
       link: "/gift-cards"
     },
@@ -79,7 +79,7 @@ export default function Features() {
       title: "Real-time Market Data",
       icon: <BarChart className="w-8 h-8" />,
       desc: "Make informed decisions with up-to-the-second market data, volume charts, and price alerts.",
-      color: "from-cyan-400 to-blue-500",
+      color: "from-[#F8DF20] to-[#1072EA]",
       bullets: ["Custom price alerts", "Historical data analysis", "Volume indicators"],
       link: "#"
     }
@@ -113,7 +113,7 @@ export default function Features() {
                 <ul className="space-y-3 mb-8 flex-1 relative z-10">
                   {feature.bullets.map((bullet, j) => (
                     <li key={j} className="flex items-center gap-3 text-sm text-white/70">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#1072EA]" />
                       {bullet}
                     </li>
                   ))}
@@ -135,8 +135,8 @@ export default function Features() {
       {/* SVG gradients for icons */}
       <svg width="0" height="0">
         <linearGradient id="grad" x1="100%" y1="100%" x2="0%" y2="0%">
-          <stop stopColor="#00C4F4" offset="0%" />
-          <stop stopColor="#1254EC" offset="100%" />
+          <stop stopColor="#F8DF20" offset="0%" />
+          <stop stopColor="#1072EA" offset="100%" />
         </linearGradient>
       </svg>
     </Layout>

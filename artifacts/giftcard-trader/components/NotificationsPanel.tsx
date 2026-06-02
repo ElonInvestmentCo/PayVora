@@ -13,10 +13,10 @@ import { useColors } from "@/hooks/useColors";
 import { useNotifications, Notification } from "@/contexts/NotificationsContext";
 
 const TYPE_CFG: Record<string, { bg: string; color: string; icon: string }> = {
-  success: { bg: "rgba(0,255,136,0.12)", color: "#00FF88", icon: "check-circle" },
-  info:    { bg: "rgba(0,229,255,0.12)", color: "#00E5FF", icon: "info" },
+  success: { bg: "rgba(17,141,69,0.12)",  color: "#118D45", icon: "check-circle" },
+  info:    { bg: "rgba(16,114,234,0.12)", color: "#1072EA", icon: "info" },
   warning: { bg: "rgba(245,158,11,0.12)", color: "#F59E0B", icon: "alert-triangle" },
-  error:   { bg: "rgba(239,68,68,0.12)", color: "#E02E5B", icon: "alert-circle" },
+  error:   { bg: "rgba(224,46,91,0.12)",  color: "#E02E5B", icon: "alert-circle" },
 };
 
 function NotificationItem({ item, onPress }: { item: Notification; onPress: () => void }) {
@@ -30,7 +30,7 @@ function NotificationItem({ item, onPress }: { item: Notification; onPress: () =
       style={[
         styles.item,
         {
-          backgroundColor: item.read ? "transparent" : "rgba(0,229,255,0.04)",
+          backgroundColor: item.read ? "transparent" : "rgba(16,114,234,0.04)",
           borderBottomColor: colors.border,
         },
       ]}
@@ -76,7 +76,7 @@ export function NotificationsPanel() {
           </View>
 
           {unreadCount > 0 && (
-            <View style={[styles.countBadge, { backgroundColor: "rgba(0,229,255,0.1)" }]}>
+            <View style={[styles.countBadge, { backgroundColor: "rgba(16,114,234,0.1)" }]}>
               <Text style={[styles.countText, { color: colors.primary }]}>
                 {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
               </Text>

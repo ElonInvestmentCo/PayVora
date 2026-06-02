@@ -15,16 +15,16 @@ export function WalletCard({ balance, onWithdraw, onDeposit }: WalletCardProps) 
 
   return (
     <LinearGradient
-      colors={["#00E5FF22", "#8B5CF622"]}
+      colors={["rgba(16,114,234,0.12)", "rgba(5,48,92,0.12)"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.container, { borderColor: colors.border }]}
     >
       <View style={styles.header}>
         <Text style={[styles.label, { color: colors.mutedForeground }]}>Total Balance</Text>
-        <View style={[styles.liveBadge, { backgroundColor: "rgba(0,255,136,0.15)" }]}>
-          <View style={[styles.dot, { backgroundColor: "#00FF88" }]} />
-          <Text style={[styles.liveText, { color: "#00FF88" }]}>Live</Text>
+        <View style={[styles.liveBadge, { backgroundColor: "rgba(17,141,69,0.12)" }]}>
+          <View style={[styles.dot, { backgroundColor: "#118D45" }]} />
+          <Text style={[styles.liveText, { color: "#118D45" }]}>Live</Text>
         </View>
       </View>
       <Text style={[styles.balance, { color: colors.foreground }]}>
@@ -37,7 +37,7 @@ export function WalletCard({ balance, onWithdraw, onDeposit }: WalletCardProps) 
         <TouchableOpacity
           onPress={onWithdraw}
           activeOpacity={0.8}
-          style={[styles.actionBtn, { backgroundColor: "rgba(0,229,255,0.12)", borderColor: colors.primary }]}
+          style={[styles.actionBtn, { backgroundColor: "rgba(16,114,234,0.10)", borderColor: colors.primary }]}
         >
           <Feather name="arrow-up-right" size={16} color={colors.primary} />
           <Text style={[styles.actionText, { color: colors.primary }]}>Withdraw</Text>
@@ -45,10 +45,10 @@ export function WalletCard({ balance, onWithdraw, onDeposit }: WalletCardProps) 
         <TouchableOpacity
           onPress={onDeposit}
           activeOpacity={0.8}
-          style={[styles.actionBtn, { backgroundColor: "rgba(0,255,136,0.12)", borderColor: "#00FF88" }]}
+          style={[styles.actionBtn, { backgroundColor: "rgba(17,141,69,0.10)", borderColor: "#118D45" }]}
         >
-          <Feather name="arrow-down-left" size={16} color="#00FF88" />
-          <Text style={[styles.actionText, { color: "#00FF88" }]}>Deposit</Text>
+          <Feather name="arrow-down-left" size={16} color="#118D45" />
+          <Text style={[styles.actionText, { color: "#118D45" }]}>Deposit</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>

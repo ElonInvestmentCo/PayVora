@@ -45,7 +45,7 @@ export default function Navbar() {
       >
         <div className="container mx-auto px-6 md:px-12 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 relative z-50">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0C38C0] to-[#00C4F4] p-[1px] glow-blue">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1072EA] to-[#05305C] p-[1px] glow-primary">
               <div className="w-full h-full rounded-xl bg-[#0A1428] flex items-center justify-center overflow-hidden">
                 <img src={logoImg} alt="PayVora Logo" className="w-8 h-8 object-contain" />
               </div>
@@ -60,12 +60,12 @@ export default function Navbar() {
                 href={link.href}
                 className={cn(
                   "relative py-2 transition-colors hover:text-white",
-                  location === link.href ? "text-cyan-400" : "text-white/70"
+                  location === link.href ? "text-[#1072EA]" : "text-white/70"
                 )}
               >
                 {link.name}
                 {location === link.href && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1072EA] rounded-full" />
                 )}
               </Link>
             ))}
@@ -73,7 +73,7 @@ export default function Navbar() {
           
           <div className="hidden lg:flex items-center gap-4">
             <Link href="/download" className="group" data-testid="nav-download-btn">
-              <Button className="rounded-full px-6 bg-cyan-500 hover:bg-cyan-400 text-[#0A1428]">
+              <Button className="rounded-full px-6 bg-[#1072EA] hover:bg-[#0B5BC4] text-white">
                 Download App <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -102,8 +102,8 @@ export default function Navbar() {
               key={link.href} 
               href={link.href}
               className={cn(
-                "transition-colors hover:text-cyan-400 py-2",
-                location === link.href ? "text-cyan-400 font-bold" : "text-white"
+                "transition-colors hover:text-[#1072EA] py-2",
+                location === link.href ? "text-[#1072EA] font-bold" : "text-white"
               )}
             >
               {link.name}
@@ -111,7 +111,7 @@ export default function Navbar() {
           ))}
           <div className="w-full max-w-sm h-px bg-white/10 my-4" />
           <Link href="/download" className="w-full max-w-sm">
-            <Button size="lg" className="w-full rounded-full bg-cyan-500 hover:bg-cyan-400 text-[#0A1428] text-lg">
+            <Button size="lg" className="w-full rounded-full bg-[#1072EA] hover:bg-[#0B5BC4] text-white text-lg">
               Download App
             </Button>
           </Link>

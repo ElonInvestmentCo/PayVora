@@ -34,8 +34,8 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
         {/* Glow Effects */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#1254EC] rounded-full blur-[150px] opacity-20 pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#00C4F4] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#1072EA] rounded-full blur-[150px] opacity-20 pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#05305C] rounded-full blur-[150px] opacity-20 pointer-events-none" />
         
         <div className="container mx-auto px-6 relative z-10 text-center flex flex-col items-center">
           <motion.div
@@ -44,8 +44,8 @@ export default function Home() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8"
           >
-            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span className="text-xs font-semibold tracking-wider text-cyan-400 uppercase">Pay Smart. Grow More.</span>
+            <span className="flex h-2 w-2 rounded-full bg-[#F8DF20] animate-pulse"></span>
+            <span className="text-xs font-semibold tracking-wider text-[#F8DF20] uppercase">Pay Smart. Grow More.</span>
           </motion.div>
           
           <motion.h1 
@@ -54,7 +54,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="text-5xl md:text-7xl lg:text-8xl font-display font-bold tracking-tighter leading-[1.1] mb-6 max-w-5xl"
           >
-            The Command Center <br className="hidden md:block"/> for Your <span className="text-gradient-cyan">Money.</span>
+            The Command Center <br className="hidden md:block"/> for Your <span className="text-gradient-gold">Money.</span>
           </motion.h1>
           
           <motion.p 
@@ -96,7 +96,7 @@ export default function Home() {
             <img 
               src={heroImg} 
               alt="PayVora App Interface" 
-              className="w-full h-auto object-contain rounded-t-[40px] border border-white/10 shadow-[0_-20px_80px_rgba(12,56,192,0.3)] transform rotate-x-[5deg] translate-y-10" 
+              className="w-full h-auto object-contain rounded-t-[40px] border border-white/10 shadow-[0_-20px_80px_rgba(16,114,234,0.3)] transform rotate-x-[5deg] translate-y-10" 
             />
           </motion.div>
         </div>
@@ -124,8 +124,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/gift-cards">
-              <FadeIn delay={0.1} className="glass-panel p-8 rounded-3xl h-full relative overflow-hidden group cursor-pointer hover:border-cyan-500/30 transition-colors">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[80px] rounded-full group-hover:bg-cyan-500/20 transition-colors duration-500" />
+              <FadeIn delay={0.1} className="glass-panel p-8 rounded-3xl h-full relative overflow-hidden group cursor-pointer hover:border-[#1072EA]/30 transition-colors">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#1072EA]/10 blur-[80px] rounded-full group-hover:bg-[#1072EA]/20 transition-colors duration-500" />
                 <h3 className="text-2xl font-bold mb-3 font-display">Gift Card Trading</h3>
                 <p className="text-white/60 mb-6">Trade your unused gift cards instantly for cash or crypto at industry-leading rates.</p>
                 <img src={giftCardImg} alt="Gift Cards" className="w-full h-48 object-contain object-right-bottom opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -181,8 +181,8 @@ export default function Home() {
                     { title: "Global Reach", desc: "Access financial services no matter where you live." }
                   ].map((item, i) => (
                     <div key={i} className="flex gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-6 h-6 text-cyan-400" />
+                      <div className="w-12 h-12 rounded-xl bg-[#1072EA]/10 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-6 h-6 text-[#1072EA]" />
                       </div>
                       <div>
                         <h4 className="text-xl font-bold font-display text-white mb-1">{item.title}</h4>
@@ -244,12 +244,12 @@ export default function Home() {
               <FadeIn key={i} delay={i * 0.1} className="glass-panel p-8 rounded-3xl flex flex-col justify-between">
                 <div>
                   <div className="flex gap-1 mb-4">
-                    {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 fill-cyan-400 text-cyan-400" />)}
+                    {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 fill-[#F8DF20] text-[#F8DF20]" />)}
                   </div>
                   <p className="text-lg text-white/80 mb-6 italic">"{review.text}"</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold font-display">
+                  <div className="w-10 h-10 rounded-full bg-[#1072EA]/20 text-[#1072EA] flex items-center justify-center font-bold font-display">
                     {review.initial}
                   </div>
                   <div>
@@ -267,9 +267,9 @@ export default function Home() {
       <section className="py-24 relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
           <FadeIn>
-            <div className="glass-panel border-cyan-500/30 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-b from-[#0C38C0]/20 to-transparent pointer-events-none" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/20 blur-[150px] rounded-full pointer-events-none" />
+            <div className="glass-panel border-[#1072EA]/30 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-[#1072EA]/20 to-transparent pointer-events-none" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#1072EA]/15 blur-[150px] rounded-full pointer-events-none" />
               
               <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-6 relative z-10">
                 Ready to take control?

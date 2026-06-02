@@ -13,7 +13,7 @@ export default function GiftCards() {
     <Layout title="Gift Card Trading">
       {/* Hero */}
       <section className="pt-20 lg:pt-32 pb-20 overflow-hidden relative">
-        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-cyan-500/20 blur-[150px] rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#1072EA]/15 blur-[150px] rounded-full pointer-events-none" />
         
         <div className="container mx-auto px-6">
           <div className="flex flex-col-reverse lg:flex-row items-center gap-16">
@@ -30,7 +30,7 @@ export default function GiftCards() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-sm font-semibold"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#1072EA]/30 bg-[#1072EA]/10 text-[#1072EA] text-sm font-semibold"
               >
                 Instant Exchange
               </motion.div>
@@ -40,7 +40,7 @@ export default function GiftCards() {
                 transition={{ delay: 0.1 }}
                 className="text-5xl md:text-7xl font-display font-bold leading-tight"
               >
-                Turn unused cards <br/> into <span className="text-gradient-cyan">liquid cash.</span>
+                Turn unused cards <br/> into <span className="text-gradient-gold">liquid cash.</span>
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, y: 20 }}
@@ -78,7 +78,7 @@ export default function GiftCards() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {brands.map((brand, i) => (
-              <div key={i} className="glass-panel p-6 rounded-2xl flex items-center justify-center text-center font-display font-bold text-white/80 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors cursor-default">
+              <div key={i} className="glass-panel p-6 rounded-2xl flex items-center justify-center text-center font-display font-bold text-white/80 hover:text-[#1072EA] hover:border-[#1072EA]/30 transition-colors cursor-default">
                 {brand}
               </div>
             ))}
@@ -91,7 +91,7 @@ export default function GiftCards() {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="glass-panel p-8 rounded-3xl">
-              <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-[#1072EA]/15 text-[#1072EA] flex items-center justify-center mb-6">
                 <Clock className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold mb-3">Instant Processing</h3>

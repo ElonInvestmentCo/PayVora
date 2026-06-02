@@ -96,7 +96,7 @@ export default function VirtualCard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1 grid grid-cols-2 gap-4">
               <div className="glass-panel p-6 rounded-3xl text-center flex flex-col items-center justify-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center"><Globe className="w-6 h-6" /></div>
+                <div className="w-12 h-12 rounded-full bg-[#1072EA]/15 text-[#1072EA] flex items-center justify-center"><Globe className="w-6 h-6" /></div>
                 <div className="font-semibold">Netflix</div>
               </div>
               <div className="glass-panel p-6 rounded-3xl text-center flex flex-col items-center justify-center gap-4 mt-8">

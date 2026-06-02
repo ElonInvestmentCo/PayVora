@@ -12,7 +12,7 @@ export default function Bills() {
     { icon: <Wifi className="w-6 h-6" />, name: "Internet Data", color: "text-green-400", bg: "bg-green-500/20" },
     { icon: <Zap className="w-6 h-6" />, name: "Electricity", color: "text-yellow-400", bg: "bg-yellow-500/20" },
     { icon: <Tv className="w-6 h-6" />, name: "Cable TV", color: "text-purple-400", bg: "bg-purple-500/20" },
-    { icon: <Droplet className="w-6 h-6" />, name: "Water Utilities", color: "text-cyan-400", bg: "bg-cyan-500/20" },
+    { icon: <Droplet className="w-6 h-6" />, name: "Water Utilities", color: "text-[#1072EA]", bg: "bg-[#1072EA]/15" },
     { icon: <Globe className="w-6 h-6" />, name: "Global eSIMs", color: "text-orange-400", bg: "bg-orange-500/20" },
   ];
 

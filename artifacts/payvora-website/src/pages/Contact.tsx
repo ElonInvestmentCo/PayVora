@@ -15,7 +15,7 @@ export default function Contact() {
               animate={{ opacity: 1, y: 0 }}
               className="text-5xl md:text-7xl font-display font-bold mb-6"
             >
-              Get in <span className="text-gradient-cyan">touch.</span>
+              Get in <span className="text-gradient-gold">touch.</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -31,12 +31,12 @@ export default function Contact() {
             {/* Contact Info */}
             <div className="lg:col-span-1 space-y-8">
               <div className="glass-panel p-8 rounded-3xl">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-[#1072EA]/15 text-[#1072EA] flex items-center justify-center mb-6">
                   <Mail className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Email Support</h3>
                 <p className="text-white/60 mb-4 text-sm">We aim to respond to all inquiries within 2 hours.</p>
-                <a href="mailto:support@payvora.com" className="font-semibold text-cyan-400 hover:underline">support@payvora.com</a>
+                <a href="mailto:support@payvora.com" className="font-semibold text-[#1072EA] hover:underline">support@payvora.com</a>
               </div>
 
               <div className="glass-panel p-8 rounded-3xl">
@@ -63,7 +63,7 @@ export default function Contact() {
 
             {/* Contact Form */}
             <div className="lg:col-span-2 glass-panel p-8 md:p-12 rounded-3xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none" />
+              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#1072EA]/08 blur-[100px] rounded-full pointer-events-none" />
               
               <h2 className="text-3xl font-display font-bold mb-8 relative z-10">Send a message</h2>
               
@@ -73,7 +73,7 @@ export default function Contact() {
                     <label className="text-sm font-semibold text-white/70">Full Name</label>
                     <input 
                       type="text" 
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#1072EA] focus:ring-1 focus:ring-[#1072EA] transition-all"
                       placeholder="John Doe"
                     />
                   </div>
@@ -81,7 +81,7 @@ export default function Contact() {
                     <label className="text-sm font-semibold text-white/70">Email Address</label>
                     <input 
                       type="email" 
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#1072EA] focus:ring-1 focus:ring-[#1072EA] transition-all"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -91,7 +91,7 @@ export default function Contact() {
                   <label className="text-sm font-semibold text-white/70">Subject</label>
                   <input 
                     type="text" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#1072EA] focus:ring-1 focus:ring-[#1072EA] transition-all"
                     placeholder="How can we help?"
                   />
                 </div>
@@ -100,7 +100,7 @@ export default function Contact() {
                   <label className="text-sm font-semibold text-white/70">Message</label>
                   <textarea 
                     rows={5}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all resize-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#1072EA] focus:ring-1 focus:ring-[#1072EA] transition-all resize-none"
                     placeholder="Describe your issue in detail..."
                   ></textarea>
                 </div>

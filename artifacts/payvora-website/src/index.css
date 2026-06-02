@@ -5,14 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: 224 60% 10%; /* #0A1428 */
+  --background: 224 60% 10%;      /* #0A1428 */
   --foreground: 0 0% 100%;
-  --primary: 225 89% 40%; /* #0C38C0 */
+  --primary: 214 88% 49%;         /* #1072EA */
   --primary-foreground: 0 0% 100%;
-  --secondary: 222 86% 50%; /* #1254EC */
+  --secondary: 210 90% 19%;       /* #05305C */
   --secondary-foreground: 0 0% 100%;
-  --accent: 192 100% 48%; /* #00C4F4 */
-  --accent-foreground: 224 60% 10%;
+  --accent: 51 93% 55%;           /* #F8DF20 */
+  --accent-foreground: 210 90% 19%;
   --muted: 224 40% 15%;
   --muted-foreground: 224 20% 70%;
   --border: 224 40% 20%;
@@ -30,12 +30,16 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.glow-cyan {
-  box-shadow: 0 0 40px -10px rgba(0, 196, 244, 0.5);
+.glow-primary {
+  box-shadow: 0 0 40px -10px rgba(16, 114, 234, 0.55);
 }
 
 .glow-blue {
-  box-shadow: 0 0 40px -10px rgba(18, 84, 236, 0.6);
+  box-shadow: 0 0 40px -10px rgba(16, 114, 234, 0.6);
+}
+
+.glow-gold {
+  box-shadow: 0 0 40px -10px rgba(248, 223, 32, 0.45);
 }
 
 .glass-panel {
@@ -51,8 +55,14 @@ h1, h2, h3, h4, h5, h6, .font-display {
   -webkit-text-fill-color: transparent;
 }
 
-.text-gradient-cyan {
-  background: linear-gradient(135deg, #00C4F4 0%, #1254EC 100%);
+.text-gradient-brand {
+  background: linear-gradient(135deg, #1072EA 0%, #05305C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F8DF20 0%, #D4BB00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

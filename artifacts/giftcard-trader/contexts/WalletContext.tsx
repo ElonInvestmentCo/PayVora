@@ -47,8 +47,8 @@ const INITIAL_ASSETS: WalletAsset[] = [
   { id: "eth", name: "Ethereum", symbol: "ETH", balance: 2.15, value: 6881.20, change: -1.2, type: "crypto", icon: "E", color: "#627EEA" },
   { id: "sol", name: "Solana", symbol: "SOL", balance: 45.8, value: 3211.45, change: 5.8, type: "crypto", icon: "S", color: "#00FFA3" },
   { id: "usdt", name: "Tether", symbol: "USDT", balance: 2500.0, value: 2500.0, change: 0.01, type: "crypto", icon: "T", color: "#26A17B" },
-  { id: "ngn", name: "Naira", symbol: "NGN", balance: 253750, value: 338.33, change: 0, type: "fiat", icon: "₦", color: "#00E5FF" },
-  { id: "usd", name: "US Dollar", symbol: "USD", balance: 1250.0, value: 1250.0, change: 0, type: "fiat", icon: "$", color: "#00FF88" },
+  { id: "ngn", name: "Naira", symbol: "NGN", balance: 253750, value: 338.33, change: 0, type: "fiat", icon: "₦", color: "#1072EA" },
+  { id: "usd", name: "US Dollar", symbol: "USD", balance: 1250.0, value: 1250.0, change: 0, type: "fiat", icon: "$", color: "#118D45" },
 ];
 
 const INITIAL_TRANSACTIONS: WalletTransaction[] = [

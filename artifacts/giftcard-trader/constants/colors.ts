@@ -78,7 +78,7 @@ const C = {
   sol:            '#9945FF',
   bnb:            '#F3BA2F',
   usdt:           '#26A17B',
-  ada:            '#00C4F4',
+  ada:            '#0033AD',
   xrp:            '#00AAE4',
 
   // ── Overlays ──────────────────────────────────────────────────────────────────
@@ -95,4 +95,56 @@ const C = {
 } as const;
 
 export type ColorKey = keyof typeof C;
+
+// ── Semantic palettes consumed by useColors() ─────────────────────────────────
+export const lightPalette = {
+  primary:          '#1072EA',
+  primaryDark:      '#0B5BC4',
+  primaryLight:     '#E8F1FD',
+  primaryForeground:'#FFFFFF',
+  secondary:        '#05305C',
+  destructive:      '#E02E5B',
+  background:       '#F7F9FC',
+  backgroundAlt:    '#EEF3FA',
+  surface:          '#FFFFFF',
+  card:             '#FFFFFF',
+  foreground:       '#0F172A',
+  mutedForeground:  '#475569',
+  border:           '#E2E8F0',
+  input:            '#F1F5F9',
+  success:          '#118D45',
+  successLight:     '#E8F7EE',
+  warning:          '#F59E0B',
+  error:            '#E02E5B',
+  gold:             '#F8DF20',
+  goldDark:         '#D4BB00',
+  navy:             '#05305C',
+} as const;
+
+export const darkPalette = {
+  primary:          '#1072EA',
+  primaryDark:      '#0B5BC4',
+  primaryLight:     '#1A3B6B',
+  primaryForeground:'#FFFFFF',
+  secondary:        '#0A3D6E',
+  destructive:      '#E02E5B',
+  background:       '#0A1428',
+  backgroundAlt:    '#0D1E38',
+  surface:          '#05305C',
+  card:             '#05305C',
+  foreground:       '#FFFFFF',
+  mutedForeground:  '#94A3B8',
+  border:           '#0A3D6E',
+  input:            '#05305C',
+  success:          '#118D45',
+  successLight:     '#0C2A1A',
+  warning:          '#F59E0B',
+  error:            '#E02E5B',
+  gold:             '#F8DF20',
+  goldDark:         '#D4BB00',
+  navy:             '#021B36',
+} as const;
+
+export const radius = 14;
+
 export default C;

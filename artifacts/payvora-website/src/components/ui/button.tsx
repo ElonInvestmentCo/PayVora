@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[hsl(var(--accent))] text-slate-950 hover:brightness-110 glow-cyan",
+        default: "bg-[hsl(var(--accent))] text-slate-950 hover:brightness-110 glow-primary",
         primary: "bg-[hsl(var(--secondary))] text-white hover:brightness-110 glow-blue",
         outline: "border border-white/10 bg-white/5 hover:bg-white/10 text-white",
         ghost: "hover:bg-white/10 hover:text-white text-white/70",

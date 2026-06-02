@@ -31,25 +31,25 @@ const SLIDES = [
       "Transfer money to anyone, anywhere in seconds. No delays, no hidden fees — just seamless payments at your fingertips.",
     bg1: "#05305C" as const,
     bg2: "#1072EA" as const,
-    accent: "#00C4F4" as const,
+    accent: "#F8DF20" as const,
   },
   {
     id: 1,
     title: "Trade Gift Cards\nAt Best Rates",
     subtitle:
       "Buy and sell gift cards from top brands instantly. Get competitive rates and real-time payouts straight to your wallet.",
-    bg1: "#0A2E9A" as const,
-    bg2: "#1048D8" as const,
-    accent: "#34D8A0" as const,
+    bg1: "#05305C" as const,
+    bg2: "#1072EA" as const,
+    accent: "#118D45" as const,
   },
   {
     id: 2,
     title: "Earn Rewards &\nGrow Your Wealth",
     subtitle:
       "Every transaction earns you points. Invest in crypto, save smarter, and watch your money work harder every day.",
-    bg1: "#0B1E6E" as const,
-    bg2: "#0F38CC" as const,
-    accent: "#FFB830" as const,
+    bg1: "#05305C" as const,
+    bg2: "#0B5BC4" as const,
+    accent: "#F8DF20" as const,
   },
 ] as const;
 
@@ -387,7 +387,7 @@ const s = StyleSheet.create({
     alignItems: "center", paddingHorizontal: 24, paddingBottom: 8,
   },
   logoRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  logoDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#00C4F4" },
+  logoDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#F8DF20" },
   logoText: { fontSize: 18, fontWeight: "700", color: "#FFFFFF", fontFamily: "Inter_700Bold" },
   skipText: { fontSize: 15, color: "rgba(255,255,255,0.65)", fontFamily: "Inter_500Medium" },
 

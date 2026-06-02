@@ -451,8 +451,8 @@ const d = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 6,
     backgroundColor: "rgba(0,0,0,0.72)",
     borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7,
-    borderWidth: 1, borderColor: "rgba(0,229,255,0.25)",
+    borderWidth: 1, borderColor: "rgba(16,114,234,0.35)",
   },
-  toastDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#00E5FF" },
+  toastDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#1072EA" },
   toastText: { color: "#FFFFFF", fontSize: 12, fontFamily: "Inter_600SemiBold", letterSpacing: 0.3 },
 });
