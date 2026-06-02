@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -72,6 +72,32 @@ export default function KycScreen() {
   const [dob, setDob]               = useState("");
   const [address, setAddress]       = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Field refs for keyboard navigation
+  const lastNameRef = useRef<import("react-native").TextInput>(null);
+  const dobRef      = useRef<import("react-native").TextInput>(null);
+
+  // Real-time DOB validation
+  const dobValidation = useMemo(() => {
+    const digits = dob.replace(/\D/g, "");
+    if (digits.length === 0) return { state: "empty" as const, label: "" };
+    if (digits.length < 8)  return { state: "partial" as const, label: "" };
+    const d = parseInt(digits.slice(0, 2), 10);
+    const m = parseInt(digits.slice(2, 4), 10);
+    const y = parseInt(digits.slice(4, 8), 10);
+    if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > 2100)
+      return { state: "invalid" as const, label: "Invalid date" };
+    const date = new Date(y, m - 1, d);
+    if (date.getDate() !== d || date.getMonth() !== m - 1)
+      return { state: "invalid" as const, label: "Invalid date" };
+    const today = new Date();
+    let age = today.getFullYear() - y;
+    const mDiff = today.getMonth() - (m - 1);
+    if (mDiff < 0 || (mDiff === 0 && today.getDate() < d)) age--;
+    if (age > 120) return { state: "invalid" as const, label: "Invalid year" };
+    if (age < 18)  return { state: "too_young" as const, label: "Must be 18+" };
+    return { state: "valid" as const, label: `Age ${age}` };
+  }, [dob]);
 
   // Step 1 — ID Document
   const [documentUri, setDocumentUri] = useState<string | null>(null);
@@ -342,6 +368,8 @@ export default function KycScreen() {
           <View style={s.section}>
             <Text style={s.stepTitle}>Personal Information</Text>
             <Text style={s.stepSub}>Enter your legal name and address exactly as shown on your ID.</Text>
+
+            {/* Card 1: Name + DOB (overflow:hidden for border-radius clipping) */}
             <View style={s.card}>
 
               {/* First Name */}
@@ -354,51 +382,106 @@ export default function KycScreen() {
                   placeholderTextColor="#C7C7CC"
                   style={s.fieldInput}
                   autoCapitalize="words"
+                  autoComplete="given-name"
+                  textContentType="givenName"
+                  returnKeyType="next"
+                  onSubmitEditing={() => lastNameRef.current?.focus()}
+                  blurOnSubmit={false}
+                  accessibilityLabel="First name"
                 />
-                {fieldErrors.firstName ? <Text style={s.fieldError}>{fieldErrors.firstName}</Text> : null}
+                {fieldErrors.firstName ? (
+                  <View style={s.fieldErrorRow}>
+                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Text style={s.fieldError}>{fieldErrors.firstName}</Text>
+                  </View>
+                ) : null}
               </View>
 
               {/* Last Name */}
               <View style={[s.fieldGroup, s.fieldGroupBorder]}>
                 <Text style={s.fieldLabel}>Last Name</Text>
                 <TextInput
+                  ref={lastNameRef}
                   value={lastName}
                   onChangeText={(t) => { setLastName(t); setFieldErrors((p) => ({ ...p, lastName: "" })); }}
                   placeholder="Doe"
                   placeholderTextColor="#C7C7CC"
                   style={s.fieldInput}
                   autoCapitalize="words"
+                  autoComplete="family-name"
+                  textContentType="familyName"
+                  returnKeyType="next"
+                  onSubmitEditing={() => dobRef.current?.focus()}
+                  blurOnSubmit={false}
+                  accessibilityLabel="Last name"
                 />
-                {fieldErrors.lastName ? <Text style={s.fieldError}>{fieldErrors.lastName}</Text> : null}
+                {fieldErrors.lastName ? (
+                  <View style={s.fieldErrorRow}>
+                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Text style={s.fieldError}>{fieldErrors.lastName}</Text>
+                  </View>
+                ) : null}
               </View>
 
-              {/* Date of Birth — auto-formats to DD/MM/YYYY */}
-              <View style={[s.fieldGroup, s.fieldGroupBorder]}>
+              {/* Date of Birth — auto-formats digits → DD/MM/YYYY */}
+              <View style={s.fieldGroup}>
                 <Text style={s.fieldLabel}>Date of Birth</Text>
-                <TextInput
-                  value={dob}
-                  onChangeText={handleDobChange}
-                  placeholder="DD/MM/YYYY"
-                  placeholderTextColor="#C7C7CC"
-                  style={s.fieldInput}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                />
-                <Text style={s.fieldHint}>Type digits — auto-formatted (e.g. 15031990 → 15/03/1990)</Text>
-                {fieldErrors.dob ? <Text style={s.fieldError}>{fieldErrors.dob}</Text> : null}
+                <View style={s.dobRow}>
+                  <TextInput
+                    ref={dobRef}
+                    value={dob}
+                    onChangeText={handleDobChange}
+                    placeholder="DD / MM / YYYY"
+                    placeholderTextColor="#C7C7CC"
+                    style={[s.fieldInput, { flex: 1 }]}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                    autoComplete="birthdate-full"
+                    returnKeyType="done"
+                    accessibilityLabel="Date of birth"
+                    accessibilityHint="Type digits, auto-formatted as DD/MM/YYYY"
+                  />
+                  {/* Real-time validation badge */}
+                  {dobValidation.state === "valid" && (
+                    <View style={[s.dobBadge, s.dobBadgeGreen]}>
+                      <Icon name="check" color="#20A845" size={11} />
+                      <Text style={[s.dobBadgeText, { color: "#20A845" }]}>{dobValidation.label}</Text>
+                    </View>
+                  )}
+                  {(dobValidation.state === "invalid" || dobValidation.state === "too_young") && (
+                    <View style={[s.dobBadge, s.dobBadgeRed]}>
+                      <Icon name="x-circle" color="#FF3B30" size={11} />
+                      <Text style={[s.dobBadgeText, { color: "#FF3B30" }]}>{dobValidation.label}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={s.fieldHint}>
+                  {dobValidation.state === "partial"
+                    ? "Keep typing…"
+                    : "Digits only — auto-formats as you type (e.g. 01031990)"}
+                </Text>
+                {fieldErrors.dob ? (
+                  <View style={s.fieldErrorRow}>
+                    <Icon name="alert-circle" color="#FF3B30" size={12} />
+                    <Text style={s.fieldError}>{fieldErrors.dob}</Text>
+                  </View>
+                ) : null}
               </View>
 
-              {/* Home Address */}
-              <View style={[s.fieldGroup, { zIndex: 10 }]}>
-                <Text style={s.fieldLabel}>Home Address</Text>
+            </View>
+
+            {/* Card 2: Address — separate card without overflow:hidden so dropdown can overflow */}
+            <View style={s.addressCard}>
+              <Text style={s.fieldLabel}>Home Address</Text>
+              <View style={{ marginTop: 8 }}>
                 <AddressInput
                   value={address}
                   onChangeText={(t) => { setAddress(t); setFieldErrors((p) => ({ ...p, address: "" })); }}
                   error={fieldErrors.address}
                 />
               </View>
-
             </View>
+
           </View>
         )}
 
@@ -578,7 +661,24 @@ const s = StyleSheet.create({
   fieldLabel: { fontSize: 12, fontFamily: "Inter_500Medium", color: "#8E8E93", marginBottom: 4 },
   fieldInput: { fontSize: 16, fontFamily: "Inter_400Regular", color: "#1C1C1E" },
   fieldHint: { fontSize: 11, fontFamily: "Inter_400Regular", color: "#C7C7CC", marginTop: 3 },
-  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#FF3B30", marginTop: 4 },
+  fieldError: { fontSize: 12, fontFamily: "Inter_400Regular", color: "#FF3B30" },
+  fieldErrorRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 4, marginTop: 5 },
+
+  // Address card — same shadow as card but NO overflow:hidden so dropdown can overflow
+  addressCard: {
+    backgroundColor: "#FFFFFF", borderRadius: 20, padding: 16, marginTop: 12,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+  },
+
+  // DOB inline row
+  dobRow: { flexDirection: "row" as const, alignItems: "center" as const, gap: 10 },
+  dobBadge: {
+    flexDirection: "row" as const, alignItems: "center" as const, gap: 4,
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20, flexShrink: 0,
+  },
+  dobBadgeGreen: { backgroundColor: "#F0FFF5", borderWidth: 1, borderColor: "#30D15830" },
+  dobBadgeRed:   { backgroundColor: "#FFF0EF", borderWidth: 1, borderColor: "#FF3B3030" },
+  dobBadgeText:  { fontSize: 11, fontFamily: "Inter_600SemiBold" },
 
   uploadArea: {
     backgroundColor: "#FFFFFF", borderRadius: 20, padding: 28, alignItems: "center",
