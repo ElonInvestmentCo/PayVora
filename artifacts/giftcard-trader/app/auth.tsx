@@ -215,14 +215,18 @@ function TabToggle({
 }) {
   const slideAnim = useRef(new Animated.Value(active === "login" ? 0 : 1)).current;
 
-  const switchTab = (tab: "login" | "signup") => {
-    hapticLight();
+  // Sync pill position whenever `active` is changed externally (e.g. footer links)
+  useEffect(() => {
     Animated.spring(slideAnim, {
-      toValue: tab === "login" ? 0 : 1,
+      toValue: active === "login" ? 0 : 1,
       tension: 80,
       friction: 10,
       useNativeDriver: true,
     }).start();
+  }, [active]);
+
+  const switchTab = (tab: "login" | "signup") => {
+    hapticLight();
     onChange(tab);
   };
 
